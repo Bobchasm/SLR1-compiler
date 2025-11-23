@@ -21,8 +21,8 @@ compiler/
 ├── scripts/               # 脚本和工具目录
 │   └── test.cpp          # 测试脚本
 ├── src/                   # 源代码目录
-│   ├── lexer.cpp         # 词法分析器实现
-│   └── Makefile
+│   └── lexer.cpp         # 词法分析器实现
+├── Makefile
 ├── .gitignore
 └── README.md
 ```
