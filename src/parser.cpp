@@ -23,13 +23,20 @@ using namespace std;
 
 void initGrammar() 
 {
-    grammar.startSymbol = "Program";
+    grammar.startSymbol = "Start";
 
     for (auto &t : tokenTypeToTerminal)
         grammar.terminals.insert(t.second);
     
     // 终结符标号按打表的来，非终结符从终结符序号后接着标
     int nonterminal_count = grammar.terminals.size();
+
+    // 拓广文法
+    Production exprod;
+    exprod.original_index = 0;
+    exprod.left = "Start";
+    exprod.right = vector<string>{"Program"};
+    grammar.productions.push_back(exprod);
 
     for (auto &p : originalProductions) 
     {
@@ -38,8 +45,11 @@ void initGrammar()
         prod.left = p.second.first;
         prod.right = p.second.second;
         grammar.productions.push_back(prod);
-        grammar.nonterminals.insert(pair<string,int>(prod.left, ++nonterminal_count));
+        if (grammar.nonterminals.find(prod.left) == grammar.nonterminals.end())
+            grammar.nonterminals.insert(pair<string,int>(prod.left, ++nonterminal_count));
     }
+
+    
 }
 
 
