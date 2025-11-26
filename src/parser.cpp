@@ -20,10 +20,38 @@ using namespace std;
 
 
 
+
+void initGrammar() 
+{
+    grammar.startSymbol = "Program";
+
+    for (auto &t : tokenTypeToTerminal)
+        grammar.terminals.insert(t.second);
+    
+    // 终结符标号按打表的来，非终结符从终结符序号后接着标
+    int nonterminal_count = grammar.terminals.size();
+
+    for (auto &p : originalProductions) 
+    {
+        Production prod;
+        prod.original_index = p.first;
+        prod.left = p.second.first;
+        prod.right = p.second.second;
+        grammar.productions.push_back(prod);
+        grammar.nonterminals.insert(pair<string,int>(prod.left, ++nonterminal_count));
+    }
+}
+
+
+
+
+
+
 class SLR1Parser 
 {
 private:
-    // stack<string> parseStack;
+    stack<int> statusStack;    // 状态栈 
+    stack<string> symbolStack;    // 符号栈
     ostream &output;
     int stepCount;
     
@@ -43,7 +71,7 @@ private:
             transform(tokenText.begin(), tokenText.end(), tokenText.begin(), ::tolower);
         
         if (tokenTypeToTerminal.count(tokenText))
-            return tokenTypeToTerminal[tokenText];
+            return tokenTypeToTerminal[tokenText].first;
 
         return tokenText;
     }
@@ -51,8 +79,7 @@ private:
 public:
     SLR1Parser(ostream &out) : output(out), stepCount(1) 
     {
-        // parseStack.push(END_MARKER);
-        // parseStack.push(grammar.startSymbol);
+        
     }
     
     bool parse() 
@@ -66,6 +93,9 @@ public:
         return true;
     }
 };
+
+
+
 
 int main(int argc, char *argv[]) 
 {

@@ -3,19 +3,28 @@
 #include <set>
 #include <string>
 
+#define ACC 0
+#define MOVE 1
+#define REDUCTION 2
+
+
 using namespace std;
 
 const string EPSILON = "$";
 const string END_MARKER = "EOF";
 
-map<string, string> tokenTypeToTerminal = {
-    {"int", "int"}, {"void", "void"}, {"const", "const"}, {"float", "float"},
-    {"if", "if"}, {"else", "else"}, {"return", "return"},
-    {"+", "+"}, {"-", "-"}, {"*", "*"}, {"/", "/"}, {"%", "%"},
-    {"=", "="}, {">", ">"}, {"<", "<"}, {"==", "=="}, {"<=", "<="}, 
-    {">=", ">="}, {"!=", "!="}, {"&&", "&&"}, {"||", "||"}, {"!", "!"},
-    {"(", "("}, {")", ")"}, {"{", "{"}, {"}", "}"}, {";", ";"}, {",", ","},
-    {"IDN", "IDN"}, {"INT", "INT"}, {"FLOAT", "FLOAT"}
+// 序号用于分析表终结符唯一标识，注意这里与词法分析器那里的标号无关
+map<string, pair<string,int> > tokenTypeToTerminal = {
+    {"int", {"int",1}}, {"void", {"void",2}}, {"return", {"return",3}}, {"const", {"const",4}}, {"float", {"float",5}}, {"if", {"if",6}}, {"else", {"else",7}}, 
+    
+    {"+", {"+",8}}, {"-", {"-",9}}, {"*", {"*",10}}, {"/", {"/",11}}, {"%", {"%",12}},
+    
+    {"=", {"=",13}}, {">", {">",14}}, {"<", {"<",15}}, {"==", {"==",16}}, {"<=", {"<=",17}}, 
+    {">=", {">=",18}}, {"!=", {"!=",19}}, {"&&", {"&&",20}}, {"||", {"||",21}}, {"!", {"!",21}},
+    
+    {"(", {"(",22}}, {")", {")",23}}, {"{", {"{",24}}, {"}", {"}",25}}, {";", {";",26}}, {",", {",",27}},
+    
+    {"IDN", {"IDN",28}}, {"INT", {"INT",29}}, {"FLOAT",{"FLOAT",30}}
 };
 
 struct Production 
@@ -44,14 +53,21 @@ struct Production
 
 struct Grammar 
 {
+    // 产生式
     vector<Production> productions;
-    set<string> nonterminals;
-    set<string> terminals;
+    // 开始符号
     string startSymbol;
+
+    // 所有非终结符
+    map<string,int> nonterminals;
+    // 所有终结符
+    map<string,int> terminals;
     
     map<string, set<string>> firstSets;
     map<string, set<string>> followSets;
-    map<pair<string, string>, Production> parseTable;
+
+    // 分析表，行号为状态序号，列号为终结符/非终结符的唯一编号
+    vector<vector<Action> > parseTable;
 };
 
 Grammar grammar;
@@ -207,3 +223,15 @@ vector<pair<int, pair<string, vector<string> > > > originalProductions = {
     // 33. constExp -> addExp
     {84, {"constExp", {"addExp"}}}
 };
+
+// 指分析表里每个格里的一个动作
+struct Action
+{
+    int type;
+    int num;
+
+    Action(int typein, int numin) : type(typein), num(numin) {}
+};
+
+
+void initGrammar();

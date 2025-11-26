@@ -29,10 +29,10 @@ map<string, pair<string, int>> keywords = {
     {"int", {"KW", 1}}, {"void", {"KW", 2}}, {"return", {"KW", 3}}, {"const", {"KW", 4}}, {"float", {"KW", 6}}, {"if", {"KW", 7}}, {"else", {"KW", 8}}};
 
 map<string, pair<string, int>> operators = {
-    {"+", {"OP", 9}}, {"-", {"OP", 10}}, {"*", {"OP", 11}}, {"/", {"OP", 12}}, {"%", {"OP", 13}}, {"=", {"OP", 14}}, {">", {"OP", 15}}, {"<", {"OP", 16}}, {"==", {"OP", 17}}, {"<=", {"OP", 18}}, {">=", {"OP", 19}}, {"!=", {"OP", 20}}, {"&&", {"OP", 21}}, {"||", {"OP", 22}}};
+    {"+", {"OP", 9}}, {"-", {"OP", 10}}, {"*", {"OP", 11}}, {"/", {"OP", 12}}, {"%", {"OP", 13}}, {"=", {"OP", 14}}, {">", {"OP", 15}}, {"<", {"OP", 16}}, {"==", {"OP", 17}}, {"<=", {"OP", 18}}, {">=", {"OP", 19}}, {"!=", {"OP", 20}}, {"&&", {"OP", 21}}, {"||", {"OP", 22}}, {"!", {"OP", 23}}};
 
 map<string, pair<string, int>> separators = {
-    {"(", {"SE", 23}}, {")", {"SE", 24}}, {"{", {"SE", 25}}, {"}", {"SE", 26}}, {";", {"SE", 27}}, {",", {"SE", 28}}};
+    {"(", {"SE", 24}}, {")", {"SE", 25}}, {"{", {"SE", 26}}, {"}", {"SE", 27}}, {";", {"SE", 28}}, {",", {"SE", 29}}};
 
 struct NFATransition
 {
@@ -290,7 +290,7 @@ vector<NFA> buildOperatorNFAs()
         nfas.push_back(nfa);
     }
 
-    vector<string> singleOps = {"+", "-", "*", "/", "%", "=", ">", "<"};
+    vector<string> singleOps = {"+", "-", "*", "/", "%", "=", ">", "<", "!"};
     for (const string &op : singleOps)
         nfas.push_back(createCharNFA(op[0]));
 
@@ -859,7 +859,7 @@ DFA buildLexerDFA()
         tokenInfos.push_back({"OP", to_string(operators[op].second)});
     }
 
-    vector<string> singleOps = {"+", "-", "*", "/", "%", "=", ">", "<"};
+    vector<string> singleOps = {"+", "-", "*", "/", "%", "=", ">", "<", "!"};
     for (const string &op : singleOps)
     {
         nfas.push_back(createCharNFA(op[0]));
