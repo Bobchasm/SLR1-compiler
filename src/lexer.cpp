@@ -1008,7 +1008,7 @@ extern "C"
         createDirectoryIfNotExists("process");
 
         // // 导出词法分析状态转移矩阵，太慢了先注释掉
-        exportDFATransitionMatrix(global_dfa, TRANSITION_MATRIX_PATH + "lexer_state_transition_matrix.csv");
+        // exportDFATransitionMatrix(global_dfa, TRANSITION_MATRIX_PATH + "lexer_state_transition_matrix.csv");
         
         global_lexer = new Lexer(global_dfa, string(input));
         
