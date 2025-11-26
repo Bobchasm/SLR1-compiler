@@ -27,6 +27,164 @@ map<string, pair<string,int> > tokenTypeToTerminal = {
     {"IDN", {"IDN",29}}, {"INT", {"INT",30}}, {"FLOAT",{"FLOAT",31}}
 };
 
+// 项目
+struct Item
+{
+    string left;
+    vector<string> right;
+    int flag;   // 那个项目的点所在vector的位置，如在index为0元素前则其值为0
+    int prodIndex;  // 对应的产生式索引（用于规约时确定使用哪个产生式）
+    
+    Item() : flag(0), prodIndex(-1) {}
+    Item(string l, vector<string> r, int f, int pi = -1) 
+        : left(l), right(r), flag(f), prodIndex(pi) {}
+    
+    // 比较运算符（用于set和map）
+    bool operator<(const Item& other) const 
+    {
+        if (left != other.left) return left < other.left;
+        if (right != other.right) return right < other.right;
+        if (flag != other.flag) return flag < other.flag;
+        return prodIndex < other.prodIndex;
+    }
+    
+    bool operator==(const Item& other) const 
+    {
+        return left == other.left && right == other.right && 
+               flag == other.flag && prodIndex == other.prodIndex;
+    }
+    
+    // 判断点是否在末尾（可归约项目）
+    bool isComplete() const 
+    {
+        return flag >= (int)right.size() || 
+               (right.size() == 1 && right[0] == EPSILON);
+    }
+    
+    // 获取点后面的符号（如果有）
+    string getNextSymbol() const 
+    {
+        if (isComplete()) return "";
+        return right[flag];
+    }
+    
+    string toString() const 
+    {
+        string result = left + " -> ";
+        
+        if (right.empty() || (right.size() == 1 && right[0] == EPSILON))
+        {
+            result += "." + EPSILON;
+            return result;
+        }
+        
+        for (size_t i = 0; i < right.size(); i++) 
+        {
+            if (i == (size_t)flag)
+                result += ".";
+            
+            if (i > 0)
+                result += " ";
+            result += right[i];
+        }
+        
+        if ((size_t)flag == right.size())
+            result += ".";
+        
+        return result;
+    }
+};
+
+// 项目集(DFA的单个状态)
+struct DFAStatus
+{
+    int statusNum;              // 状态编号
+    vector<Item> items;         // 项目集
+    
+    DFAStatus() : statusNum(-1) {}
+    DFAStatus(int num) : statusNum(num) {}
+    
+    bool operator<(const DFAStatus& other) const 
+    {
+        return items < other.items;
+    }
+    
+    bool operator==(const DFAStatus& other) const 
+    {
+        return items == other.items;
+    }
+    
+    string toString() const 
+    {
+        string result = "I" + to_string(statusNum) + ":\n";
+        for (const Item& item : items) 
+            result += "  " + item.toString() + "\n";
+        return result;
+    }
+};
+
+struct DFATransition
+{
+    int from;           // 源状态编号
+    string symbol;      // 转换符号
+    int to;             // 目标状态编号
+    
+    DFATransition(int f, string s, int t) : from(f), symbol(s), to(t) {}
+};
+
+struct DFA
+{
+    vector<DFAStatus> states;           // 项目集族
+    int startState;                     // 起始状态编号
+    vector<DFATransition> transitions;  // 状态转换
+    
+    // 转换表：[状态编号][符号] -> 目标状态编号
+    map<int, map<string, int>> transitionTable;
+    
+    DFA() : startState(0) {}
+    
+    int addState(const DFAStatus& state) 
+    {
+        states.push_back(state);
+        return states.size() - 1;
+    }
+    
+    void addTransition(int from, const string& symbol, int to) 
+    {
+        transitions.push_back(DFATransition(from, symbol, to));
+        transitionTable[from][symbol] = to;
+    }
+    
+    int getTransition(int from, const string& symbol) const 
+    {
+        auto it1 = transitionTable.find(from);
+        if (it1 == transitionTable.end()) return -1;
+        
+        auto it2 = it1->second.find(symbol);
+        if (it2 == it1->second.end()) return -1;
+        
+        return it2->second;
+    }
+    
+    string toString() const 
+    {
+        string result = "DFA States:\n";
+        for (const DFAStatus& state : states) 
+        {
+            result += state.toString() + "\n";
+        }
+        
+        result += "\nTransitions:\n";
+        for (const DFATransition& trans : transitions) 
+        {
+            result += "I" + to_string(trans.from) + " --[" + 
+                     trans.symbol + "]--> I" + to_string(trans.to) + "\n";
+        }
+        
+        return result;
+    }
+};
+
 // 指分析表里每个格里的一个动作
 struct Action
 {
@@ -74,6 +232,8 @@ struct Grammar
     
     map<string, set<string>> firstSets;
     map<string, set<string>> followSets;
+
+    DFA parseDFA;
 
     // 分析表，行号为状态序号，列号为终结符/非终结符的唯一编号
     vector<vector<Action>> parseTable;
@@ -233,162 +393,8 @@ vector<pair<int, pair<string, vector<string> > > > originalProductions = {
     {84, {"constExp", {"addExp"}}}
 };
 
-// 项目
-struct Item
-{
-    string left;
-    vector<string> right;
-    int flag;   // 那个项目的点所在vector的位置，如在index为0元素前则其值为0
-    int prodIndex;  // 对应的产生式索引（用于规约时确定使用哪个产生式）
-    
-    Item() : flag(0), prodIndex(-1) {}
-    Item(string l, vector<string> r, int f, int pi = -1) 
-        : left(l), right(r), flag(f), prodIndex(pi) {}
-    
-    // 比较运算符（用于set和map）
-    bool operator<(const Item& other) const 
-    {
-        if (left != other.left) return left < other.left;
-        if (right != other.right) return right < other.right;
-        if (flag != other.flag) return flag < other.flag;
-        return prodIndex < other.prodIndex;
-    }
-    
-    bool operator==(const Item& other) const 
-    {
-        return left == other.left && right == other.right && 
-               flag == other.flag && prodIndex == other.prodIndex;
-    }
-    
-    // 判断点是否在末尾（可归约项目）
-    bool isComplete() const 
-    {
-        return flag >= (int)right.size() || 
-               (right.size() == 1 && right[0] == EPSILON);
-    }
-    
-    // 获取点后面的符号（如果有）
-    string getNextSymbol() const 
-    {
-        if (isComplete()) return "";
-        return right[flag];
-    }
-    
-    string toString() const 
-    {
-        string result = left + " -> ";
-        
-        if (right.empty() || (right.size() == 1 && right[0] == EPSILON))
-        {
-            result += "." + EPSILON;
-            return result;
-        }
-        
-        for (size_t i = 0; i < right.size(); i++) 
-        {
-            if (i == (size_t)flag)
-                result += ".";
-            
-            if (i > 0)
-                result += " ";
-            result += right[i];
-        }
-        
-        if ((size_t)flag == right.size())
-            result += ".";
-        
-        return result;
-    }
-};
 
-// 项目集(DFA的单个状态)
-struct DFAStatus
-{
-    int statusNum;              // 状态编号
-    vector<Item> items;         // 项目集
-    
-    DFAStatus() : statusNum(-1) {}
-    DFAStatus(int num) : statusNum(num) {}
-    
-    bool operator<(const DFAStatus& other) const 
-    {
-        return items < other.items;
-    }
-    
-    bool operator==(const DFAStatus& other) const 
-    {
-        return items == other.items;
-    }
-    
-    string toString() const 
-    {
-        string result = "I" + to_string(statusNum) + ":\n";
-        for (const Item& item : items) 
-            result += "  " + item.toString() + "\n";
-        return result;
-    }
-};
-
-struct DFATransition
-{
-    int from;           // 源状态编号
-    string symbol;      // 转换符号
-    int to;             // 目标状态编号
-    
-    DFATransition(int f, string s, int t) : from(f), symbol(s), to(t) {}
-};
-
-struct DFA
-{
-    vector<DFAStatus> states;           // 项目集族
-    int startState;                     // 起始状态编号
-    vector<DFATransition> transitions;  // 状态转换
-    
-    // 转换表：[状态编号][符号] -> 目标状态编号
-    map<int, map<string, int>> transitionTable;
-    
-    DFA() : startState(0) {}
-    
-    int addState(const DFAStatus& state) 
-    {
-        states.push_back(state);
-        return states.size() - 1;
-    }
-    
-    void addTransition(int from, const string& symbol, int to) 
-    {
-        transitions.push_back(DFATransition(from, symbol, to));
-        transitionTable[from][symbol] = to;
-    }
-    
-    int getTransition(int from, const string& symbol) const 
-    {
-        auto it1 = transitionTable.find(from);
-        if (it1 == transitionTable.end()) return -1;
-        
-        auto it2 = it1->second.find(symbol);
-        if (it2 == it1->second.end()) return -1;
-        
-        return it2->second;
-    }
-    
-    string toString() const 
-    {
-        string result = "DFA States:\n";
-        for (const DFAStatus& state : states) 
-        {
-            result += state.toString() + "\n";
-        }
-        
-        result += "\nTransitions:\n";
-        for (const DFATransition& trans : transitions) 
-        {
-            result += "I" + to_string(trans.from) + " --[" + 
-                     trans.symbol + "]--> I" + to_string(trans.to) + "\n";
-        }
-        
-        return result;
-    }
-};
 
 void initGrammar();
+
+void buildParseDFA();
