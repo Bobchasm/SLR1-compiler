@@ -20,11 +20,20 @@ map<string, pair<string,int> > tokenTypeToTerminal = {
     {"+", {"+",8}}, {"-", {"-",9}}, {"*", {"*",10}}, {"/", {"/",11}}, {"%", {"%",12}},
     
     {"=", {"=",13}}, {">", {">",14}}, {"<", {"<",15}}, {"==", {"==",16}}, {"<=", {"<=",17}}, 
-    {">=", {">=",18}}, {"!=", {"!=",19}}, {"&&", {"&&",20}}, {"||", {"||",21}}, {"!", {"!",21}},
+    {">=", {">=",18}}, {"!=", {"!=",19}}, {"&&", {"&&",20}}, {"||", {"||",21}}, {"!", {"!",22}},
     
-    {"(", {"(",22}}, {")", {")",23}}, {"{", {"{",24}}, {"}", {"}",25}}, {";", {";",26}}, {",", {",",27}},
+    {"(", {"(",23}}, {")", {")",24}}, {"{", {"{",25}}, {"}", {"}",26}}, {";", {";",27}}, {",", {",",28}},
     
-    {"IDN", {"IDN",28}}, {"INT", {"INT",29}}, {"FLOAT",{"FLOAT",30}}
+    {"IDN", {"IDN",29}}, {"INT", {"INT",30}}, {"FLOAT",{"FLOAT",31}}
+};
+
+// 指分析表里每个格里的一个动作
+struct Action
+{
+    int type;
+    int num;
+
+    Action(int typein, int numin) : type(typein), num(numin) {}
 };
 
 struct Production 
@@ -67,7 +76,7 @@ struct Grammar
     map<string, set<string>> followSets;
 
     // 分析表，行号为状态序号，列号为终结符/非终结符的唯一编号
-    vector<vector<Action> > parseTable;
+    vector<vector<Action>> parseTable;
 };
 
 Grammar grammar;
@@ -224,15 +233,6 @@ vector<pair<int, pair<string, vector<string> > > > originalProductions = {
     {84, {"constExp", {"addExp"}}}
 };
 
-// 指分析表里每个格里的一个动作
-struct Action
-{
-    int type;
-    int num;
-
-    Action(int typein, int numin) : type(typein), num(numin) {}
-};
-
 // 项目
 struct Item
 {
@@ -306,7 +306,8 @@ struct DFAStatus
 {
     int statusNum;              // 状态编号
     vector<Item> items;         // 项目集
-        DFAStatus() : statusNum(-1) {}
+    
+    DFAStatus() : statusNum(-1) {}
     DFAStatus(int num) : statusNum(num) {}
     
     bool operator<(const DFAStatus& other) const 
