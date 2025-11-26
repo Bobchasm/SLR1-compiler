@@ -11,9 +11,19 @@
 #include <tuple>
 #include <cstring>
 
+#ifdef _WIN32
+    #include <direct.h>
+#else
+    #include <sys/stat.h>
+    #include <sys/types.h>
+#endif
+
 using namespace std;
 
 const char EPSILON = '\0';
+
+const string TRANSITION_MATRIX_PATH = "process/";
+const char* TEST_CASE_PATH = "case/";
 
 map<string, pair<string, int>> keywords = {
     {"int", {"KW", 1}}, {"void", {"KW", 2}}, {"return", {"KW", 3}}, {"const", {"KW", 4}}, {"float", {"KW", 6}}, {"if", {"KW", 7}}, {"else", {"KW", 8}}};
@@ -59,6 +69,10 @@ struct DFA
 
     DFA() : startState(0), maxState(0) {}
 };
+
+
+void exportDFATransitionMatrix(const DFA &dfa, const string &filename);
+
 
 // ==================== 正则表达式 -> NFA ====================
 
@@ -887,11 +901,99 @@ DFA buildLexerDFA()
     return minDFA;
 }
 
+// ==================== 导出状态转移矩阵 ====================
+void createDirectoryIfNotExists(const string &path)
+{
+#ifdef _WIN32
+    _mkdir(path.c_str());
+#else
+    mkdir(path.c_str(), 0755);
+#endif
+}
+
+/**
+ * 导出DFA状态转移矩阵到CSV文件
+ */
+void exportDFATransitionMatrix(const DFA &dfa, const string &filename)
+{
+    createDirectoryIfNotExists(TRANSITION_MATRIX_PATH);
+
+    ofstream csvFile(filename);
+    if (!csvFile.is_open())
+    {
+        cerr << "Error: Cannot create file '" << filename << "'" << endl;
+        return;
+    }
+
+    set<char> alphabet;
+    for (const auto &trans : dfa.transitions)
+        alphabet.insert(trans.symbol);
+
+    map<int, map<char, int>> transitionTable;
+    for (const auto &trans : dfa.transitions)
+        transitionTable[trans.from][trans.symbol] = trans.to;
+
+    csvFile << "State";
+    for (char c : alphabet)
+    {
+        csvFile << ",";
+        if (c == ' ')
+            csvFile << "SPACE";
+        else if (c == '\t')
+            csvFile << "TAB";
+        else if (c == '\n')
+            csvFile << "NEWLINE";
+        else if (c == '\r')
+            csvFile << "CR";
+        else
+            csvFile << c;
+    }
+    csvFile << ",Accept,TokenType,TokenValue" << endl;
+
+    for (int state = 0; state <= dfa.maxState; state++)
+    {
+        csvFile << state;
+        for (char c : alphabet)
+        {
+            csvFile << ",";
+            if (transitionTable[state].find(c) != transitionTable[state].end())
+                csvFile << transitionTable[state][c];
+            else
+                csvFile << "-";
+        }
+
+        csvFile << ",";
+        if (dfa.acceptStates.find(state) != dfa.acceptStates.end())
+            csvFile << "YES";
+        else
+            csvFile << "NO";
+
+        csvFile << ",";
+        auto typeIt = dfa.tokenType.find(state);
+        if (typeIt != dfa.tokenType.end())
+            csvFile << typeIt->second;
+
+        csvFile << ",";
+        auto valueIt = dfa.tokenValue.find(state);
+        if (valueIt != dfa.tokenValue.end())
+            csvFile << valueIt->second;
+
+        csvFile << endl;
+    }
+
+    csvFile.close();
+    cout << "[LEXER] DFA state transition matrix has exported to " << filename << endl;
+}
+
+
 // ==================== 封装接口 ====================
 #include "lexer.h"
 
 static Lexer *global_lexer = nullptr;
 static DFA global_dfa;
+static string test_case_path = "";
+static string test_file_name = "";
+static ofstream token_output_file;
 
 extern "C"
 {
@@ -902,7 +1004,30 @@ extern "C"
             delete global_lexer;
 
         global_dfa = buildLexerDFA();
+        
+        createDirectoryIfNotExists("process");
+
+        // // 导出词法分析状态转移矩阵，太慢了先注释掉
+        exportDFATransitionMatrix(global_dfa, TRANSITION_MATRIX_PATH + "lexer_state_transition_matrix.csv");
+        
         global_lexer = new Lexer(global_dfa, string(input));
+        
+        if (!test_case_path.empty() && !test_file_name.empty())
+        {
+            createDirectoryIfNotExists(test_case_path);
+            
+            string base_name = test_file_name;
+            size_t dot_pos = base_name.find_last_of('.');
+            if (dot_pos != string::npos)
+                base_name = base_name.substr(0, dot_pos);
+            
+            string output_path = test_case_path +  base_name + "_token_result.txt";
+            token_output_file.open(output_path, ios::out | ios::trunc);
+            if (!token_output_file.is_open())
+                cerr << "Warning: Cannot create token output file: " << output_path << endl;
+            else
+                cout << "[LEXER] Token output file: " << output_path << endl;
+        }
     }
 
     Token getNextToken()
@@ -920,7 +1045,11 @@ extern "C"
         bool success = get<3>(result);
 
         if (!success)
+        {
+            if (token_output_file.is_open())
+                token_output_file.close();
             return token;
+        }
 
         strncpy(token.text, tokenText.c_str(), 255);
         token.text[255] = '\0';
@@ -929,6 +1058,9 @@ extern "C"
         strncpy(token.value, tokenValue.c_str(), 255);
         token.value[255] = '\0';
         token.valid = 1;
+
+        if (token_output_file.is_open() && tokenType != "ERROR")
+            token_output_file << tokenText << "\t<" << tokenType << "," << tokenValue << ">" << endl;
 
         return token;
     }
@@ -940,27 +1072,60 @@ extern "C"
             delete global_lexer;
             global_lexer = nullptr;
         }
+        
+        if (token_output_file.is_open())
+            token_output_file.close();
+    }
+    
+    void setTestCase(const char* path, const string fileName)
+    {
+        test_case_path = string(path);
+        test_file_name = fileName;
     }
 }
 
 #ifndef NO_MAIN
 int main(int argc, char *argv[])
 {
-    DFA lexerDFA = buildLexerDFA();
     string input;
+    string input_filename = "";
 
     if (argc == 2)
     {
-        ifstream file(argv[1]);
+        input_filename = string(argv[1]);
+        ifstream file(input_filename);
         if (!file.is_open())
         {
-            cerr << "Error: Cannot open file '" << argv[1] << "'" << endl;
+            cerr << "Error: Cannot open file '" << input_filename << "'" << endl;
             return 1;
         }
         string line;
         while (getline(file, line))
             input += line + "\n";
         file.close();
+        
+        size_t last_slash = input_filename.find_last_of("/\\");
+        string filename_only = (last_slash != string::npos) ? input_filename.substr(last_slash + 1) : input_filename;
+        
+        setTestCase(TEST_CASE_PATH, filename_only);
+        initLexer(input.c_str());
+        
+        cout << "[LEXER] Tokenizing file: " << test_file_name << endl;
+        cout << endl;
+        
+        while (true)
+        {
+            Token token = getNextToken();
+            if (!token.valid)
+                break;
+            
+            // if (string(token.type) == "ERROR")
+            //     cout << token.text << "\t<ERROR," << token.value << ">" << endl;
+            // else
+            //     cout << token.text << "\t<" << token.type << "," << token.value << ">" << endl;
+        }
+        
+        cleanupLexer();
     }
     else if (argc == 1)
     {
@@ -972,30 +1137,31 @@ int main(int argc, char *argv[])
                 break;
             input += line + "\n";
         }
+        
+        DFA lexerDFA = buildLexerDFA();
+        Lexer lexer(lexerDFA, input);
+        
+        while (true)
+        {
+            tuple<string, string, string, bool> result = lexer.nextToken();
+            string tokenText = get<0>(result);
+            string tokenType = get<1>(result);
+            string tokenValue = get<2>(result);
+            bool success = get<3>(result);
+
+            if (!success)
+                break;
+
+            if (tokenType == "ERROR")
+                cout << tokenText << "\t<ERROR," << tokenValue << ">" << endl;
+            else
+                cout << tokenText << "\t<" << tokenType << "," << tokenValue << ">" << endl;
+        }
     }
     else
     {
         cerr << "Usage: " << argv[0] << " [filename]" << endl;
         return 1;
-    }
-
-    Lexer lexer(lexerDFA, input);
-
-    while (true)
-    {
-        tuple<string, string, string, bool> result = lexer.nextToken();
-        string tokenText = get<0>(result);
-        string tokenType = get<1>(result);
-        string tokenValue = get<2>(result);
-        bool success = get<3>(result);
-
-        if (!success)
-            break;
-
-        if (tokenType == "ERROR")
-            cout << tokenText << "\t<ERROR," << tokenValue << ">" << endl;
-        else
-            cout << tokenText << "\t<" << tokenType << "," << tokenValue << ">" << endl;
     }
 
     return 0;

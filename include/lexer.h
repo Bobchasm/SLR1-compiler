@@ -17,6 +17,7 @@ extern "C"
     void initLexer(const char *input);
     Token getNextToken();
     void cleanupLexer();
+    void setTestCase(const char *path, const string fileName);
 
 #ifdef __cplusplus
 }
