@@ -924,6 +924,7 @@ public:
             {
                 cout << "[PARSER] Parse analysis log: " << logPath << endl;
 
+                // TODO 为方便调试先输出的详细一点，而老师文档里给的不像是SLR(1)版本的输出格式，后续要交前再改一下就行
                 parseLog << left << setw(8) << "Step" 
                          << setw(12) << "State" 
                          << setw(20) << "Symbol Stack" 
@@ -1114,6 +1115,7 @@ public:
                      << ", symbol '" << currentSymbol << "'" << endl;
                 if (parseLog.is_open()) 
                 {
+                    // TODO 为方便调试先输出的详细一点，而老师文档里给的不像是SLR(1)版本的输出格式，后续要交前再改一下就行
                     parseLog << left << setw(8) << step 
                              << setw(12) << currentState 
                              << setw(20) << topSymbol 

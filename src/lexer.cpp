@@ -1021,7 +1021,7 @@ extern "C"
             if (dot_pos != string::npos)
                 base_name = base_name.substr(0, dot_pos);
             
-            string output_path = test_case_path +  base_name + "_token_result.txt";
+            string output_path = TEST_CASE_PATH +  base_name + "_token_result.txt";
             token_output_file.open(output_path, ios::out | ios::trunc);
             if (!token_output_file.is_open())
                 cerr << "Warning: Cannot create token output file: " << output_path << endl;
@@ -1051,11 +1051,14 @@ extern "C"
             return token;
         }
 
+        // 词法分析输出要求main被当成关键字，但是语法分析器还是当成表示符好一点，只能这样了哈哈哈
+        bool isMain = tokenText == "main";
+
         strncpy(token.text, tokenText.c_str(), 255);
         token.text[255] = '\0';
-        strncpy(token.type, tokenType.c_str(), 63);
+        strncpy(token.type, isMain ? "KW" : tokenType.c_str(), 63);
         token.type[63] = '\0';
-        strncpy(token.value, tokenValue.c_str(), 255);
+        strncpy(token.value, isMain ? "5" : tokenValue.c_str(), 255);
         token.value[255] = '\0';
         token.valid = 1;
 
