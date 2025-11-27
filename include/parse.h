@@ -24,7 +24,7 @@ map<string, pair<string,int> > tokenTypeToTerminal = {
     
     {"(", {"(",23}}, {")", {")",24}}, {"{", {"{",25}}, {"}", {"}",26}}, {";", {";",27}}, {",", {",",28}},
     
-    {"IDN", {"IDN",29}}, {"INT", {"INT",30}}, {"FLOAT",{"FLOAT",31}}
+    {"IDN", {"Ident",29}}, {"INT", {"IntConst",30}}, {"FLOAT",{"floatConst",31}}
 };
 
 // 项目

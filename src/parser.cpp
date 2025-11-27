@@ -508,7 +508,7 @@ void buildAnalysisTable()
                     int nextState = dfa.getTransition(stateNum, nextSymbol);
                     if (nextState != -1) 
                     {
-                        int symbolIndex = grammar.terminals.at(nextSymbol);
+                        int symbolIndex = grammar.terminals.at(nextSymbol) - 1;
                         tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
                     }
                 }
@@ -518,7 +518,7 @@ void buildAnalysisTable()
                     int nextState = dfa.getTransition(stateNum, nextSymbol);
                     if (nextState != -1) 
                     {
-                        int symbolIndex = grammar.nonterminals.at(nextSymbol);
+                        int symbolIndex = grammar.nonterminals.at(nextSymbol) - 1;
                         tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
                     }
                 }
@@ -530,7 +530,7 @@ void buildAnalysisTable()
                 if (item.left == grammar.startSymbol && item.prodIndex == 0) 
                 {
                     // 在EOF上设置接受动作
-                    int eofIndex = grammar.terminals.at(END_MARKER);
+                    int eofIndex = grammar.terminals.at(END_MARKER) - 1;
                     tableWithConflicts[stateNum][eofIndex].push_back(Action(ACC, 0));
                 }
                 // 普通归约项目
@@ -543,7 +543,7 @@ void buildAnalysisTable()
                         auto it = grammar.terminals.find(followSymbol);
                         if (it != grammar.terminals.end()) 
                         {
-                            int symbolIndex = it->second;
+                            int symbolIndex = it->second - 1;
                             tableWithConflicts[stateNum][symbolIndex].push_back(
                                 Action(REDUCTION, item.prodIndex));
                         }
@@ -654,7 +654,6 @@ void buildAnalysisTable()
     csvFile.close();
     cout << "[PARSER] Analysis table exported to process/parse_analysis_table.csv" << endl;
 }
-
 
 
 void initGrammar() 
