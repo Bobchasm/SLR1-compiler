@@ -1,0 +1,406 @@
+[DEBUG] main() started, argc=2
+[DEBUG] Opening file: .\case\test.sy
+[DEBUG] File read, size=53
+[DEBUG] Calling initLexer()
+[DEBUG] Output file: .\case\test.ref
+[DEBUG] Creating SLR1Parser
+[DEBUG] initGrammar() started
+[DEBUG] Terminals added: 32
+[DEBUG] Productions: 85, Nonterminals: 44
+[DEBUG] Nonterminals:
+33  Program
+71  addExp
+40  bType
+53  block
+55  blockItem
+54  blockItem_list
+34  compUnit
+36  compUnit_item
+35  compUnit_list
+60  cond
+38  constDecl
+41  constDef
+39  constDef_list
+76  constExp
+42  constInitVal
+37  decl
+58  else_opt
+73  eqExp
+59  exp
+57  exp_opt
+47  funcDef
+52  funcFParam
+51  funcFParam_list
+50  funcFParams
+48  funcFParams_opt
+69  funcRParam
+68  funcRParam_list
+67  funcRParams
+65  funcRParams_opt
+49  funcType
+46  initVal
+74  lAndExp
+75  lOrExp
+61  lVal
+70  mulExp
+63  number
+62  primaryExp
+72  relExp
+56  stmt
+64  unaryExp
+66  unaryOp
+43  varDecl
+45  varDef
+44  varDef_list
+[PARSER] Building SLR(1) DFA...
+[PARSER] Initial state I0 created with 5 items
+[DEBUG] I0 items:
+  Start -> .Program [next: "Program"]
+  Program -> .compUnit [next: "compUnit"]
+  compUnit -> .compUnit_list EOF [next: "compUnit_list"]
+  compUnit_list -> .compUnit_list compUnit_item [next: "compUnit_list"]
+  compUnit_list -> .$ [COMPLETE]
+[DEBUG] Total symbols: 76 (Terminals: 32, Nonterminals: 44)
+[DEBUG] Processing state I0 (5 items)
+[PARSER] Created new state I1 with 1 items via symbol 'Program'
+[PARSER] Created new state I2 with 1 items via symbol 'compUnit'
+[PARSER] Created new state I3 with 13 items via symbol 'compUnit_list'
+[DEBUG] Processing state I1 (1 items)
+[DEBUG] State I1 has no outgoing transitions!
+[DEBUG] Processing state I2 (1 items)
+[DEBUG] State I2 has no outgoing transitions!
+[DEBUG] Processing state I3 (13 items)
+[PARSER] Created new state I4 with 1 items via symbol 'EOF'
+[PARSER] Created new state I5 with 3 items via symbol 'bType'
+[PARSER] Created new state I6 with 1 items via symbol 'compUnit_item'
+[PARSER] Created new state I7 with 3 items via symbol 'const'
+[PARSER] Created new state I8 with 1 items via symbol 'constDecl'
+[PARSER] Created new state I9 with 1 items via symbol 'decl'
+[PARSER] Created new state I10 with 1 items via symbol 'float'
+[PARSER] Created new state I11 with 1 items via symbol 'funcDef'
+[PARSER] Created new state I12 with 1 items via symbol 'funcType'
+[PARSER] Created new state I13 with 2 items via symbol 'int'
+[PARSER] Created new state I14 with 1 items via symbol 'varDecl'
+[PARSER] Created new state I15 with 1 items via symbol 'void'
+[DEBUG] Processing state I4 (1 items)
+[DEBUG] State I4 has no outgoing transitions!
+[DEBUG] Processing state I5 (3 items)
+[PARSER] Created new state I16 with 2 items via symbol 'Ident'
+[PARSER] Created new state I17 with 3 items via symbol 'varDef'
+[DEBUG] Processing state I6 (1 items)
+[DEBUG] State I6 has no outgoing transitions!
+[DEBUG] Processing state I7 (3 items)
+[PARSER] Created new state I18 with 2 items via symbol 'bType'
+[PARSER] Created new state I19 with 1 items via symbol 'int'
+[DEBUG] Processing state I8 (1 items)
+[DEBUG] State I8 has no outgoing transitions!
+[DEBUG] Processing state I9 (1 items)
+[DEBUG] State I9 has no outgoing transitions!
+[DEBUG] Processing state I10 (1 items)
+[DEBUG] State I10 has no outgoing transitions!
+[DEBUG] Processing state I11 (1 items)
+[DEBUG] State I11 has no outgoing transitions!
+[DEBUG] Processing state I12 (1 items)
+[PARSER] Created new state I20 with 1 items via symbol 'Ident'
+[DEBUG] Processing state I13 (2 items)
+[DEBUG] State I13 has no outgoing transitions!
+[DEBUG] Processing state I14 (1 items)
+[DEBUG] State I14 has no outgoing transitions!
+[DEBUG] Processing state I15 (1 items)
+[DEBUG] State I15 has no outgoing transitions!
+[DEBUG] Processing state I16 (2 items)
+[PARSER] Created new state I21 with 22 items via symbol '='
+[DEBUG] Processing state I17 (3 items)
+[PARSER] Created new state I22 with 3 items via symbol ','
+[PARSER] Created new state I23 with 1 items via symbol 'varDef_list'
+[DEBUG] Processing state I18 (2 items)
+[PARSER] Created new state I24 with 1 items via symbol 'Ident'
+[PARSER] Created new state I25 with 3 items via symbol 'constDef'
+[DEBUG] Processing state I19 (1 items)
+[DEBUG] State I19 has no outgoing transitions!
+[DEBUG] Processing state I20 (1 items)
+[PARSER] Created new state I26 with 7 items via symbol '('
+[DEBUG] Processing state I21 (22 items)
+[PARSER] Created new state I27 with 1 items via symbol '!'
+[PARSER] Created new state I28 with 21 items via symbol '('
+[PARSER] Created new state I29 with 1 items via symbol '+'
+[PARSER] Created new state I30 with 1 items via symbol '-'
+[PARSER] Created new state I31 with 2 items via symbol 'Ident'
+[PARSER] Created new state I32 with 1 items via symbol 'IntConst'
+[PARSER] Created new state I33 with 3 items via symbol 'addExp'
+[PARSER] Created new state I34 with 1 items via symbol 'exp'
+[PARSER] Created new state I35 with 1 items via symbol 'floatConst'
+[PARSER] Created new state I36 with 1 items via symbol 'initVal'
+[PARSER] Created new state I37 with 1 items via symbol 'lVal'
+[PARSER] Created new state I38 with 4 items via symbol 'mulExp'
+[PARSER] Created new state I39 with 1 items via symbol 'number'
+[PARSER] Created new state I40 with 1 items via symbol 'primaryExp'
+[PARSER] Created new state I41 with 1 items via symbol 'unaryExp'
+[PARSER] Created new state I42 with 13 items via symbol 'unaryOp'
+[DEBUG] Processing state I22 (3 items)
+[PARSER] Created new state I43 with 3 items via symbol 'varDef'
+[DEBUG] Processing state I23 (1 items)
+[PARSER] Created new state I44 with 1 items via symbol ';'
+[DEBUG] Processing state I24 (1 items)
+[PARSER] Created new state I45 with 22 items via symbol '='
+[DEBUG] Processing state I25 (3 items)
+[PARSER] Created new state I46 with 2 items via symbol ','
+[PARSER] Created new state I47 with 1 items via symbol 'constDef_list'
+[DEBUG] Processing state I26 (7 items)
+[PARSER] Created new state I48 with 1 items via symbol 'bType'
+[PARSER] Created new state I49 with 3 items via symbol 'funcFParam'
+[PARSER] Created new state I50 with 1 items via symbol 'funcFParams'
+[PARSER] Created new state I51 with 1 items via symbol 'funcFParams_opt'
+[DEBUG] Processing state I27 (1 items)
+[DEBUG] State I27 has no outgoing transitions!
+[DEBUG] Processing state I28 (21 items)
+[PARSER] Created new state I52 with 1 items via symbol 'exp'
+[DEBUG] Processing state I29 (1 items)
+[DEBUG] State I29 has no outgoing transitions!
+[DEBUG] Processing state I30 (1 items)
+[DEBUG] State I30 has no outgoing transitions!
+[DEBUG] Processing state I31 (2 items)
+[PARSER] Created new state I53 with 25 items via symbol '('
+[DEBUG] Processing state I32 (1 items)
+[DEBUG] State I32 has no outgoing transitions!
+[DEBUG] Processing state I33 (3 items)
+[PARSER] Created new state I54 with 17 items via symbol '+'
+[PARSER] Created new state I55 with 17 items via symbol '-'
+[DEBUG] Processing state I34 (1 items)
+[DEBUG] State I34 has no outgoing transitions!
+[DEBUG] Processing state I35 (1 items)
+[DEBUG] State I35 has no outgoing transitions!
+[DEBUG] Processing state I36 (1 items)
+[DEBUG] State I36 has no outgoing transitions!
+[DEBUG] Processing state I37 (1 items)
+[DEBUG] State I37 has no outgoing transitions!
+[DEBUG] Processing state I38 (4 items)
+[PARSER] Created new state I56 with 13 items via symbol '%'
+[PARSER] Created new state I57 with 13 items via symbol '*'
+[PARSER] Created new state I58 with 13 items via symbol '/'
+[DEBUG] Processing state I39 (1 items)
+[DEBUG] State I39 has no outgoing transitions!
+[DEBUG] Processing state I40 (1 items)
+[DEBUG] State I40 has no outgoing transitions!
+[DEBUG] Processing state I41 (1 items)
+[DEBUG] State I41 has no outgoing transitions!
+[DEBUG] Processing state I42 (13 items)
+[PARSER] Created new state I59 with 1 items via symbol 'unaryExp'
+[DEBUG] Processing state I43 (3 items)
+[PARSER] Created new state I60 with 1 items via symbol 'varDef_list'
+[DEBUG] Processing state I44 (1 items)
+[DEBUG] State I44 has no outgoing transitions!
+[DEBUG] Processing state I45 (22 items)
+[PARSER] Created new state I61 with 3 items via symbol 'addExp'
+[PARSER] Created new state I62 with 1 items via symbol 'constExp'
+[PARSER] Created new state I63 with 1 items via symbol 'constInitVal'
+[DEBUG] Processing state I46 (2 items)
+[PARSER] Created new state I64 with 3 items via symbol 'constDef'
+[DEBUG] Processing state I47 (1 items)
+[PARSER] Created new state I65 with 1 items via symbol ';'
+[DEBUG] Processing state I48 (1 items)
+[PARSER] Created new state I66 with 1 items via symbol 'Ident'
+[DEBUG] Processing state I49 (3 items)
+[PARSER] Created new state I67 with 4 items via symbol ','
+[PARSER] Created new state I68 with 1 items via symbol 'funcFParam_list'
+[DEBUG] Processing state I50 (1 items)
+[DEBUG] State I50 has no outgoing transitions!
+[DEBUG] Processing state I51 (1 items)
+[PARSER] Created new state I69 with 2 items via symbol ')'
+[DEBUG] Processing state I52 (1 items)
+[PARSER] Created new state I70 with 1 items via symbol ')'
+[DEBUG] Processing state I53 (25 items)
+[PARSER] Created new state I71 with 1 items via symbol 'exp'
+[PARSER] Created new state I72 with 3 items via symbol 'funcRParam'
+[PARSER] Created new state I73 with 1 items via symbol 'funcRParams'
+[PARSER] Created new state I74 with 1 items via symbol 'funcRParams_opt'
+[DEBUG] Processing state I54 (17 items)
+[PARSER] Created new state I75 with 4 items via symbol 'mulExp'
+[DEBUG] Processing state I55 (17 items)
+[PARSER] Created new state I76 with 4 items via symbol 'mulExp'
+[DEBUG] Processing state I56 (13 items)
+[PARSER] Created new state I77 with 1 items via symbol 'unaryExp'
+[DEBUG] Processing state I57 (13 items)
+[PARSER] Created new state I78 with 1 items via symbol 'unaryExp'
+[DEBUG] Processing state I58 (13 items)
+[PARSER] Created new state I79 with 1 items via symbol 'unaryExp'
+[DEBUG] Processing state I59 (1 items)
+[DEBUG] State I59 has no outgoing transitions!
+[DEBUG] Processing state I60 (1 items)
+[DEBUG] State I60 has no outgoing transitions!
+[DEBUG] Processing state I61 (3 items)
+[DEBUG] Processing state I62 (1 items)
+[DEBUG] State I62 has no outgoing transitions!
+[DEBUG] Processing state I63 (1 items)
+[DEBUG] State I63 has no outgoing transitions!
+[DEBUG] Processing state I64 (3 items)
+[PARSER] Created new state I80 with 1 items via symbol 'constDef_list'
+[DEBUG] Processing state I65 (1 items)
+[DEBUG] State I65 has no outgoing transitions!
+[DEBUG] Processing state I66 (1 items)
+[DEBUG] State I66 has no outgoing transitions!
+[DEBUG] Processing state I67 (4 items)
+[PARSER] Created new state I81 with 3 items via symbol 'funcFParam'
+[DEBUG] Processing state I68 (1 items)
+[DEBUG] State I68 has no outgoing transitions!
+[DEBUG] Processing state I69 (2 items)
+[PARSER] Created new state I82 with 1 items via symbol 'block'
+[PARSER] Created new state I83 with 3 items via symbol '{'
+[DEBUG] Processing state I70 (1 items)
+[DEBUG] State I70 has no outgoing transitions!
+[DEBUG] Processing state I71 (1 items)
+[DEBUG] State I71 has no outgoing transitions!
+[DEBUG] Processing state I72 (3 items)
+[PARSER] Created new state I84 with 22 items via symbol ','
+[PARSER] Created new state I85 with 1 items via symbol 'funcRParam_list'
+[DEBUG] Processing state I73 (1 items)
+[DEBUG] State I73 has no outgoing transitions!
+[DEBUG] Processing state I74 (1 items)
+[PARSER] Created new state I86 with 1 items via symbol ')'
+[DEBUG] Processing state I75 (4 items)
+[DEBUG] Processing state I76 (4 items)
+[DEBUG] Processing state I77 (1 items)
+[DEBUG] State I77 has no outgoing transitions!
+[DEBUG] Processing state I78 (1 items)
+[DEBUG] State I78 has no outgoing transitions!
+[DEBUG] Processing state I79 (1 items)
+[DEBUG] State I79 has no outgoing transitions!
+[DEBUG] Processing state I80 (1 items)
+[DEBUG] State I80 has no outgoing transitions!
+[DEBUG] Processing state I81 (3 items)
+[PARSER] Created new state I87 with 1 items via symbol 'funcFParam_list'
+[DEBUG] Processing state I82 (1 items)
+[DEBUG] State I82 has no outgoing transitions!
+[DEBUG] Processing state I83 (3 items)
+[PARSER] Created new state I88 with 38 items via symbol 'blockItem_list'
+[DEBUG] Processing state I84 (22 items)
+[PARSER] Created new state I89 with 3 items via symbol 'funcRParam'
+[DEBUG] Processing state I85 (1 items)
+[DEBUG] State I85 has no outgoing transitions!
+[DEBUG] Processing state I86 (1 items)
+[DEBUG] State I86 has no outgoing transitions!
+[DEBUG] Processing state I87 (1 items)
+[DEBUG] State I87 has no outgoing transitions!
+[DEBUG] Processing state I88 (38 items)
+[PARSER] Created new state I90 with 2 items via symbol 'Ident'
+[PARSER] Created new state I91 with 1 items via symbol 'block'
+[PARSER] Created new state I92 with 1 items via symbol 'blockItem'
+[PARSER] Created new state I93 with 1 items via symbol 'decl'
+[PARSER] Created new state I94 with 1 items via symbol 'exp'
+[PARSER] Created new state I95 with 1 items via symbol 'exp_opt'
+[PARSER] Created new state I96 with 1 items via symbol 'if'
+[PARSER] Created new state I97 with 2 items via symbol 'lVal'
+[PARSER] Created new state I98 with 23 items via symbol 'return'
+[PARSER] Created new state I99 with 1 items via symbol 'stmt'
+[PARSER] Created new state I100 with 1 items via symbol '}'
+[DEBUG] Processing state I89 (3 items)
+[PARSER] Created new state I101 with 1 items via symbol 'funcRParam_list'
+[DEBUG] Processing state I90 (2 items)
+[DEBUG] Processing state I91 (1 items)
+[DEBUG] State I91 has no outgoing transitions!
+[DEBUG] Processing state I92 (1 items)
+[DEBUG] State I92 has no outgoing transitions!
+[DEBUG] Processing state I93 (1 items)
+[DEBUG] State I93 has no outgoing transitions!
+[DEBUG] Processing state I94 (1 items)
+[DEBUG] State I94 has no outgoing transitions!
+[DEBUG] Processing state I95 (1 items)
+[PARSER] Created new state I102 with 1 items via symbol ';'
+[DEBUG] Processing state I96 (1 items)
+[PARSER] Created new state I103 with 33 items via symbol '('
+[DEBUG] Processing state I97 (2 items)
+[PARSER] Created new state I104 with 21 items via symbol '='
+[DEBUG] Processing state I98 (23 items)
+[PARSER] Created new state I105 with 1 items via symbol 'exp_opt'
+[DEBUG] Processing state I99 (1 items)
+[DEBUG] State I99 has no outgoing transitions!
+[DEBUG] Processing state I100 (1 items)
+[DEBUG] State I100 has no outgoing transitions!
+[DEBUG] Processing state I101 (1 items)
+[DEBUG] State I101 has no outgoing transitions!
+[DEBUG] Processing state I102 (1 items)
+[DEBUG] State I102 has no outgoing transitions!
+[DEBUG] Processing state I103 (33 items)
+[PARSER] Created new state I106 with 3 items via symbol 'addExp'
+[PARSER] Created new state I107 with 1 items via symbol 'cond'
+[PARSER] Created new state I108 with 3 items via symbol 'eqExp'
+[PARSER] Created new state I109 with 2 items via symbol 'lAndExp'
+[PARSER] Created new state I110 with 2 items via symbol 'lOrExp'
+[PARSER] Created new state I111 with 5 items via symbol 'relExp'
+[DEBUG] Processing state I104 (21 items)
+[PARSER] Created new state I112 with 1 items via symbol 'exp'
+[DEBUG] Processing state I105 (1 items)
+[PARSER] Created new state I113 with 1 items via symbol ';'
+[DEBUG] Processing state I106 (3 items)
+[DEBUG] Processing state I107 (1 items)
+[PARSER] Created new state I114 with 29 items via symbol ')'
+[DEBUG] Processing state I108 (3 items)
+[PARSER] Created new state I115 with 25 items via symbol '!='
+[PARSER] Created new state I116 with 25 items via symbol '=='
+[DEBUG] Processing state I109 (2 items)
+[PARSER] Created new state I117 with 28 items via symbol '&&'
+[DEBUG] Processing state I110 (2 items)
+[PARSER] Created new state I118 with 30 items via symbol '||'
+[DEBUG] Processing state I111 (5 items)
+[PARSER] Created new state I119 with 20 items via symbol '<'
+[PARSER] Created new state I120 with 20 items via symbol '<='
+[PARSER] Created new state I121 with 20 items via symbol '>'
+[PARSER] Created new state I122 with 20 items via symbol '>='
+[DEBUG] Processing state I112 (1 items)
+[PARSER] Created new state I123 with 1 items via symbol ';'
+[DEBUG] Processing state I113 (1 items)
+[DEBUG] State I113 has no outgoing transitions!
+[DEBUG] Processing state I114 (29 items)
+[PARSER] Created new state I124 with 3 items via symbol 'stmt'
+[DEBUG] Processing state I115 (25 items)
+[PARSER] Created new state I125 with 5 items via symbol 'relExp'
+[DEBUG] Processing state I116 (25 items)
+[PARSER] Created new state I126 with 5 items via symbol 'relExp'
+[DEBUG] Processing state I117 (28 items)
+[PARSER] Created new state I127 with 3 items via symbol 'eqExp'
+[DEBUG] Processing state I118 (30 items)
+[PARSER] Created new state I128 with 2 items via symbol 'lAndExp'
+[DEBUG] Processing state I119 (20 items)
+[PARSER] Created new state I129 with 3 items via symbol 'addExp'
+[DEBUG] Processing state I120 (20 items)
+[PARSER] Created new state I130 with 3 items via symbol 'addExp'
+[DEBUG] Processing state I121 (20 items)
+[PARSER] Created new state I131 with 3 items via symbol 'addExp'
+[DEBUG] Processing state I122 (20 items)
+[PARSER] Created new state I132 with 3 items via symbol 'addExp'
+[DEBUG] Processing state I123 (1 items)
+[DEBUG] State I123 has no outgoing transitions!
+[DEBUG] Processing state I124 (3 items)
+[PARSER] Created new state I133 with 29 items via symbol 'else'
+[PARSER] Created new state I134 with 1 items via symbol 'else_opt'
+[DEBUG] Processing state I125 (5 items)
+[DEBUG] Processing state I126 (5 items)
+[DEBUG] Processing state I127 (3 items)
+[DEBUG] Processing state I128 (2 items)
+[DEBUG] Processing state I129 (3 items)
+[DEBUG] Processing state I130 (3 items)
+[DEBUG] Processing state I131 (3 items)
+[DEBUG] Processing state I132 (3 items)
+[DEBUG] Processing state I133 (29 items)
+[PARSER] Created new state I135 with 1 items via symbol 'stmt'
+[DEBUG] Processing state I134 (1 items)
+[DEBUG] State I134 has no outgoing transitions!
+[DEBUG] Processing state I135 (1 items)
+[DEBUG] State I135 has no outgoing transitions!
+[PARSER] DFA construction completed:
+[PARSER]   Total states: 136
+[PARSER]   Total transitions: 513
+[PARSER]   Processed states: 136
+[PARSER] Building SLR(1) analysis table...
+[PARSER] Computing FIRST sets...
+[PARSER] FIRST sets computed for 44 nonterminals
+[PARSER] Computing FOLLOW sets...
+[PARSER] FOLLOW sets computed
+[PARSER] WARNING: Conflict in state 13, symbol 28 (2 actions)
+[PARSER] WARNING: Conflict in state 124, symbol 6 (2 actions)
+[PARSER] Analysis table built: 136 states, 76 symbols
+[PARSER] WARNING: Found 2 conflicts
+[PARSER] Analysis table exported to process/parse_analysis_table.csv
+[DEBUG] initGrammar() completed
+[DEBUG] SLR1Parser created, calling parse()
+[DEBUG] main() completed

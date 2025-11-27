@@ -400,3 +400,5 @@ void initGrammar();
 void buildParseDFA();
 
 void buildAnalysisTable();
+
+void exportAnalysisTable(vector<vector<vector<Action> > > tableWithConflicts);

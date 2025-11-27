@@ -111,18 +111,8 @@ vector<Item> gotoSet(const vector<Item>& items, const string& symbol)
 {
     vector<Item> movedItems;
     
-    // 调试：检查 compUnit
-    if (symbol == "compUnit") {
-        cout << "[DEBUG GOTO] Checking GOTO(_, \"compUnit\"), items.size()=" << items.size() << endl;
-    }
-    
     for (const Item& item : items) 
-    {
-        if (symbol == "compUnit" && !item.isComplete()) {
-            cout << "  Item: " << item.toString() << ", next=\"" << item.getNextSymbol() << "\", match=" 
-                 << (item.getNextSymbol() == symbol ? "YES" : "NO") << endl;
-        }
-        
+    {   
         // 项目形如 A -> α·Xβ，则将 A -> αX·β 加入结果
         if (!item.isComplete() && item.getNextSymbol() == symbol) 
         {
@@ -130,10 +120,6 @@ vector<Item> gotoSet(const vector<Item>& items, const string& symbol)
             newItem.flag++;
             movedItems.push_back(newItem);
         }
-    }
-    
-    if (!movedItems.empty() && (symbol == "compUnit" || symbol == "compUnit_list")) {
-        cout << "[DEBUG GOTO] GOTO(_, \"" << symbol << "\") found " << movedItems.size() << " moved items before closure" << endl;
     }
     
     return closure(movedItems);
@@ -171,13 +157,13 @@ void buildParseDFA()
     
     cout << "[PARSER] Initial state I0 created with " << I0.items.size() << " items" << endl;
     cout << "[DEBUG] I0 items:" << endl;
-    for (const Item& item : I0.items) {
+    for (const Item& item : I0.items) 
+    {
         cout << "  " << item.toString();
-        if (!item.isComplete()) {
-            cout << " [next: \"" << item.getNextSymbol() << "\"]";
-        } else {
+        if (!item.isComplete())
+            cout << " [next: \"" << item.getNextSymbol() << "\"]";      
+        else
             cout << " [COMPLETE]";
-        }
         cout << endl;
     }
     
@@ -198,9 +184,8 @@ void buildParseDFA()
          << ", Nonterminals: " << grammar.nonterminals.size() << ")" << endl;
     
     // 检查是否有 EPSILON
-    if (allSymbols.find(EPSILON) != allSymbols.end()) {
-        cout << "[WARNING] EPSILON \"" << EPSILON << "\" found in allSymbols! This will cause problems!" << endl;
-    }
+    if (allSymbols.find(EPSILON) != allSymbols.end())
+        cout << "[WARNING] EPSILON \"" << EPSILON << "\" found in allSymbols" << endl;
     
     // 2&3.迭代构建状态集
     int processedStates = 0;
@@ -210,8 +195,6 @@ void buildParseDFA()
         workQueue.pop();
         processedStates++;
         
-        // 重要：不要使用引用，因为 dfa.states 可能会被修改（push_back）
-        // 使用副本或者每次重新获取
         vector<Item> currentItems = dfa.states[currentStateNum].items;
         
         cout << "[DEBUG] Processing state I" << currentStateNum 
@@ -225,14 +208,8 @@ void buildParseDFA()
             vector<Item> gotoItems = gotoSet(currentItems, symbol);
             
             // 如果 GOTO 结果为空，跳过
-            if (gotoItems.empty()) {
+            if (gotoItems.empty())
                 continue;
-            }
-            
-            // 调试：显示 I0 的所有非空 GOTO
-            if (currentStateNum == 0) {
-                cout << "[DEBUG]   GOTO(I0, \"" << symbol << "\") has " << gotoItems.size() << " items" << endl;
-            }
             
             transitionsFromThisState++;
             
@@ -293,9 +270,7 @@ void computeFirstSets()
     
     // 初始化：终结符的FIRST集就是它自己
     for (const auto& term : grammar.terminals) 
-    {
         grammar.firstSets[term.first].insert(term.first);
-    }
     
     // 对非终结符，迭代计算直到不再变化
     bool changed = true;
@@ -303,7 +278,6 @@ void computeFirstSets()
     {
         changed = false;
         
-        // 遍历所有产生式
         for (const Production& prod : grammar.productions) 
         {
             const string& A = prod.left;
@@ -484,17 +458,14 @@ void buildAnalysisTable()
     // 获取所有符号的总数（终结符+非终结符）
     int symbolCount = grammar.terminals.size() + grammar.nonterminals.size();
     
-    // 初始化分析表（所有动作默认为错误）
-    // 注意：我们用一个特殊的结构来存储可能的冲突
+    // 初始化分析表（所有动作默认为错误，该结构还存在冲突）
     vector<vector<vector<Action>>> tableWithConflicts(stateCount, vector<vector<Action>>(symbolCount));
     
-    // SLR(1)分析表构造规则：
     // 对于每个状态 I
     for (int stateNum = 0; stateNum < stateCount; stateNum++) 
     {
         const ParserDFAStatus& state = dfa.states[stateNum];
         
-        // 遍历状态中的每个项目
         for (const Item& item : state.items) 
         {
             // 规则1：移进项目 A → α·aβ (a是终结符)
@@ -508,7 +479,7 @@ void buildAnalysisTable()
                     int nextState = dfa.getTransition(stateNum, nextSymbol);
                     if (nextState != -1) 
                     {
-                        int symbolIndex = grammar.terminals.at(nextSymbol) - 1;
+                        int symbolIndex = grammar.terminals.at(nextSymbol) - 1;   // 这里是为了数组下标起始为0，而符号的标号从1开始，为了直接从第0列填 [写的时候混乱了，就这样吧]
                         tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
                     }
                 }
@@ -554,21 +525,25 @@ void buildAnalysisTable()
     }
     
     // 去重：每个单元的动作去重，避免重复
-    for (int i = 0; i < stateCount; i++) {
-        for (int j = 0; j < symbolCount; j++) {
-            if (tableWithConflicts[i][j].size() > 1) {
+    for (int i = 0; i < stateCount; i++) 
+    {
+        for (int j = 0; j < symbolCount; j++) 
+        {
+            if (tableWithConflicts[i][j].size() > 1) 
+            {
                 vector<Action> dedup;
                 set<pair<int,int>> seen;
-                for (const Action& a : tableWithConflicts[i][j]) {
+                for (const Action& a : tableWithConflicts[i][j]) 
+                {
                     pair<int,int> key = {a.type, a.num};
-                    if (seen.insert(key).second) {
+                    if (seen.insert(key).second)
                         dedup.push_back(a);
-                    }
                 }
                 tableWithConflicts[i][j].swap(dedup);
             }
         }
     }
+
     // 检测冲突并构建最终的分析表
     grammar.parseTable.resize(stateCount, vector<Action>(symbolCount, Action(-1, -1)));
     
@@ -586,9 +561,7 @@ void buildAnalysisTable()
                 grammar.parseTable[i][j] = tableWithConflicts[i][j][0];
             }
             else if (tableWithConflicts[i][j].size() == 1) 
-            {
                 grammar.parseTable[i][j] = tableWithConflicts[i][j][0];
-            }
         }
     }
     
@@ -597,52 +570,62 @@ void buildAnalysisTable()
     if (conflictCount > 0)
         cout << "[PARSER] WARNING: Found " << conflictCount << " conflicts" << endl;
     
+    exportAnalysisTable(tableWithConflicts);
+   
+}
+
+void exportAnalysisTable(vector<vector<vector<Action> > > tableWithConflicts)
+{
     // 导出分析表到CSV文件
     #ifdef _WIN32
         system("if not exist process mkdir process");
     #else
         mkdir("process", 0755);
     #endif
-    
+
     ofstream csvFile("process/parse_analysis_table.csv");
-    if (!csvFile.is_open()) 
+    if (!csvFile.is_open())
     {
         cerr << "[PARSER] Error: Cannot create parse_analysis_table.csv" << endl;
         return;
     }
-    
+
     // 写入CSV头部
     csvFile << "State";
-    
+
     // 终结符列
-    for (const auto& term : grammar.terminals)
+    for (const auto &term : grammar.terminals)
         csvFile << "," << escapeCSV(term.first);
-    
-    // 非终结符列  
-    for (const auto& nonterm : grammar.nonterminals)
+
+    // 非终结符列
+    for (const auto &nonterm : grammar.nonterminals)
         csvFile << "," << escapeCSV(nonterm.first);
-    
+
     csvFile << endl;
-    
+
+    int stateCount = grammar.parseTable.size();
+    int symbolCount = grammar.parseTable[0].size();
+
     // 写入每个状态的动作
-    for (int i = 0; i < stateCount; i++) 
+    for (int i = 0; i < stateCount; i++)
     {
         csvFile << i;
-        
-        for (int j = 0; j < symbolCount; j++) 
+
+        for (int j = 0; j < symbolCount; j++)
         {
             csvFile << ",";
-            
+
             // 检查是否有冲突
-            if (tableWithConflicts[i][j].size() > 1) 
+            if (tableWithConflicts[i][j].size() > 1)
             {
-                // 有冲突，将多个动作用分号分隔（而不是逗号）
+                // 有冲突，将多个动作用分号分隔
                 string actions;
-                for (size_t k = 0; k < tableWithConflicts[i][j].size(); k++) 
+                for (size_t k = 0; k < tableWithConflicts[i][j].size(); k++)
                 {
-                    if (k > 0) actions += ";";
-                    
-                    const Action& action = tableWithConflicts[i][j][k];
+                    if (k > 0)
+                        actions += ";";
+
+                    const Action &action = tableWithConflicts[i][j][k];
                     if (action.type == ACC)
                         actions += "acc";
                     else if (action.type == MOVE)
@@ -650,11 +633,11 @@ void buildAnalysisTable()
                     else if (action.type == REDUCTION)
                         actions += "r" + to_string(action.num);
                 }
-                csvFile << escapeCSV(actions);  // 转义（如果包含特殊字符）
+                csvFile << escapeCSV(actions); // 转义（如果包含特殊字符）
             }
-            else if (tableWithConflicts[i][j].size() == 1) 
+            else if (tableWithConflicts[i][j].size() == 1)
             {
-                const Action& action = tableWithConflicts[i][j][0];
+                const Action &action = tableWithConflicts[i][j][0];
                 if (action.type == ACC)
                     csvFile << "acc";
                 else if (action.type == MOVE)
@@ -662,22 +645,20 @@ void buildAnalysisTable()
                 else if (action.type == REDUCTION)
                     csvFile << "r" << action.num;
             }
-            // 否则留空
         }
         csvFile << endl;
     }
-    
+
     csvFile.close();
     cout << "[PARSER] Analysis table exported to process/parse_analysis_table.csv" << endl;
 }
-
 
 void initGrammar() 
 {
     cout << "[DEBUG] initGrammar() started" << endl;
     grammar.startSymbol = "Start";
 
-    // 添加所有词法终结符
+    // 添加所有终结符
     for (auto &t : tokenTypeToTerminal)
         grammar.terminals.insert(t.second);
     
@@ -689,10 +670,6 @@ void initGrammar()
     
     // 终结符标号按打表的来，非终结符从终结符序号后接着标
     int nonterminal_count = grammar.terminals.size();
-    for (auto t : grammar.terminals)
-    {
-        cout<< "terminals " <<t.first<<" "<<t.second<<endl;;
-    }
 
     // 拓广文法
     Production exprod;
@@ -714,11 +691,11 @@ void initGrammar()
 
     cout << "[DEBUG] Productions: " << grammar.productions.size() << ", Nonterminals: " << grammar.nonterminals.size() << endl;
     
-    cout << "[DEBUG] First 10 nonterminals:" << endl;
+    cout << "[DEBUG] Nonterminals:" << endl;
     int count = 0;
     for (const auto& nt : grammar.nonterminals) {
-        cout << "  " << nt.first << " (id=" << nt.second << ")" << endl;
-        if (++count >= 10) break;
+        cout << nt.second << "  " << nt.first << endl;
+        ++count;
     }
 
     buildParseDFA();
@@ -790,6 +767,13 @@ public:
 
 int main(int argc, char *argv[]) 
 {
+    // 调试信息重定向至 log.txt
+    std::ofstream debugLog("src/log.txt", ios::out | ios::trunc);
+    if (debugLog.is_open()) {
+        std::cout.rdbuf(debugLog.rdbuf());
+    }
+
+
     cout << "[DEBUG] main() started, argc=" << argc << endl;
     bool fileInput = (argc == 2);
     string inputFilename = fileInput ? argv[1] : "";
@@ -849,9 +833,7 @@ int main(int argc, char *argv[])
     }
     
     cout << "[DEBUG] Calling initLexer()" << endl;
-    // 临时注释掉 initLexer 以测试 parser 的 DFA 和分析表构建
     initLexer(input);
-    cout << "[DEBUG] initLexer() skipped for testing" << endl;
     
     if (fileInput) 
     {
