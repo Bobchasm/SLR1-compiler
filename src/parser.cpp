@@ -553,6 +553,22 @@ void buildAnalysisTable()
         }
     }
     
+    // 去重：每个单元的动作去重，避免重复
+    for (int i = 0; i < stateCount; i++) {
+        for (int j = 0; j < symbolCount; j++) {
+            if (tableWithConflicts[i][j].size() > 1) {
+                vector<Action> dedup;
+                set<pair<int,int>> seen;
+                for (const Action& a : tableWithConflicts[i][j]) {
+                    pair<int,int> key = {a.type, a.num};
+                    if (seen.insert(key).second) {
+                        dedup.push_back(a);
+                    }
+                }
+                tableWithConflicts[i][j].swap(dedup);
+            }
+        }
+    }
     // 检测冲突并构建最终的分析表
     grammar.parseTable.resize(stateCount, vector<Action>(symbolCount, Action(-1, -1)));
     
