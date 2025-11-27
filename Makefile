@@ -26,21 +26,21 @@ $(BUILD_DIR):
 $(PROCESS_DIR):
 	@if not exist "$(PROCESS_DIR)" mkdir "$(PROCESS_DIR)"
 
-# 编译词法分析器（独立可执行）
+# 只生成编译词法分析器
 lexer: $(BUILD_DIR) $(PROCESS_DIR) $(LEXER_EXE)
 
 $(LEXER_EXE): $(LEXER_SRC) $(INCLUDE_DIR)/lexer.h
 	$(CXX) $(CXXFLAGS) -o $@ $(LEXER_SRC)
 	@echo Lexer compiled successfully!
 
-# 编译语法分析器（独立可执行）
+# 只生成编译语法分析器
 parser: $(BUILD_DIR) $(PROCESS_DIR) $(PARSER_EXE)
 
 $(PARSER_EXE): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h
 	$(CXX) $(CXXFLAGS) -DNO_MAIN -o $@ $(PARSER_SRC) $(SRC_DIR)/lexer.cpp
 	@echo Parser compiled successfully!
 
-# 编译完整编译器（词法+语法）
+# 编译完整编译器
 compiler: $(BUILD_DIR) $(PROCESS_DIR) $(COMPILER_EXE)
 
 $(COMPILER_EXE): $(PARSER_SRC) $(LEXER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h

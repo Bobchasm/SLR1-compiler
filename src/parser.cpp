@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 #include <vector>
 #include <map>
 #include <queue>
@@ -9,6 +10,14 @@
 #include <algorithm>
 #include <stack>
 #include <cstring>
+#include <ctime>
+
+#ifdef _WIN32
+    #include <direct.h>
+    #include <sys/stat.h>
+#else
+    #include <sys/stat.h>
+#endif
 
 #include "parse.h"
 #include "lexer.h"
@@ -719,8 +728,10 @@ private:
     stack<int> statusStack;    // 状态栈 
     stack<string> symbolStack;    // 符号栈
     ostream &output;
-    int stepCount;
+    int stepCount;    // 步骤(从1开始)
+    string inputFilename;  // 输入文件名
     
+    // 将token转换为文法终结符名
     string getCurrentToken(Token &token) 
     {
         if (!token.valid) 
@@ -733,6 +744,7 @@ private:
         if (tokenType == "INT") return "IntConst";
         if (tokenType == "FLOAT") return "floatConst";
         
+        // 关键字转小写
         if (tokenType == "KW")
             transform(tokenText.begin(), tokenText.end(), tokenText.begin(), ::tolower);
         
@@ -742,23 +754,221 @@ private:
         return tokenText;
     }
     
+    // 获取符号在分析表中的列索引（0-based）
+    int getSymbolIndex(const string& symbol) 
+    {
+        auto it_term = grammar.terminals.find(symbol);
+        if (it_term != grammar.terminals.end())
+            return it_term->second - 1;
+        
+        auto it_nonterm = grammar.nonterminals.find(symbol);
+        if (it_nonterm != grammar.nonterminals.end())
+            return it_nonterm->second - 1;
+        
+        return -1;
+    }
+    
+    // 获取动作的字符串表示
+    string getActionString(const Action& action) 
+    {
+        if (action.type == ACC)
+            return "acc";
+        else if (action.type == MOVE)
+            return "s" + to_string(action.num);
+        else if (action.type == REDUCTION)
+            return "r" + to_string(action.num);
+        else
+            return "error";
+    }
+    
 public:
-    SLR1Parser(ostream &out) : output(out), stepCount(1) 
+    SLR1Parser(ostream &out, const string& filename = "") 
+        : output(out), stepCount(1), inputFilename(filename) 
     {
         initGrammar();
-
-        
     }
     
     bool parse() 
     {
-        Token currentToken = getNextToken();
+        cout << "\n\n ==============================================\n\n";
+        cout << "[PARSER] Starting SLR(1) parsing..." << endl;
         
+        ofstream parseLog;
+        if (!inputFilename.empty()) 
+        {
+            string logPath = "case/" + inputFilename + "_parse_analysis.txt";
+            parseLog.open(logPath);
+            if (!parseLog.is_open())
+                cerr << "[PARSER] Error: Cannot create parse analysis log: " << logPath << endl;
+            else 
+            {
+                cout << "[PARSER] Parse analysis log: " << logPath << endl;
+                // 输出表头
+                parseLog << left << setw(8) << "Step" 
+                         << setw(12) << "State" 
+                         << setw(20) << "Symbol Stack" 
+                         << setw(20) << "Input" 
+                         << setw(15) << "Action" << endl;
+                parseLog << string(75, '-') << endl;
+            }
+        }
         
 
+
+        // ============ SLR(1) 分析步骤 ============
         
+        // 1.状态栈压入初始状态0，符号栈为空
+        statusStack.push(0);
         
-        return true;
+        // 2.读取第一个输入符号
+        Token currentToken = getNextToken();
+        string currentSymbol = getCurrentToken(currentToken);
+        
+        cout << "[PARSER] First input symbol: " << currentSymbol << endl;
+        
+        int step = 1;
+        bool success = false;
+        
+        // 3.分析，直到接受或出错
+        while (true) 
+        {
+            int currentState = statusStack.top();
+            string topSymbol = symbolStack.empty() ? "#" : symbolStack.top();
+            
+            // 查询分析表 ACTION[currentState, currentSymbol]
+            int symbolIndex = getSymbolIndex(currentSymbol);
+            
+            if (symbolIndex == -1) 
+            {
+                // 符号不在文法中，错误
+                cout << "[PARSER] Error: Unknown symbol '" << currentSymbol << "'" << endl;
+                if (parseLog.is_open()) 
+                {
+                    parseLog << left << setw(8) << step 
+                             << setw(12) << currentState 
+                             << setw(20) << topSymbol 
+                             << setw(20) << currentSymbol 
+                             << setw(15) << "Error: Unknown symbol" << endl;
+                }
+                break;
+            }
+            
+            Action action = grammar.parseTable[currentState][symbolIndex];
+            
+            string actionStr = getActionString(action);
+            if (parseLog.is_open()) 
+            {
+                parseLog << left << setw(8) << step 
+                         << setw(12) << currentState 
+                         << setw(20) << topSymbol 
+                         << setw(20) << currentSymbol 
+                         << setw(15) << actionStr << endl;
+            }
+            
+            // 4.根据动作类型执行操作
+            if (action.type == ACC) 
+            {
+                // 接受
+                cout << "[PARSER] Accept! Parsing completed successfully." << endl;
+                success = true;
+                break;
+            }
+            else if (action.type == MOVE) 
+            {
+                // 移进
+                int nextState = action.num;
+                
+                // (1)状态栈压入新状态
+                statusStack.push(nextState);
+                
+                // (2)符号栈压入当前输入符号
+                symbolStack.push(currentSymbol);
+                
+                // (3)读取下一个输入符号
+                currentToken = getNextToken();
+                currentSymbol = getCurrentToken(currentToken);
+                
+                step++;
+            }
+            else if (action.type == REDUCTION) 
+            {
+                // 归约 (Reduce)
+                int prodIndex = action.num;
+                
+                // 获取产生式 A -> β
+                const Production& prod = grammar.productions[prodIndex];
+                string A = prod.left;  // 左部非终结符
+                const vector<string>& beta = prod.right;  // 右部符号串
+                
+                // 计算右部长度（跳过epsilon）
+                int betaLen = 0;
+                if (!(beta.size() == 1 && beta[0] == EPSILON))
+                    betaLen = beta.size();
+                
+                // (1)弹出 |β| 个状态和符号
+                for (int i = 0; i < betaLen; i++) 
+                {
+                    if (!statusStack.empty()) statusStack.pop();
+                    if (!symbolStack.empty()) symbolStack.pop();
+                }
+                
+                // (2)获取当前状态栈顶
+                if (statusStack.empty()) 
+                {
+                    cout << "[PARSER] Error: State stack underflow during reduction" << endl;
+                    break;
+                }
+                int topState = statusStack.top();
+                
+                // (3)查询 GOTO[topState, A]
+                int gotoIndex = getSymbolIndex(A);
+                if (gotoIndex == -1) 
+                {
+                    cout << "[PARSER] Error: Nonterminal '" << A << "' not found" << endl;
+                    break;
+                }
+                
+                Action gotoAction = grammar.parseTable[topState][gotoIndex];
+                
+                if (gotoAction.type != MOVE) 
+                {
+                    cout << "[PARSER] Error: GOTO[" << topState << ", " << A 
+                         << "] is not defined (expected shift action)" << endl;
+                    break;
+                }
+                
+                int gotoState = gotoAction.num;
+                
+                // (4)状态栈压入 GOTO 状态
+                statusStack.push(gotoState);
+                
+                // (5)符号栈压入非终结符 A
+                symbolStack.push(A);
+                
+                step++;
+            }
+            else 
+            {
+                // ======== 错误 ========
+                cout << "[PARSER] Error: No valid action for state " << currentState 
+                     << ", symbol '" << currentSymbol << "'" << endl;
+                if (parseLog.is_open()) 
+                {
+                    parseLog << left << setw(8) << step 
+                             << setw(12) << currentState 
+                             << setw(20) << topSymbol 
+                             << setw(20) << currentSymbol 
+                             << setw(15) << "Error: No action" << endl;
+                }
+                break;
+            }
+        }
+        
+        if (parseLog.is_open())
+            parseLog.close();
+        
+        cout << "[PARSER] Total steps: " << step << endl;
+        return success;
     }
 };
 
@@ -767,30 +977,55 @@ public:
 
 int main(int argc, char *argv[]) 
 {
-    // 调试信息重定向至 log.txt
-    std::ofstream debugLog("src/log.txt", ios::out | ios::trunc);
-    if (debugLog.is_open()) {
+    bool fileInput = (argc == 2);
+    string inputFilename = fileInput ? argv[1] : "";
+    
+    // 创建 logs 目录（如果不存在）
+    #ifdef _WIN32
+        struct _stat info;
+        if (_stat("logs", &info) != 0) {
+            _mkdir("logs");
+        }
+    #else
+        struct stat info;
+        if (stat("logs", &info) != 0) {
+            mkdir("logs", 0755);
+        }
+    #endif
+    
+    time_t now = time(0);
+    struct tm* timeinfo = localtime(&now);
+    char timestamp[64];
+    strftime(timestamp, sizeof(timestamp), "%Y%m%d_%H%M%S", timeinfo);
+    
+    string logFilename = "logs/log_" + string(timestamp) + ".txt";
+    
+    // 调试信息重定向至时间戳日志文件
+    std::ofstream debugLog(logFilename, ios::out | ios::trunc);
+    if (debugLog.is_open()) 
+    {
+        // 写入日志头部信息
+        char timeStr[100];
+        strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", timeinfo);
+        debugLog << "==============================================" << endl;
+        debugLog << "Parser Log" << endl;
+        debugLog << "Time: " << timeStr << endl;
+        if (fileInput)
+            debugLog << "Test File: " << inputFilename << endl;
+        else
+            debugLog << "Test File: <stdin>" << endl;
+
+        debugLog << "==============================================" << endl;
+        debugLog << endl;
+        
         std::cout.rdbuf(debugLog.rdbuf());
     }
 
 
+
+
+
     cout << "[DEBUG] main() started, argc=" << argc << endl;
-    bool fileInput = (argc == 2);
-    string inputFilename = fileInput ? argv[1] : "";
-    
-
-    
-    if (fileInput) 
-    {
-        #ifdef _WIN32
-            system("if not exist analysis mkdir analysis");
-        #else
-            mkdir("process", 0755);
-        #endif
-        
-
-
-    }
     
     char *input = nullptr;
     
@@ -835,6 +1070,8 @@ int main(int argc, char *argv[])
     cout << "[DEBUG] Calling initLexer()" << endl;
     initLexer(input);
     
+    // 提取纯文件名（去除路径和扩展名）
+    string pureFilename = "";
     if (fileInput) 
     {
         string baseFilename = inputFilename;
@@ -842,22 +1079,19 @@ int main(int argc, char *argv[])
         if (dotPos != string::npos)
             baseFilename = baseFilename.substr(0, dotPos);
         
-        string outputFilename = baseFilename + ".ref";
-        cout << "[DEBUG] Output file: " << outputFilename << endl;
-        ofstream outputFile(outputFilename);
-        
-        cout << "[DEBUG] Creating SLR1Parser" << endl;
-        SLR1Parser parser(outputFile);
-        cout << "[DEBUG] SLR1Parser created, calling parse()" << endl;
-        parser.parse();
-        
-        outputFile.close();
-    } 
-    else 
-    {
-        SLR1Parser parser(cout);
-        parser.parse();
+        size_t slashPos = baseFilename.find_last_of("\\/");
+        pureFilename = (slashPos != string::npos) ? baseFilename.substr(slashPos + 1) : baseFilename;
     }
+    
+    cout << "[DEBUG] Creating SLR1Parser" << endl;
+    SLR1Parser parser(cout, pureFilename);
+    cout << "[DEBUG] SLR1Parser created, calling parse()" << endl;
+    bool result = parser.parse();
+    
+    if (result)
+        cout << "[DEBUG] Parsing succeeded" << endl;
+    else
+        cout << "[DEBUG] Parsing failed" << endl;
     
     cleanupLexer();
     free(input);

@@ -1,23 +1,23 @@
-*.DS_Store
-node_modules
+# Logs directory with timestamped log files
+logs/
 
-# local env files
-.env.local
-.env.*.local
+# Build outputs
+*.o
+*.out
+*.exe
+parser
+lexer
 
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# Process directory with analysis tables
+process/
 
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Test output files
+# case/*_parse_analysis.txt
 
-build
+# VS Code
+.vscode/
+
+# Temporary files
+*.tmp
+*.swp
+*~
