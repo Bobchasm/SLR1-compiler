@@ -96,20 +96,20 @@ struct Item
 };
 
 // 项目集(DFA的单个状态)
-struct DFAStatus
+struct ParserDFAStatus
 {
     int statusNum;              // 状态编号
     vector<Item> items;         // 项目集
     
-    DFAStatus() : statusNum(-1) {}
-    DFAStatus(int num) : statusNum(num) {}
+    ParserDFAStatus() : statusNum(-1) {}
+    ParserDFAStatus(int num) : statusNum(num) {}
     
-    bool operator<(const DFAStatus& other) const 
+    bool operator<(const ParserDFAStatus& other) const 
     {
         return items < other.items;
     }
     
-    bool operator==(const DFAStatus& other) const 
+    bool operator==(const ParserDFAStatus& other) const 
     {
         return items == other.items;
     }
@@ -123,27 +123,27 @@ struct DFAStatus
     }
 };
 
-struct DFATransition
+struct ParserDFATransition
 {
     int from;           // 源状态编号
     string symbol;      // 转换符号
     int to;             // 目标状态编号
     
-    DFATransition(int f, string s, int t) : from(f), symbol(s), to(t) {}
+    ParserDFATransition(int f, string s, int t) : from(f), symbol(s), to(t) {}
 };
 
-struct DFA
+struct ParserDFA
 {
-    vector<DFAStatus> states;           // 项目集族
+    vector<ParserDFAStatus> states;           // 项目集族
     int startState;                     // 起始状态编号
-    vector<DFATransition> transitions;  // 状态转换
+    vector<ParserDFATransition> transitions;  // 状态转换
     
     // 转换表：[状态编号][符号] -> 目标状态编号
     map<int, map<string, int>> transitionTable;
     
-    DFA() : startState(0) {}
+    ParserDFA() : startState(0) {}
     
-    int addState(const DFAStatus& state) 
+    int addState(const ParserDFAStatus& state) 
     {
         states.push_back(state);
         return states.size() - 1;
@@ -151,7 +151,7 @@ struct DFA
     
     void addTransition(int from, const string& symbol, int to) 
     {
-        transitions.push_back(DFATransition(from, symbol, to));
+        transitions.push_back(ParserDFATransition(from, symbol, to));
         transitionTable[from][symbol] = to;
     }
     
@@ -169,13 +169,13 @@ struct DFA
     string toString() const 
     {
         string result = "DFA States:\n";
-        for (const DFAStatus& state : states) 
+        for (const ParserDFAStatus& state : states) 
         {
             result += state.toString() + "\n";
         }
         
         result += "\nTransitions:\n";
-        for (const DFATransition& trans : transitions) 
+        for (const ParserDFATransition& trans : transitions) 
         {
             result += "I" + to_string(trans.from) + " --[" + 
                      trans.symbol + "]--> I" + to_string(trans.to) + "\n";
@@ -188,8 +188,8 @@ struct DFA
 // 指分析表里每个格里的一个动作
 struct Action
 {
-    int type;
-    int num;
+    int type;  // 类型 规约还是移进，值由MOVE和REDUCTION定义
+    int num;   // 移进则表示目标状态的序号，规约则表示所用产生式的编号
 
     Action(int typein, int numin) : type(typein), num(numin) {}
 };
@@ -233,7 +233,7 @@ struct Grammar
     map<string, set<string>> firstSets;
     map<string, set<string>> followSets;
 
-    DFA parseDFA;
+    ParserDFA parseDFA;
 
     // 分析表，行号为状态序号，列号为终结符/非终结符的唯一编号
     vector<vector<Action>> parseTable;
@@ -398,3 +398,5 @@ vector<pair<int, pair<string, vector<string> > > > originalProductions = {
 void initGrammar();
 
 void buildParseDFA();
+
+void buildAnalysisTable();

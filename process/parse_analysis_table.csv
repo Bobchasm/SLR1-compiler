@@ -1,0 +1,3 @@
+State,!,!=,%,&&,(,),*,+,,,-,/,;,<,<=,=,==,>,>=,EOF,FLOAT,IDN,INT,const,else,float,if,int,return,void,{,||,},Program,addExp,bType,block,blockItem,blockItem_list,compUnit,compUnit_item,compUnit_list,cond,constDecl,constDef,constDef_list,constExp,constInitVal,decl,else_opt,eqExp,exp,exp_opt,funcDef,funcFParam,funcFParam_list,funcFParams,funcFParams_opt,funcRParam,funcRParam_list,funcRParams,funcRParams_opt,funcType,initVal,lAndExp,lOrExp,lVal,mulExp,number,primaryExp,relExp,stmt,unaryExp,unaryOp,varDecl,varDef,varDef_list
+0,,r4,r4,,r4,r4,,,,,,,,,,,,,,,,,,,,,,,,,,,r4,s1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,acc,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

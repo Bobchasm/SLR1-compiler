@@ -17,7 +17,7 @@
 using namespace std;
 
 
-
+string PARSE_ANALYSIS_TABLE_PATH = "process/";
 
 // ==================== SLR(1) DFA构造 ====================
 
@@ -136,7 +136,7 @@ void buildParseDFA()
 {
     cout << "[PARSER] Building SLR(1) DFA..." << endl;
     
-    DFA& dfa = grammar.parseDFA;
+    ParserDFA& dfa = grammar.parseDFA;
     dfa.states.clear();
     dfa.transitions.clear();
     dfa.transitionTable.clear();
@@ -150,7 +150,7 @@ void buildParseDFA()
     
     vector<Item> I0_items = closure({initialItem});
     
-    DFAStatus I0(0);
+    ParserDFAStatus I0(0);
     I0.items = I0_items;
     dfa.states.push_back(I0);
     dfa.startState = 0;
@@ -175,7 +175,7 @@ void buildParseDFA()
         int currentStateNum = workQueue.front();
         workQueue.pop();
         
-        const DFAStatus& currentState = dfa.states[currentStateNum];
+        const ParserDFAStatus& currentState = dfa.states[currentStateNum];
         
         // 对每个符号计算 GOTO
         for (const string& symbol : allSymbols) 
@@ -200,7 +200,7 @@ void buildParseDFA()
                 // 新项目集，创建新状态
                 targetStateNum = dfa.states.size();
                 
-                DFAStatus newState(targetStateNum);
+                ParserDFAStatus newState(targetStateNum);
                 newState.items = gotoItems;
                 
                 dfa.states.push_back(newState);
@@ -223,16 +223,374 @@ void buildParseDFA()
 
 
 
+// ==================== FIRST & FOLLOW集计算 ====================
 
+/**
+ * 计算FIRST集
+ * 规则：
+ * 1.如果X是终结符，FIRST(X) = {X}
+ * 2.如果X是非终结符且有产生式X→ε，则ε∈FIRST(X)
+ * 3.如果X→Y1Y2...Yk，将FIRST(Y1)-{ε}加入FIRST(X)
+ * 4.如果ε∈FIRST(Y1)...FIRST(Yi-1)，将FIRST(Yi)-{ε}加入FIRST(X)
+ */
+void computeFirstSets() 
+{
+    cout << "[PARSER] Computing FIRST sets..." << endl;
+    
+    // 初始化：终结符的FIRST集就是它自己
+    for (const auto& term : grammar.terminals) 
+    {
+        grammar.firstSets[term.first].insert(term.first);
+    }
+    
+    // 对非终结符，迭代计算直到不再变化
+    bool changed = true;
+    while (changed) 
+    {
+        changed = false;
+        
+        // 遍历所有产生式
+        for (const Production& prod : grammar.productions) 
+        {
+            const string& A = prod.left;
+            const vector<string>& right = prod.right;
+            
+            // 空产生式：A → ε
+            if (right.empty() || (right.size() == 1 && right[0] == EPSILON)) 
+            {
+                if (grammar.firstSets[A].find(EPSILON) == grammar.firstSets[A].end()) 
+                {
+                    grammar.firstSets[A].insert(EPSILON);
+                    changed = true;
+                }
+                continue;
+            }
+            
+            // A → Y1 Y2 ... Yk
+            for (size_t i = 0; i < right.size(); i++) 
+            {
+                const string& Yi = right[i];
+                
+                // 将FIRST(Yi) - {ε} 加入 FIRST(A)
+                for (const string& symbol : grammar.firstSets[Yi]) 
+                {
+                    if (symbol != EPSILON) 
+                    {
+                        if (grammar.firstSets[A].find(symbol) == grammar.firstSets[A].end()) 
+                        {
+                            grammar.firstSets[A].insert(symbol);
+                            changed = true;
+                        }
+                    }
+                }
+                
+                // 如果Yi不能推导出ε，停止
+                if (grammar.firstSets[Yi].find(EPSILON) == grammar.firstSets[Yi].end())
+                    break;
+                
+                // 如果所有符号都能推导出ε，A也能推导出ε
+                if (i == right.size() - 1) 
+                {
+                    if (grammar.firstSets[A].find(EPSILON) == grammar.firstSets[A].end()) 
+                    {
+                        grammar.firstSets[A].insert(EPSILON);
+                        changed = true;
+                    }
+                }
+            }
+        }
+    }
+    
+    cout << "[PARSER] FIRST sets computed for " << grammar.nonterminals.size() << " nonterminals" << endl;
+}
+
+/**
+ * 计算FOLLOW集
+ * 规则：
+ * 1.将$加入FOLLOW(S)，S是开始符号
+ * 2.如果A→αBβ，将FIRST(β)-{ε}加入FOLLOW(B)
+ * 3.如果A→αB，或A→αBβ且ε∈FIRST(β)，将FOLLOW(A)加入FOLLOW(B)
+ */
+void computeFollowSets() 
+{
+    cout << "[PARSER] Computing FOLLOW sets..." << endl;
+    
+    // 规则1：$加入FOLLOW(S)
+    grammar.followSets[grammar.startSymbol].insert(END_MARKER);
+    
+    // 迭代计算直到不再变化
+    bool changed = true;
+    while (changed) 
+    {
+        changed = false;
+        
+        // 遍历所有产生式 A → α
+        for (const Production& prod : grammar.productions) 
+        {
+            const string& A = prod.left;
+            const vector<string>& right = prod.right;
+            
+            // 跳过空产生式
+            if (right.empty() || (right.size() == 1 && right[0] == EPSILON))
+                continue;
+            
+            // 对于产生式右部的每个符号
+            for (size_t i = 0; i < right.size(); i++) 
+            {
+                const string& B = right[i];
+                
+                // 只处理非终结符
+                if (!isNonterminal(B))
+                    continue;
+                
+                // 规则2：A → αBβ，将FIRST(β)-{ε}加入FOLLOW(B)
+                bool allEpsilon = true;
+                for (size_t j = i + 1; j < right.size(); j++) 
+                {
+                    const string& symbol = right[j];
+                    
+                    // 将FIRST(symbol) - {ε} 加入 FOLLOW(B)
+                    for (const string& first : grammar.firstSets[symbol]) 
+                    {
+                        if (first != EPSILON) 
+                        {
+                            if (grammar.followSets[B].find(first) == grammar.followSets[B].end()) 
+                            {
+                                grammar.followSets[B].insert(first);
+                                changed = true;
+                            }
+                        }
+                    }
+                    
+                    // 如果symbol不能推导出ε，停止
+                    if (grammar.firstSets[symbol].find(EPSILON) == grammar.firstSets[symbol].end()) 
+                    {
+                        allEpsilon = false;
+                        break;
+                    }
+                }
+                
+                // 规则3：如果B是最后一个符号，或后面所有符号都能推导出ε
+                if (i == right.size() - 1 || allEpsilon) 
+                {
+                    // 将FOLLOW(A)加入FOLLOW(B)
+                    for (const string& follow : grammar.followSets[A]) 
+                    {
+                        if (grammar.followSets[B].find(follow) == grammar.followSets[B].end()) 
+                        {
+                            grammar.followSets[B].insert(follow);
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    cout << "[PARSER] FOLLOW sets computed" << endl;
+}
+
+// ==================== SLR(1)分析表构造 ====================
+
+void buildAnalysisTable()
+{
+    cout << "[PARSER] Building SLR(1) analysis table..." << endl;
+    
+    // 先计算FIRST和FOLLOW集
+    computeFirstSets();
+    computeFollowSets();
+    
+    const ParserDFA& dfa = grammar.parseDFA;
+    int stateCount = dfa.states.size();
+    
+    // 获取所有符号的总数（终结符+非终结符）
+    int symbolCount = grammar.terminals.size() + grammar.nonterminals.size();
+    
+    // 初始化分析表（所有动作默认为错误）
+    // 注意：我们用一个特殊的结构来存储可能的冲突
+    vector<vector<vector<Action>>> tableWithConflicts(stateCount, vector<vector<Action>>(symbolCount));
+    
+    // SLR(1)分析表构造规则：
+    // 对于每个状态 I
+    for (int stateNum = 0; stateNum < stateCount; stateNum++) 
+    {
+        const ParserDFAStatus& state = dfa.states[stateNum];
+        
+        // 遍历状态中的每个项目
+        for (const Item& item : state.items) 
+        {
+            // 规则1：移进项目 A → α·aβ (a是终结符)
+            if (!item.isComplete()) 
+            {
+                string nextSymbol = item.getNextSymbol();
+                
+                // 如果是终结符，添加移进动作
+                if (grammar.terminals.find(nextSymbol) != grammar.terminals.end()) 
+                {
+                    int nextState = dfa.getTransition(stateNum, nextSymbol);
+                    if (nextState != -1) 
+                    {
+                        int symbolIndex = grammar.terminals.at(nextSymbol);
+                        tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
+                    }
+                }
+                // 如果是非终结符，添加GOTO
+                else if (isNonterminal(nextSymbol)) 
+                {
+                    int nextState = dfa.getTransition(stateNum, nextSymbol);
+                    if (nextState != -1) 
+                    {
+                        int symbolIndex = grammar.nonterminals.at(nextSymbol);
+                        tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
+                    }
+                }
+            }
+            // 规则2：归约项目 A → α· (α≠S')
+            else 
+            {
+                // 接受项目：Start → Program·
+                if (item.left == grammar.startSymbol && item.prodIndex == 0) 
+                {
+                    // 在EOF上设置接受动作
+                    int eofIndex = grammar.terminals.at(END_MARKER);
+                    tableWithConflicts[stateNum][eofIndex].push_back(Action(ACC, 0));
+                }
+                // 普通归约项目
+                else 
+                {
+                    // 对于FOLLOW(A)中的每个终结符a，添加"归约A→α"
+                    const string& A = item.left;
+                    for (const string& followSymbol : grammar.followSets[A]) 
+                    {
+                        auto it = grammar.terminals.find(followSymbol);
+                        if (it != grammar.terminals.end()) 
+                        {
+                            int symbolIndex = it->second;
+                            tableWithConflicts[stateNum][symbolIndex].push_back(
+                                Action(REDUCTION, item.prodIndex));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // 检测冲突并构建最终的分析表
+    grammar.parseTable.resize(stateCount, vector<Action>(symbolCount, Action(-1, -1)));
+    
+    int conflictCount = 0;
+    for (int i = 0; i < stateCount; i++) 
+    {
+        for (int j = 0; j < symbolCount; j++) 
+        {
+            if (tableWithConflicts[i][j].size() > 1) 
+            {
+                conflictCount++;
+                cout << "[PARSER] WARNING: Conflict in state " << i << ", symbol " << j 
+                     << " (" << tableWithConflicts[i][j].size() << " actions)" << endl;
+                // 使用第一个动作（简化处理）
+                grammar.parseTable[i][j] = tableWithConflicts[i][j][0];
+            }
+            else if (tableWithConflicts[i][j].size() == 1) 
+            {
+                grammar.parseTable[i][j] = tableWithConflicts[i][j][0];
+            }
+        }
+    }
+    
+    cout << "[PARSER] Analysis table built: " << stateCount << " states, "
+         << symbolCount << " symbols" << endl;
+    if (conflictCount > 0)
+        cout << "[PARSER] WARNING: Found " << conflictCount << " conflicts" << endl;
+    
+    // 导出分析表到CSV文件
+    #ifdef _WIN32
+        system("if not exist process mkdir process");
+    #else
+        mkdir("process", 0755);
+    #endif
+    
+    ofstream csvFile("process/parse_analysis_table.csv");
+    if (!csvFile.is_open()) 
+    {
+        cerr << "[PARSER] Error: Cannot create parse_analysis_table.csv" << endl;
+        return;
+    }
+    
+    // 写入CSV头部
+    csvFile << "State";
+    
+    // 终结符列
+    for (const auto& term : grammar.terminals)
+        csvFile << "," << term.first;
+    
+    // 非终结符列  
+    for (const auto& nonterm : grammar.nonterminals)
+        csvFile << "," << nonterm.first;
+    
+    csvFile << endl;
+    
+    // 写入每个状态的动作
+    for (int i = 0; i < stateCount; i++) 
+    {
+        csvFile << i;
+        
+        for (int j = 0; j < symbolCount; j++) 
+        {
+            csvFile << ",";
+            
+            // 检查是否有冲突
+            if (tableWithConflicts[i][j].size() > 1) 
+            {
+                // 有冲突，用逗号分隔多个动作
+                for (size_t k = 0; k < tableWithConflicts[i][j].size(); k++) 
+                {
+                    if (k > 0) csvFile << ",";
+                    
+                    const Action& action = tableWithConflicts[i][j][k];
+                    if (action.type == ACC)
+                        csvFile << "acc";
+                    else if (action.type == MOVE)
+                        csvFile << "s" << action.num;
+                    else if (action.type == REDUCTION)
+                        csvFile << "r" << action.num;
+                }
+            }
+            else if (tableWithConflicts[i][j].size() == 1) 
+            {
+                const Action& action = tableWithConflicts[i][j][0];
+                if (action.type == ACC)
+                    csvFile << "acc";
+                else if (action.type == MOVE)
+                    csvFile << "s" << action.num;
+                else if (action.type == REDUCTION)
+                    csvFile << "r" << action.num;
+            }
+            // 否则留空
+        }
+        csvFile << endl;
+    }
+    
+    csvFile.close();
+    cout << "[PARSER] Analysis table exported to process/parse_analysis_table.csv" << endl;
+}
 
 
 
 void initGrammar() 
 {
+    cout << "[DEBUG] initGrammar() started" << endl;
     grammar.startSymbol = "Start";
 
+    // 添加所有词法终结符
     for (auto &t : tokenTypeToTerminal)
         grammar.terminals.insert(t.second);
+    
+    // 添加结束标记符号 EOF
+    int eofIndex = grammar.terminals.size() + 1;
+    grammar.terminals.insert({END_MARKER, eofIndex});
+    
+    cout << "[DEBUG] Terminals added: " << grammar.terminals.size() << endl;
     
     // 终结符标号按打表的来，非终结符从终结符序号后接着标
     int nonterminal_count = grammar.terminals.size();
@@ -255,9 +613,12 @@ void initGrammar()
             grammar.nonterminals.insert(pair<string,int>(prod.left, ++nonterminal_count));
     }
 
+    cout << "[DEBUG] Productions: " << grammar.productions.size() << ", Nonterminals: " << grammar.nonterminals.size() << endl;
 
+    buildParseDFA();
+    buildAnalysisTable();
 
-
+    cout << "[DEBUG] initGrammar() completed" << endl;
 
 
 
@@ -323,6 +684,7 @@ public:
 
 int main(int argc, char *argv[]) 
 {
+    cout << "[DEBUG] main() started, argc=" << argc << endl;
     bool fileInput = (argc == 2);
     string inputFilename = fileInput ? argv[1] : "";
     
@@ -344,6 +706,7 @@ int main(int argc, char *argv[])
     
     if (fileInput) 
     {
+        cout << "[DEBUG] Opening file: " << argv[1] << endl;
         FILE *fp = fopen(argv[1], "r");
         if (!fp) 
         {
@@ -359,6 +722,7 @@ int main(int argc, char *argv[])
         fread(input, 1, size, fp);
         input[size] = '\0';
         fclose(fp);
+        cout << "[DEBUG] File read, size=" << size << endl;
     } 
     else {
         size_t buffer_size = 1024;
@@ -378,7 +742,10 @@ int main(int argc, char *argv[])
         input[content_size] = '\0';
     }
     
+    cout << "[DEBUG] Calling initLexer()" << endl;
+    // 临时注释掉 initLexer 以测试 parser 的 DFA 和分析表构建
     initLexer(input);
+    cout << "[DEBUG] initLexer() skipped for testing" << endl;
     
     if (fileInput) 
     {
@@ -388,9 +755,12 @@ int main(int argc, char *argv[])
             baseFilename = baseFilename.substr(0, dotPos);
         
         string outputFilename = baseFilename + ".ref";
+        cout << "[DEBUG] Output file: " << outputFilename << endl;
         ofstream outputFile(outputFilename);
         
+        cout << "[DEBUG] Creating SLR1Parser" << endl;
         SLR1Parser parser(outputFile);
+        cout << "[DEBUG] SLR1Parser created, calling parse()" << endl;
         parser.parse();
         
         outputFile.close();
@@ -404,5 +774,6 @@ int main(int argc, char *argv[])
     cleanupLexer();
     free(input);
     
+    cout << "[DEBUG] main() completed" << endl;
     return 0;
 }
