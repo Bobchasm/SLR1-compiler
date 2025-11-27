@@ -2,7 +2,7 @@
 
 ## 1 介绍
 
-天津大学编译原理与技术结课编译设计
+天津大学编译原理与技术结课编译器前端设计
 
 ## 2 软件架构
 
@@ -48,7 +48,7 @@ make clean
 make lexer
 ./build/lexer.exe \<可选测试用例文件\>
 
-# 编译到语法分析器 (parser)
+# 编译到语法分析器 (parser.exe)
 make parser
 ./build/parser.exe \<可选测试用例文件\>
 
@@ -78,8 +78,6 @@ make all
 zengyicydd@tju.edu.cn
 
 gaocan@tju.edu.cn
-
-yxy641121@gmail.com
 
 daimingjing142857@tju.edu.cn
 
