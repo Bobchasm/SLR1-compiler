@@ -261,136 +261,133 @@ vector<pair<int, pair<string, vector<string> > > > originalProductions = {
     {10, {"constDef_list", {",", "constDef", "constDef_list"}}},
     {11, {"constDef_list", {EPSILON}}},
     
-    // 5. bType -> 'int' | 'float'
+    // 5. bType -> 'int' | 'float' | 'void'
     {12, {"bType", {"int"}}},
     {13, {"bType", {"float"}}},
+    {14, {"bType", {"void"}}},
     
     // 6. constDef -> Ident '=' constInitVal
-    {14, {"constDef", {"Ident", "=", "constInitVal"}}},
+    {15, {"constDef", {"Ident", "=", "constInitVal"}}},
     
     // 7. constInitVal -> constExp
-    {15, {"constInitVal", {"constExp"}}},
+    {16, {"constInitVal", {"constExp"}}},
     
     // 8. varDecl -> bType varDef (',' varDef)* ';'
-    {16, {"varDecl", {"bType", "varDef", "varDef_list", ";"}}},
-    {17, {"varDef_list", {",", "varDef", "varDef_list"}}},
-    {18, {"varDef_list", {EPSILON}}},
+    {17, {"varDecl", {"bType", "varDef", "varDef_list", ";"}}},
+    {18, {"varDef_list", {",", "varDef", "varDef_list"}}},
+    {19, {"varDef_list", {EPSILON}}},
     
     // 9. varDef -> Ident | Ident '=' initVal
-    {19, {"varDef", {"Ident"}}},
-    {20, {"varDef", {"Ident", "=", "initVal"}}},
+    {20, {"varDef", {"Ident"}}},
+    {21, {"varDef", {"Ident", "=", "initVal"}}},
     
     // 10. initVal -> exp
-    {21, {"initVal", {"exp"}}},
+    {22, {"initVal", {"exp"}}},
     
-    // 11. funcDef -> funcType Ident '(' (funcFParams)? ')' block
-    {22, {"funcDef", {"funcType", "Ident", "(", "funcFParams_opt", ")", "block"}}},
-    {23, {"funcFParams_opt", {"funcFParams"}}},
-    {24, {"funcFParams_opt", {EPSILON}}},
+    // 11. funcDef -> bType Ident '(' (funcFParams)? ')' block  (修改：funcType改为bType)
+    {23, {"funcDef", {"bType", "Ident", "(", "funcFParams_opt", ")", "block"}}},
+    {24, {"funcFParams_opt", {"funcFParams"}}},
+    {25, {"funcFParams_opt", {EPSILON}}},
     
-    // 12. funcType -> 'void' | 'int'
-    {25, {"funcType", {"void"}}},
-    {26, {"funcType", {"int"}}},
+    // 12. funcFParams -> funcFParam (',' funcFParam)*  (修改：序号调整)
+    {26, {"funcFParams", {"funcFParam", "funcFParam_list"}}},
+    {27, {"funcFParam_list", {",", "funcFParam", "funcFParam_list"}}},
+    {28, {"funcFParam_list", {EPSILON}}},
     
-    // 13. funcFParams -> funcFParam (',' funcFParam)*
-    {27, {"funcFParams", {"funcFParam", "funcFParam_list"}}},
-    {28, {"funcFParam_list", {",", "funcFParam", "funcFParam_list"}}},
-    {29, {"funcFParam_list", {EPSILON}}},
+    // 13. funcFParam -> bType Ident
+    {29, {"funcFParam", {"bType", "Ident"}}},
     
-    // 14. funcFParam -> bType Ident
-    {30, {"funcFParam", {"bType", "Ident"}}},
+    // 14. block -> '{' (blockItem)* '}'
+    {30, {"block", {"{", "blockItem_list", "}"}}},
+    {31, {"blockItem_list", {"blockItem_list", "blockItem"}}},
+    {32, {"blockItem_list", {EPSILON}}},
     
-    // 15. block -> '{' (blockItem)* '}'
-    {31, {"block", {"{", "blockItem_list", "}"}}},
-    {32, {"blockItem_list", {"blockItem_list", "blockItem"}}},
-    {33, {"blockItem_list", {EPSILON}}},
+    // 15. blockItem -> decl | stmt
+    {33, {"blockItem", {"decl"}}},
+    {34, {"blockItem", {"stmt"}}},
     
-    // 16. blockItem -> decl | stmt
-    {34, {"blockItem", {"decl"}}},
-    {35, {"blockItem", {"stmt"}}},
+    // 16. stmt -> lVal '=' exp ';' | (exp)? ';' | block | 'if' '(' cond ')' stmt ('else' stmt)? | 'return' (exp)? ';'
+    {35, {"stmt", {"lVal", "=", "exp", ";"}}},
+    {36, {"stmt", {"exp_opt", ";"}}},
+    {37, {"stmt", {"block"}}},
+    {38, {"stmt", {"if", "(", "cond", ")", "stmt", "else_opt"}}},
+    {39, {"stmt", {"return", "exp_opt", ";"}}},
+    {40, {"exp_opt", {"exp"}}},
+    {41, {"exp_opt", {EPSILON}}},
+    {42, {"else_opt", {"else", "stmt"}}},
+    {43, {"else_opt", {EPSILON}}},
     
-    // 17. stmt -> lVal '=' exp ';' | (exp)? ';' | block | 'if' '(' cond ')' stmt ('else' stmt)? | 'return' (exp)? ';'
-    {36, {"stmt", {"lVal", "=", "exp", ";"}}},
-    {37, {"stmt", {"exp_opt", ";"}}},
-    {38, {"stmt", {"block"}}},
-    {39, {"stmt", {"if", "(", "cond", ")", "stmt", "else_opt"}}},
-    {40, {"stmt", {"return", "exp_opt", ";"}}},
-    {41, {"exp_opt", {"exp"}}},
-    {42, {"exp_opt", {EPSILON}}},
-    {43, {"else_opt", {"else", "stmt"}}},
-    {44, {"else_opt", {EPSILON}}},
+    // 17. exp -> addExp
+    {44, {"exp", {"addExp"}}},
     
-    // 18. exp -> addExp
-    {45, {"exp", {"addExp"}}},
+    // 18. cond -> lOrExp
+    {45, {"cond", {"lOrExp"}}},
     
-    // 19. cond -> lOrExp
-    {46, {"cond", {"lOrExp"}}},
+    // 19. lVal -> Ident
+    {46, {"lVal", {"Ident"}}},
     
-    // 20. lVal -> Ident
-    {47, {"lVal", {"Ident"}}},
+    // 20. primaryExp -> '(' exp ')' | lVal | number
+    {47, {"primaryExp", {"(", "exp", ")"}}},
+    {48, {"primaryExp", {"lVal"}}},
+    {49, {"primaryExp", {"number"}}},
     
-    // 21. primaryExp -> '(' exp ')' | lVal | number
-    {48, {"primaryExp", {"(", "exp", ")"}}},
-    {49, {"primaryExp", {"lVal"}}},
-    {50, {"primaryExp", {"number"}}},
+    // 21. number -> IntConst | floatConst
+    {50, {"number", {"IntConst"}}},
+    {51, {"number", {"floatConst"}}},
     
-    // 22. number -> IntConst | floatConst
-    {51, {"number", {"IntConst"}}},
-    {52, {"number", {"floatConst"}}},
+    // 22. unaryExp -> primaryExp | Ident '(' (funcRParams)? ')' | unaryOp unaryExp
+    {52, {"unaryExp", {"primaryExp"}}},
+    {53, {"unaryExp", {"Ident", "(", "funcRParams_opt", ")"}}},
+    {54, {"unaryExp", {"unaryOp", "unaryExp"}}},
+    {55, {"funcRParams_opt", {"funcRParams"}}},
+    {56, {"funcRParams_opt", {EPSILON}}},
     
-    // 23. unaryExp -> primaryExp | Ident '(' (funcRParams)? ')' | unaryOp unaryExp
-    {53, {"unaryExp", {"primaryExp"}}},
-    {54, {"unaryExp", {"Ident", "(", "funcRParams_opt", ")"}}},
-    {55, {"unaryExp", {"unaryOp", "unaryExp"}}},
-    {56, {"funcRParams_opt", {"funcRParams"}}},
-    {57, {"funcRParams_opt", {EPSILON}}},
+    // 23. unaryOp -> '+' | '-' | '!'
+    {57, {"unaryOp", {"+"}}},
+    {58, {"unaryOp", {"-"}}},
+    {59, {"unaryOp", {"!"}}},
     
-    // 24. unaryOp -> '+' | '-' | '!'
-    {58, {"unaryOp", {"+"}}},
-    {59, {"unaryOp", {"-"}}},
-    {60, {"unaryOp", {"!"}}},
+    // 24. funcRParams -> funcRParam (',' funcRParam)*
+    {60, {"funcRParams", {"funcRParam", "funcRParam_list"}}},
+    {61, {"funcRParam_list", {",", "funcRParam", "funcRParam_list"}}},
+    {62, {"funcRParam_list", {EPSILON}}},
     
-    // 25. funcRParams -> funcRParam (',' funcRParam)*
-    {61, {"funcRParams", {"funcRParam", "funcRParam_list"}}},
-    {62, {"funcRParam_list", {",", "funcRParam", "funcRParam_list"}}},
-    {63, {"funcRParam_list", {EPSILON}}},
+    // 25. funcRParam -> exp
+    {63, {"funcRParam", {"exp"}}},
     
-    // 26. funcRParam -> exp
-    {64, {"funcRParam", {"exp"}}},
+    // 26. mulExp -> unaryExp | mulExp ('*' | '/' | '%') unaryExp
+    {64, {"mulExp", {"unaryExp"}}},
+    {65, {"mulExp", {"mulExp", "*", "unaryExp"}}},
+    {66, {"mulExp", {"mulExp", "/", "unaryExp"}}},
+    {67, {"mulExp", {"mulExp", "%", "unaryExp"}}},
     
-    // 27. mulExp -> unaryExp | mulExp ('*' | '/' | '%') unaryExp
-    {65, {"mulExp", {"unaryExp"}}},
-    {66, {"mulExp", {"mulExp", "*", "unaryExp"}}},
-    {67, {"mulExp", {"mulExp", "/", "unaryExp"}}},
-    {68, {"mulExp", {"mulExp", "%", "unaryExp"}}},
+    // 27. addExp -> mulExp | addExp ('+' | '-') mulExp
+    {68, {"addExp", {"mulExp"}}},
+    {69, {"addExp", {"addExp", "+", "mulExp"}}},
+    {70, {"addExp", {"addExp", "-", "mulExp"}}},
     
-    // 28. addExp -> mulExp | addExp ('+' | '-') mulExp
-    {69, {"addExp", {"mulExp"}}},
-    {70, {"addExp", {"addExp", "+", "mulExp"}}},
-    {71, {"addExp", {"addExp", "-", "mulExp"}}},
+    // 28. relExp -> addExp | relExp ('<' | '>' | '<=' | '>=') addExp
+    {71, {"relExp", {"addExp"}}},
+    {72, {"relExp", {"relExp", "<", "addExp"}}},
+    {73, {"relExp", {"relExp", ">", "addExp"}}},
+    {74, {"relExp", {"relExp", "<=", "addExp"}}},
+    {75, {"relExp", {"relExp", ">=", "addExp"}}},
     
-    // 29. relExp -> addExp | relExp ('<' | '>' | '<=' | '>=') addExp
-    {72, {"relExp", {"addExp"}}},
-    {73, {"relExp", {"relExp", "<", "addExp"}}},
-    {74, {"relExp", {"relExp", ">", "addExp"}}},
-    {75, {"relExp", {"relExp", "<=", "addExp"}}},
-    {76, {"relExp", {"relExp", ">=", "addExp"}}},
+    // 29. eqExp -> relExp | eqExp ('==' | '!=') relExp
+    {76, {"eqExp", {"relExp"}}},
+    {77, {"eqExp", {"eqExp", "==", "relExp"}}},
+    {78, {"eqExp", {"eqExp", "!=", "relExp"}}},
     
-    // 30. eqExp -> relExp | eqExp ('==' | '!=') relExp
-    {77, {"eqExp", {"relExp"}}},
-    {78, {"eqExp", {"eqExp", "==", "relExp"}}},
-    {79, {"eqExp", {"eqExp", "!=", "relExp"}}},
+    // 30. lAndExp -> eqExp | lAndExp '&&' eqExp
+    {79, {"lAndExp", {"eqExp"}}},
+    {80, {"lAndExp", {"lAndExp", "&&", "eqExp"}}},
     
-    // 31. lAndExp -> eqExp | lAndExp '&&' eqExp
-    {80, {"lAndExp", {"eqExp"}}},
-    {81, {"lAndExp", {"lAndExp", "&&", "eqExp"}}},
+    // 31. lOrExp -> lAndExp | lOrExp '||' lAndExp
+    {81, {"lOrExp", {"lAndExp"}}},
+    {82, {"lOrExp", {"lOrExp", "||", "lAndExp"}}},
     
-    // 32. lOrExp -> lAndExp | lOrExp '||' lAndExp
-    {82, {"lOrExp", {"lAndExp"}}},
-    {83, {"lOrExp", {"lOrExp", "||", "lAndExp"}}},
-    
-    // 33. constExp -> addExp
-    {84, {"constExp", {"addExp"}}}
+    // 32. constExp -> addExp
+    {83, {"constExp", {"addExp"}}}
 };
 
 
