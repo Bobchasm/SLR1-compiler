@@ -725,9 +725,14 @@ void initGrammar()
 class SLR1Parser 
 {
 private:
-    stack<int> statusStack;    // 状态栈 
-    stack<string> symbolStack;    // 符号栈
+    stack<int> statusStack;         // 状态栈
+    stack<string> symbolStack;      // 符号栈
+
+    stack<ParseTreeNode*> treeStack;  // 语法树节点栈
+    ParseTreeNode* parseTree;       // 完整的语法分析树根节点
+
     ostream &output;
+
     int stepCount;    // 步骤(从1开始)
     string inputFilename;  // 输入文件名
     
@@ -783,9 +788,27 @@ private:
     
 public:
     SLR1Parser(ostream &out, const string& filename = "") 
-        : output(out), stepCount(1), inputFilename(filename) 
+        : output(out), stepCount(1), inputFilename(filename), parseTree(nullptr)
     {
         initGrammar();
+    }
+    
+    ~SLR1Parser() {
+
+        if (parseTree)
+            delete parseTree;
+
+        while (!treeStack.empty()) 
+        {
+            delete treeStack.top();
+            treeStack.pop();
+        }
+    }
+    
+    // 获取语法分析树
+    ParseTreeNode* getParseTree() const 
+    {
+        return parseTree;
     }
     
     bool parse() 
@@ -870,6 +893,14 @@ public:
             {
                 // 接受
                 cout << "[PARSER] Accept! Parsing completed successfully." << endl;
+                
+                // 保存语法树根节点
+                if (!treeStack.empty()) 
+                {
+                    parseTree = treeStack.top();
+                    treeStack.pop();
+                }
+                
                 success = true;
                 break;
             }
@@ -884,7 +915,15 @@ public:
                 // (2)符号栈压入当前输入符号
                 symbolStack.push(currentSymbol);
                 
-                // (3)读取下一个输入符号
+                // (3)创建终结符节点并压入树栈
+                ParseTreeNode* terminalNode = new ParseTreeNode(
+                    NODE_TERMINAL, 
+                    currentSymbol, 
+                    string(currentToken.text)  // 保存token的原始文本值
+                );
+                treeStack.push(terminalNode);
+                
+                // (4)读取下一个输入符号
                 currentToken = getNextToken();
                 currentSymbol = getCurrentToken(currentToken);
                 
@@ -905,17 +944,36 @@ public:
                 if (!(beta.size() == 1 && beta[0] == EPSILON))
                     betaLen = beta.size();
                 
-                // (1)弹出 |β| 个状态和符号
+                // 创建非终结符节点
+                ParseTreeNode* nonterminalNode = new ParseTreeNode(
+                    NODE_NONTERMINAL,
+                    A,
+                    "",
+                    prodIndex
+                );
+                
+                // (1)从树栈中弹出 |β| 个子节点，添加为当前节点的子节点
+                vector<ParseTreeNode*> childrenNodes;
                 for (int i = 0; i < betaLen; i++) 
                 {
+                    if (!treeStack.empty()) 
+                    {
+                        childrenNodes.push_back(treeStack.top());
+                        treeStack.pop();
+                    }
                     if (!statusStack.empty()) statusStack.pop();
                     if (!symbolStack.empty()) symbolStack.pop();
                 }
+                
+                // 反转子节点顺序（因为栈是后进先出）
+                reverse(childrenNodes.begin(), childrenNodes.end());
+                nonterminalNode->children = childrenNodes;
                 
                 // (2)获取当前状态栈顶
                 if (statusStack.empty()) 
                 {
                     cout << "[PARSER] Error: State stack underflow during reduction" << endl;
+                    delete nonterminalNode;
                     break;
                 }
                 int topState = statusStack.top();
@@ -925,6 +983,7 @@ public:
                 if (gotoIndex == -1) 
                 {
                     cout << "[PARSER] Error: Nonterminal '" << A << "' not found" << endl;
+                    delete nonterminalNode;
                     break;
                 }
                 
@@ -934,6 +993,7 @@ public:
                 {
                     cout << "[PARSER] Error: GOTO[" << topState << ", " << A 
                          << "] is not defined (expected shift action)" << endl;
+                    delete nonterminalNode;
                     break;
                 }
                 
@@ -944,6 +1004,9 @@ public:
                 
                 // (5)符号栈压入非终结符 A
                 symbolStack.push(A);
+                
+                // (6)将新创建的节点压入树栈
+                treeStack.push(nonterminalNode);
                 
                 step++;
             }
@@ -968,6 +1031,35 @@ public:
             parseLog.close();
         
         cout << "[PARSER] Total steps: " << step << endl;
+        
+        // 输出语法分析树
+        if (success && parseTree) 
+        {
+            cout << "\n" << string(70, '=') << endl;
+            cout << "[PARSER] Parse Tree (美化格式):" << endl;
+            cout << string(70, '=') << endl;
+            cout << parseTree->toTreeString() << endl;
+            
+            // 将语法树保存到文件
+            if (!inputFilename.empty()) {
+                string treeFilePath = "case/" + inputFilename + "_parse_tree.txt";
+                ofstream treeFile(treeFilePath);
+                if (treeFile.is_open()) {
+                    treeFile << parseTree->toTreeString();
+                    treeFile << endl;
+                    treeFile << "=========================================================" << endl;
+                    treeFile << "图例说明:" << endl;
+                    treeFile << "  ~ 非终结符节点 (产生式编号)" << endl;
+                    treeFile << "  # 终结符节点 (token值)" << endl;
+                    treeFile << "  ├── 有后续兄弟节点" << endl;
+                    treeFile << "  └── 最后一个子节点" << endl;
+                    treeFile << "  │   连接线" << endl;
+                    treeFile.close();
+                    cout << "[PARSER] Parse tree saved to: " << treeFilePath << endl;
+                }
+            }
+        }
+        
         return success;
     }
 };

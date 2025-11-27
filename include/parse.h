@@ -13,6 +13,107 @@ using namespace std;
 const string EPSILON = "$";
 const string END_MARKER = "EOF";
 
+
+
+
+// ==================== 语法分析树 ====================
+
+// 语法树节点类型
+enum NodeType 
+{
+    NODE_TERMINAL,      // 终结符节点（叶子节点）
+    NODE_NONTERMINAL    // 非终结符节点（内部节点）
+};
+
+// 语法树节点
+struct ParseTreeNode 
+{
+    NodeType type;           // 节点类型
+    string symbol;           // 符号名称（终结符或非终结符）
+    string value;            // 终结符的值（对于终结符节点）
+    int prodIndex;           // 使用的产生式索引（对于非终结符节点）
+    
+    vector<ParseTreeNode*> children;  // 子节点列表
+    
+    ParseTreeNode(NodeType t, const string& sym, const string& val = "", int prod = -1)
+        : type(t), symbol(sym), value(val), prodIndex(prod) {}
+    
+    ~ParseTreeNode()
+    {
+        for (ParseTreeNode* child : children)
+            delete child;
+    }
+    
+    bool isLeaf() const 
+    {
+        return type == NODE_TERMINAL;
+    }
+    
+    string toString(int depth = 0) const 
+    {
+        string indent(depth * 2, ' ');
+        string result = indent;
+        
+        if (type == NODE_TERMINAL) 
+        {
+            result += "[T] " + symbol;
+            if (!value.empty() && value != symbol)
+                result += " (" + value + ")";
+        } 
+        else 
+        {
+            result += "[N] " + symbol;
+            if (prodIndex >= 0)
+                result += " [prod " + to_string(prodIndex) + "]";
+        }
+        result += "\n";
+        
+        for (const ParseTreeNode* child : children)
+            result += child->toString(depth + 1);
+        
+        return result;
+    }
+    
+    string toTreeString(const string& prefix = "", bool isLast = true) const {
+        string result;
+        
+        string connector = isLast ? "└── " : "├── ";
+        
+        if (!prefix.empty())
+            result += prefix + connector;
+
+        if (type == NODE_TERMINAL) 
+        {
+            result += "🔹 " + symbol;
+            if (!value.empty() && value != symbol)
+                result += " \"" + value + "\"";
+        } 
+        else 
+        {
+            result += "📦 " + symbol;
+            if (prodIndex >= 0)
+                result += " (产生式 " + to_string(prodIndex) + ")";
+        }
+        result += "\n";
+        
+        // 递归处理子节点
+        for (size_t i = 0; i < children.size(); i++) 
+        {
+            bool childIsLast = (i == children.size() - 1);
+            string childPrefix;
+            
+            if (prefix.empty())
+                childPrefix = "";
+            else
+                childPrefix = prefix + (isLast ? "    " : "│   ");
+            
+            result += children[i]->toTreeString(childPrefix, childIsLast);
+        }
+        
+        return result;
+    }
+};
+
 // 序号用于分析表终结符唯一标识，注意这里与词法分析器那里的标号无关
 map<string, pair<string,int> > tokenTypeToTerminal = {
     {"int", {"int",1}}, {"void", {"void",2}}, {"return", {"return",3}}, {"const", {"const",4}}, {"float", {"float",5}}, {"if", {"if",6}}, {"else", {"else",7}}, 

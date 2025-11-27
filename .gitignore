@@ -13,6 +13,7 @@ process/
 
 # Test output files
 # case/*_parse_analysis.txt
+# case/*_parse_tree.txt
 
 # VS Code
 .vscode/
