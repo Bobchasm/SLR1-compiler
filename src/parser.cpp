@@ -111,8 +111,18 @@ vector<Item> gotoSet(const vector<Item>& items, const string& symbol)
 {
     vector<Item> movedItems;
     
+    // 调试：检查 compUnit
+    if (symbol == "compUnit") {
+        cout << "[DEBUG GOTO] Checking GOTO(_, \"compUnit\"), items.size()=" << items.size() << endl;
+    }
+    
     for (const Item& item : items) 
     {
+        if (symbol == "compUnit" && !item.isComplete()) {
+            cout << "  Item: " << item.toString() << ", next=\"" << item.getNextSymbol() << "\", match=" 
+                 << (item.getNextSymbol() == symbol ? "YES" : "NO") << endl;
+        }
+        
         // 项目形如 A -> α·Xβ，则将 A -> αX·β 加入结果
         if (!item.isComplete() && item.getNextSymbol() == symbol) 
         {
@@ -120,6 +130,10 @@ vector<Item> gotoSet(const vector<Item>& items, const string& symbol)
             newItem.flag++;
             movedItems.push_back(newItem);
         }
+    }
+    
+    if (!movedItems.empty() && (symbol == "compUnit" || symbol == "compUnit_list")) {
+        cout << "[DEBUG GOTO] GOTO(_, \"" << symbol << "\") found " << movedItems.size() << " moved items before closure" << endl;
     }
     
     return closure(movedItems);
@@ -156,6 +170,16 @@ void buildParseDFA()
     dfa.startState = 0;
     
     cout << "[PARSER] Initial state I0 created with " << I0.items.size() << " items" << endl;
+    cout << "[DEBUG] I0 items:" << endl;
+    for (const Item& item : I0.items) {
+        cout << "  " << item.toString();
+        if (!item.isComplete()) {
+            cout << " [next: \"" << item.getNextSymbol() << "\"]";
+        } else {
+            cout << " [COMPLETE]";
+        }
+        cout << endl;
+    }
     
     // 用于判断项目集是否已经存在
     // map: 项目集内容 -> 状态编号
@@ -169,23 +193,48 @@ void buildParseDFA()
     // 获取所有可能的符号
     set<string> allSymbols = getAllSymbols();
     
+    cout << "[DEBUG] Total symbols: " << allSymbols.size() 
+         << " (Terminals: " << grammar.terminals.size() 
+         << ", Nonterminals: " << grammar.nonterminals.size() << ")" << endl;
+    
+    // 检查是否有 EPSILON
+    if (allSymbols.find(EPSILON) != allSymbols.end()) {
+        cout << "[WARNING] EPSILON \"" << EPSILON << "\" found in allSymbols! This will cause problems!" << endl;
+    }
+    
     // 2&3.迭代构建状态集
+    int processedStates = 0;
     while (!workQueue.empty()) 
     {
         int currentStateNum = workQueue.front();
         workQueue.pop();
+        processedStates++;
         
-        const ParserDFAStatus& currentState = dfa.states[currentStateNum];
+        // 重要：不要使用引用，因为 dfa.states 可能会被修改（push_back）
+        // 使用副本或者每次重新获取
+        vector<Item> currentItems = dfa.states[currentStateNum].items;
+        
+        cout << "[DEBUG] Processing state I" << currentStateNum 
+             << " (" << currentItems.size() << " items)" << endl;
         
         // 对每个符号计算 GOTO
+        int transitionsFromThisState = 0;
         for (const string& symbol : allSymbols) 
         {
             // 计算 GOTO(currentState, symbol)
-            vector<Item> gotoItems = gotoSet(currentState.items, symbol);
+            vector<Item> gotoItems = gotoSet(currentItems, symbol);
             
             // 如果 GOTO 结果为空，跳过
-            if (gotoItems.empty())
+            if (gotoItems.empty()) {
                 continue;
+            }
+            
+            // 调试：显示 I0 的所有非空 GOTO
+            if (currentStateNum == 0) {
+                cout << "[DEBUG]   GOTO(I0, \"" << symbol << "\") has " << gotoItems.size() << " items" << endl;
+            }
+            
+            transitionsFromThisState++;
             
             // 检查这个项目集是否已经存在
             int targetStateNum;
@@ -208,17 +257,22 @@ void buildParseDFA()
                 workQueue.push(targetStateNum);
                 
                 cout << "[PARSER] Created new state I" << targetStateNum 
-                     << " with " << gotoItems.size() << " items" << endl;
+                     << " with " << gotoItems.size() << " items via symbol '" << symbol << "'" << endl;
             }
             
             // 添加转换：currentState --[symbol]--> targetState
             dfa.addTransition(currentStateNum, symbol, targetStateNum);
+        }
+        
+        if (transitionsFromThisState == 0) {
+            cout << "[DEBUG] State I" << currentStateNum << " has no outgoing transitions!" << endl;
         }
     }
     
     cout << "[PARSER] DFA construction completed:" << endl;
     cout << "[PARSER]   Total states: " << dfa.states.size() << endl;
     cout << "[PARSER]   Total transitions: " << dfa.transitions.size() << endl;
+    cout << "[PARSER]   Processed states: " << processedStates << endl;
 }
 
 
@@ -614,6 +668,13 @@ void initGrammar()
     }
 
     cout << "[DEBUG] Productions: " << grammar.productions.size() << ", Nonterminals: " << grammar.nonterminals.size() << endl;
+    
+    cout << "[DEBUG] First 10 nonterminals:" << endl;
+    int count = 0;
+    for (const auto& nt : grammar.nonterminals) {
+        cout << "  " << nt.first << " (id=" << nt.second << ")" << endl;
+        if (++count >= 10) break;
+    }
 
     buildParseDFA();
     buildAnalysisTable();
