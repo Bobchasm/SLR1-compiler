@@ -446,6 +446,30 @@ void computeFollowSets()
 
 // ==================== SLR(1)分析表构造 ====================
 
+/**
+ * CSV转义函数：处理包含逗号、引号、换行符的字段
+ */
+string escapeCSV(const string& field) 
+{
+    // 如果字段包含逗号、引号或换行符，需要用双引号包裹
+    bool needsQuote = (field.find(',') != string::npos || 
+                       field.find('"') != string::npos || 
+                       field.find('\n') != string::npos);
+    
+    if (!needsQuote)
+        return field;
+    
+    string result = "\"";
+    for (char c : field) {
+        if (c == '"')
+            result += "\"\";";  // 双引号转义为两个双引号
+        else
+            result += c;
+    }
+    result += "\"";
+    return result;
+}
+
 void buildAnalysisTable()
 {
     cout << "[PARSER] Building SLR(1) analysis table..." << endl;
@@ -576,11 +600,11 @@ void buildAnalysisTable()
     
     // 终结符列
     for (const auto& term : grammar.terminals)
-        csvFile << "," << term.first;
+        csvFile << "," << escapeCSV(term.first);
     
     // 非终结符列  
     for (const auto& nonterm : grammar.nonterminals)
-        csvFile << "," << nonterm.first;
+        csvFile << "," << escapeCSV(nonterm.first);
     
     csvFile << endl;
     
@@ -596,19 +620,21 @@ void buildAnalysisTable()
             // 检查是否有冲突
             if (tableWithConflicts[i][j].size() > 1) 
             {
-                // 有冲突，用逗号分隔多个动作
+                // 有冲突，将多个动作用分号分隔（而不是逗号）
+                string actions;
                 for (size_t k = 0; k < tableWithConflicts[i][j].size(); k++) 
                 {
-                    if (k > 0) csvFile << ",";
+                    if (k > 0) actions += ";";
                     
                     const Action& action = tableWithConflicts[i][j][k];
                     if (action.type == ACC)
-                        csvFile << "acc";
+                        actions += "acc";
                     else if (action.type == MOVE)
-                        csvFile << "s" << action.num;
+                        actions += "s" + to_string(action.num);
                     else if (action.type == REDUCTION)
-                        csvFile << "r" << action.num;
+                        actions += "r" + to_string(action.num);
                 }
+                csvFile << escapeCSV(actions);  // 转义（如果包含特殊字符）
             }
             else if (tableWithConflicts[i][j].size() == 1) 
             {
@@ -648,6 +674,10 @@ void initGrammar()
     
     // 终结符标号按打表的来，非终结符从终结符序号后接着标
     int nonterminal_count = grammar.terminals.size();
+    for (auto t : grammar.terminals)
+    {
+        cout<< "terminals " <<t.first<<" "<<t.second<<endl;;
+    }
 
     // 拓广文法
     Production exprod;
