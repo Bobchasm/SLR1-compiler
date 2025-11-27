@@ -579,8 +579,8 @@ void buildAnalysisTable()
     if (conflictCount > 0)
         cout << "[PARSER] WARNING: Found " << conflictCount << " conflicts" << endl;
     
-    // // 先不输出了，拖慢测试进度
-    exportAnalysisTable(tableWithConflicts);
+    // #EXPORT_DEBUG# 输出分析表
+    // exportAnalysisTable(tableWithConflicts);
    
 }
 
@@ -782,8 +782,9 @@ void initGrammar()
     buildParseDFA();
     buildAnalysisTable();
     
-    exportFirstSets();
-    exportFollowSets();
+    // #EXPORT_DEBUG# 输出FIRST&FOLLOW集合
+    // exportFirstSets();
+    // exportFollowSets();
 
     cout << "[DEBUG] initGrammar() completed" << endl;
 
@@ -1234,6 +1235,13 @@ int main(int argc, char *argv[])
     }
     
     cout << "[DEBUG] Calling initLexer()" << endl;
+
+    if (fileInput) {
+        size_t last_slash = inputFilename.find_last_of("/\\");
+        string filename_only = (last_slash != string::npos) ? inputFilename.substr(last_slash + 1) : inputFilename;
+        setTestCase("case/", filename_only);
+    }
+    
     initLexer(input);
     
     string pureFilename = "";

@@ -1000,6 +1000,8 @@ extern "C"
 
     void initLexer(const char *input)
     {
+        test_case_path = TEST_CASE_PATH;
+
         if (global_lexer != nullptr)
             delete global_lexer;
 
@@ -1007,7 +1009,7 @@ extern "C"
         
         createDirectoryIfNotExists("process");
 
-        // // 导出词法分析状态转移矩阵，太慢了先注释掉
+        // #EXPORT_DEBUG# 输出词法分析状态转移矩阵
         // exportDFATransitionMatrix(global_dfa, TRANSITION_MATRIX_PATH + "lexer_state_transition_matrix.csv");
         
         global_lexer = new Lexer(global_dfa, string(input));
@@ -1056,14 +1058,14 @@ extern "C"
 
         strncpy(token.text, tokenText.c_str(), 255);
         token.text[255] = '\0';
-        strncpy(token.type, isMain ? "KW" : tokenType.c_str(), 63);
+        strncpy(token.type, tokenType.c_str(), 63);
         token.type[63] = '\0';
-        strncpy(token.value, isMain ? "5" : tokenValue.c_str(), 255);
+        strncpy(token.value, tokenValue.c_str(), 255);
         token.value[255] = '\0';
         token.valid = 1;
 
         if (token_output_file.is_open() && tokenType != "ERROR")
-            token_output_file << tokenText << "\t<" << tokenType << "," << tokenValue << ">" << endl;
+            token_output_file << tokenText << "\t<" << (isMain ? "KW" : tokenType) << "," << (isMain ? "5" : tokenValue) << ">" << endl;
 
         return token;
     }
