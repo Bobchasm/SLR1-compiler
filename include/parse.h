@@ -49,69 +49,68 @@ struct ParseTreeNode
         return type == NODE_TERMINAL;
     }
     
-    string toString(int depth = 0) const 
+    // 使用Markdown的Mermaid 可视化语法分析树
+    string toMermaidMarkdown() const 
     {
-        string indent(depth * 2, ' ');
-        string result = indent;
+        string result = "```mermaid\n";
+        result += "flowchart TD\n";
         
-        if (type == NODE_TERMINAL) 
-        {
-            result += "[T] " + symbol;
-            if (!value.empty() && value != symbol)
-                result += " (" + value + ")";
-        } 
-        else 
-        {
-            result += "[N] " + symbol;
-            if (prodIndex >= 0)
-                result += " [prod " + to_string(prodIndex) + "]";
-        }
-        result += "\n";
+        int nodeCounter = 0;
+        toMermaidHelper(result, nodeCounter, -1);
         
-        for (const ParseTreeNode* child : children)
-            result += child->toString(depth + 1);
-        
+        result += "```\n";
         return result;
     }
     
-    string toTreeString(const string& prefix = "", bool isLast = true) const {
+private:
+    string escapeMermaid(const string& str) const 
+    {
         string result;
+        for (char c : str) 
+        {
+            if (isalnum(c) || c == '_')
+                result += c;
+            else if (c == ' ')
+                result += '_';
+        }
+        return result;
+    }
+    
+    int toMermaidHelper(string& result, int& nodeCounter, int parentId) const 
+    {
+        int currentId = nodeCounter++;
         
-        string connector = isLast ? "└── " : "├── ";
+        string nodeLabel;
+        string nodeShape;
         
-        if (!prefix.empty())
-            result += prefix + connector;
-
         if (type == NODE_TERMINAL) 
         {
-            result += "🔹 " + symbol;
-            if (!value.empty() && value != symbol)
-                result += " \"" + value + "\"";
+            nodeLabel = escapeMermaid(value.empty() ? symbol : value);
+            if (nodeLabel.empty()) nodeLabel = "T" + to_string(currentId);
+            nodeShape = "((" + nodeLabel + "))";
         } 
         else 
         {
-            result += "📦 " + symbol;
-            if (prodIndex >= 0)
-                result += " (产生式 " + to_string(prodIndex) + ")";
-        }
-        result += "\n";
-        
-        // 递归处理子节点
-        for (size_t i = 0; i < children.size(); i++) 
-        {
-            bool childIsLast = (i == children.size() - 1);
-            string childPrefix;
-            
-            if (prefix.empty())
-                childPrefix = "";
-            else
-                childPrefix = prefix + (isLast ? "    " : "│   ");
-            
-            result += children[i]->toTreeString(childPrefix, childIsLast);
+            nodeLabel = escapeMermaid(symbol);
+            if (nodeLabel.empty())
+                nodeLabel = "N" + to_string(currentId);
+            nodeShape = "[" + nodeLabel + "]";
         }
         
-        return result;
+        result += "    N" + to_string(currentId) + nodeShape + "\n";
+        
+        if (parentId >= 0)
+            result += "    N" + to_string(parentId) + " --> N" + to_string(currentId) + "\n";
+        
+        for (const ParseTreeNode* child : children)
+            child->toMermaidHelper(result, nodeCounter, currentId);
+        
+        return currentId;
     }
+
+public:
+
+
 };
 
 // 序号用于分析表终结符唯一标识，注意这里与词法分析器那里的标号无关

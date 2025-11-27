@@ -1,5 +1,6 @@
 # Logs directory with timestamped log files
 logs/
+build/
 
 # Build outputs
 *.o
@@ -7,13 +8,6 @@ logs/
 *.exe
 parser
 lexer
-
-# Process directory with analysis tables
-process/
-
-# Test output files
-# case/*_parse_analysis.txt
-# case/*_parse_tree.txt
 
 # VS Code
 .vscode/

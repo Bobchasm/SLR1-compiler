@@ -805,10 +805,32 @@ public:
         }
     }
     
-    // 获取语法分析树
     ParseTreeNode* getParseTree() const 
     {
         return parseTree;
+    }
+    
+    // 输出语法分析树 (md格式)
+    void outputParseTree() 
+    {
+        if (!parseTree) 
+        {
+            cout << "[PARSER] No parse tree available." << endl;
+            return;
+        }
+        
+        if (!inputFilename.empty()) 
+        {
+            string mdFilePath = "case/" + inputFilename + "_parse_tree.md";
+            ofstream mdFile(mdFilePath);
+            if (mdFile.is_open()) 
+            {
+                mdFile << parseTree->toMermaidMarkdown();
+
+                mdFile.close();
+                cout << "[PARSER] Parse tree saved to: " << mdFilePath << endl;
+            }
+        }
     }
     
     bool parse() 
@@ -1012,7 +1034,7 @@ public:
             }
             else 
             {
-                // ======== 错误 ========
+                // 错误
                 cout << "[PARSER] Error: No valid action for state " << currentState 
                      << ", symbol '" << currentSymbol << "'" << endl;
                 if (parseLog.is_open()) 
@@ -1033,32 +1055,8 @@ public:
         cout << "[PARSER] Total steps: " << step << endl;
         
         // 输出语法分析树
-        if (success && parseTree) 
-        {
-            cout << "\n" << string(70, '=') << endl;
-            cout << "[PARSER] Parse Tree (美化格式):" << endl;
-            cout << string(70, '=') << endl;
-            cout << parseTree->toTreeString() << endl;
-            
-            // 将语法树保存到文件
-            if (!inputFilename.empty()) {
-                string treeFilePath = "case/" + inputFilename + "_parse_tree.txt";
-                ofstream treeFile(treeFilePath);
-                if (treeFile.is_open()) {
-                    treeFile << parseTree->toTreeString();
-                    treeFile << endl;
-                    treeFile << "=========================================================" << endl;
-                    treeFile << "图例说明:" << endl;
-                    treeFile << "  ~ 非终结符节点 (产生式编号)" << endl;
-                    treeFile << "  # 终结符节点 (token值)" << endl;
-                    treeFile << "  ├── 有后续兄弟节点" << endl;
-                    treeFile << "  └── 最后一个子节点" << endl;
-                    treeFile << "  │   连接线" << endl;
-                    treeFile.close();
-                    cout << "[PARSER] Parse tree saved to: " << treeFilePath << endl;
-                }
-            }
-        }
+        if (success && parseTree)
+            outputParseTree();
         
         return success;
     }
@@ -1096,7 +1094,6 @@ int main(int argc, char *argv[])
     std::ofstream debugLog(logFilename, ios::out | ios::trunc);
     if (debugLog.is_open()) 
     {
-        // 写入日志头部信息
         char timeStr[100];
         strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", timeinfo);
         debugLog << "==============================================" << endl;
@@ -1162,7 +1159,6 @@ int main(int argc, char *argv[])
     cout << "[DEBUG] Calling initLexer()" << endl;
     initLexer(input);
     
-    // 提取纯文件名（去除路径和扩展名）
     string pureFilename = "";
     if (fileInput) 
     {
