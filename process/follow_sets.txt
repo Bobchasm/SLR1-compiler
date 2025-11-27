@@ -1,0 +1,50 @@
+Symbol           FOLLOW Set
+----------------------------------------------------------------------
+Program          { EOF }
+Start            { EOF }
+addExp           { !=, &&, ), +, ,, -, ;, <, <=, ==, >, >=, || }
+bType            { Ident }
+block            { !, (, +, -, ;, EOF, Ident, IntConst, const, else, float, floatConst, if, int, return, void, {, } }
+blockItem        { !, (, +, -, ;, Ident, IntConst, const, float, floatConst, if, int, return, void, {, } }
+blockItem_list   { !, (, +, -, ;, Ident, IntConst, const, float, floatConst, if, int, return, void, {, } }
+compUnit         { EOF }
+compUnit_item    { EOF, const, float, int, void }
+compUnit_list    { EOF, const, float, int, void }
+cond             { ) }
+constDecl        { !, (, +, -, ;, EOF, Ident, IntConst, const, float, floatConst, if, int, return, void, {, } }
+constDef         { ,, ; }
+constDef_list    { ; }
+constExp         { ,, ; }
+constInitVal     { ,, ; }
+decl             { !, (, +, -, ;, EOF, Ident, IntConst, const, float, floatConst, if, int, return, void, {, } }
+else_opt         { !, (, +, -, ;, Ident, IntConst, const, else, float, floatConst, if, int, return, void, {, } }
+eqExp            { !=, &&, ), ==, || }
+exp              { ), ,, ; }
+exp_opt          { ; }
+funcDef          { EOF, const, float, int, void }
+funcFParam       { ), , }
+funcFParam_list  { ) }
+funcFParams      { ) }
+funcFParams_opt  { ) }
+funcRParam       { ), , }
+funcRParam_list  { ) }
+funcRParams      { ) }
+funcRParams_opt  { ) }
+initVal          { ,, ; }
+lAndExp          { &&, ), || }
+lOrExp           { ), || }
+lVal             { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, =, ==, >, >=, || }
+mulExp           { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, ==, >, >=, || }
+number           { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, ==, >, >=, || }
+primaryExp       { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, ==, >, >=, || }
+relExp           { !=, &&, ), <, <=, ==, >, >=, || }
+stmt             { !, (, +, -, ;, Ident, IntConst, const, else, float, floatConst, if, int, return, void, {, } }
+unaryExp         { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, ==, >, >=, || }
+unaryOp          { !, (, +, -, Ident, IntConst, floatConst }
+varDecl          { !, (, +, -, ;, EOF, Ident, IntConst, const, float, floatConst, if, int, return, void, {, } }
+varDef           { ,, ; }
+varDef_list      { ; }
+
+=======================================================================
+Total: 44 symbols
+=======================================================================

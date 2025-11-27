@@ -1,0 +1,82 @@
+Symbol           FIRST Set
+----------------------------------------------------------------------
+!                { ! }
+!=               { != }
+%                { % }
+&&               { && }
+(                { ( }
+)                { ) }
+*                { * }
++                { + }
+,                { , }
+-                { - }
+/                { / }
+;                { ; }
+<                { < }
+<=               { <= }
+=                { = }
+==               { == }
+>                { > }
+>=               { >= }
+EOF              { EOF }
+Ident            { Ident }
+IntConst         { IntConst }
+Program          { EOF, const, float, int, void }
+Start            { EOF, const, float, int, void }
+addExp           { !, (, +, -, Ident, IntConst, floatConst }
+bType            { float, int, void }
+block            { { }
+blockItem        { !, (, +, -, ;, Ident, IntConst, const, float, floatConst, if, int, return, void, { }
+blockItem_list   { !, $, (, +, -, ;, Ident, IntConst, const, float, floatConst, if, int, return, void, { }
+compUnit         { EOF, const, float, int, void }
+compUnit_item    { const, float, int, void }
+compUnit_list    { $, const, float, int, void }
+cond             { !, (, +, -, Ident, IntConst, floatConst }
+const            { const }
+constDecl        { const }
+constDef         { Ident }
+constDef_list    { $, , }
+constExp         { !, (, +, -, Ident, IntConst, floatConst }
+constInitVal     { !, (, +, -, Ident, IntConst, floatConst }
+decl             { const, float, int, void }
+else             { else }
+else_opt         { $, else }
+eqExp            { !, (, +, -, Ident, IntConst, floatConst }
+exp              { !, (, +, -, Ident, IntConst, floatConst }
+exp_opt          { !, $, (, +, -, Ident, IntConst, floatConst }
+float            { float }
+floatConst       { floatConst }
+funcDef          { float, int, void }
+funcFParam       { float, int, void }
+funcFParam_list  { $, , }
+funcFParams      { float, int, void }
+funcFParams_opt  { $, float, int, void }
+funcRParam       { !, (, +, -, Ident, IntConst, floatConst }
+funcRParam_list  { $, , }
+funcRParams      { !, (, +, -, Ident, IntConst, floatConst }
+funcRParams_opt  { !, $, (, +, -, Ident, IntConst, floatConst }
+if               { if }
+initVal          { !, (, +, -, Ident, IntConst, floatConst }
+int              { int }
+lAndExp          { !, (, +, -, Ident, IntConst, floatConst }
+lOrExp           { !, (, +, -, Ident, IntConst, floatConst }
+lVal             { Ident }
+mulExp           { !, (, +, -, Ident, IntConst, floatConst }
+number           { IntConst, floatConst }
+primaryExp       { (, Ident, IntConst, floatConst }
+relExp           { !, (, +, -, Ident, IntConst, floatConst }
+return           { return }
+stmt             { !, (, +, -, ;, Ident, IntConst, floatConst, if, return, { }
+unaryExp         { !, (, +, -, Ident, IntConst, floatConst }
+unaryOp          { !, +, - }
+varDecl          { float, int, void }
+varDef           { Ident }
+varDef_list      { $, , }
+void             { void }
+{                { { }
+||               { || }
+}                { } }
+
+=======================================================================
+Total: 76 symbols
+=======================================================================

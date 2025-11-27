@@ -51,7 +51,7 @@ $(COMPILER_EXE): $(PARSER_SRC) $(LEXER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR
 .PHONY: clean
 clean:
 	@if exist "$(BUILD_DIR)" rmdir /s /q "$(BUILD_DIR)"
-	@if exist "$(PROCESS_DIR)" rmdir /s /q "$(PROCESS_DIR)"
+# @if exist "$(PROCESS_DIR)" rmdir /s /q "$(PROCESS_DIR)"
 	@echo Cleaned build and process directories.
 
 .PHONY: run-lexer

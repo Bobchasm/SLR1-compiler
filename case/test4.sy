@@ -1,0 +1,38 @@
+
+int add(int num1,int num2,int mod)
+{
+    return (num1 + num2)%mod;
+}
+
+
+void test()
+{
+    
+}
+
+void main()
+{
+
+    int a;
+    int b = 2;
+    int c = -32;
+    float f1 = 1.32;
+    float f2 = -3123.3;
+
+    a = 32;
+
+    b = a + 1;
+
+    int g = b + (a + c) *a;
+
+    if(!0)
+    {
+        a = 2;
+    }
+
+    int ret = add (b,c);
+
+    test();
+
+    return;
+}

@@ -27,6 +27,7 @@ using namespace std;
 
 
 string PARSE_ANALYSIS_TABLE_PATH = "process/";
+string CASEE_PATH = "case/";
 
 // ==================== SLR(1) DFA构造 ====================
 
@@ -430,11 +431,10 @@ void computeFollowSets()
 // ==================== SLR(1)分析表构造 ====================
 
 /**
- * CSV转义函数：处理包含逗号、引号、换行符的字段
+ * CSV转义函数
  */
 string escapeCSV(const string& field) 
 {
-    // 如果字段包含逗号、引号或换行符，需要用双引号包裹
     bool needsQuote = (field.find(',') != string::npos || 
                        field.find('"') != string::npos || 
                        field.find('\n') != string::npos);
@@ -445,7 +445,7 @@ string escapeCSV(const string& field)
     string result = "\"";
     for (char c : field) {
         if (c == '"')
-            result += "\"\";";  // 双引号转义为两个双引号
+            result += "\"\";";
         else
             result += c;
     }
@@ -579,20 +579,14 @@ void buildAnalysisTable()
     if (conflictCount > 0)
         cout << "[PARSER] WARNING: Found " << conflictCount << " conflicts" << endl;
     
+    // // 先不输出了，拖慢测试进度
     exportAnalysisTable(tableWithConflicts);
    
 }
 
 void exportAnalysisTable(vector<vector<vector<Action> > > tableWithConflicts)
 {
-    // 导出分析表到CSV文件
-    #ifdef _WIN32
-        system("if not exist process mkdir process");
-    #else
-        mkdir("process", 0755);
-    #endif
-
-    ofstream csvFile("process/parse_analysis_table.csv");
+    ofstream csvFile(PARSE_ANALYSIS_TABLE_PATH + "parse_analysis_table.csv");
     if (!csvFile.is_open())
     {
         cerr << "[PARSER] Error: Cannot create parse_analysis_table.csv" << endl;
@@ -659,7 +653,85 @@ void exportAnalysisTable(vector<vector<vector<Action> > > tableWithConflicts)
     }
 
     csvFile.close();
-    cout << "[PARSER] Analysis table exported to process/parse_analysis_table.csv" << endl;
+    cout << "[PARSER] Analysis table exported to " + PARSE_ANALYSIS_TABLE_PATH + "parse_analysis_table.csv" << endl;
+}
+
+void exportFirstSets()
+{   
+    ofstream outFile(PARSE_ANALYSIS_TABLE_PATH + "first_sets.txt");
+    if (!outFile.is_open())
+    {
+        cerr << "[PARSER] Error: Cannot create first_sets.txt" << endl;
+        return;
+    }
+    
+    size_t maxSymbolLen = 0;
+    for (const auto& pair : grammar.firstSets)
+        maxSymbolLen = max(maxSymbolLen, pair.first.length());
+    
+    outFile << left << setw(maxSymbolLen + 2) << "Symbol" << "FIRST Set" << endl;
+    outFile << string(70, '-') << endl;
+    
+    for (const auto& pair : grammar.firstSets)
+    {
+        outFile << left << setw(maxSymbolLen + 2) << pair.first << "{ ";
+        
+        bool first = true;
+        for (const string& symbol : pair.second)
+        {
+            if (!first) outFile << ", ";
+            outFile << symbol;
+            first = false;
+        }
+        
+        outFile << " }" << endl;
+    }
+    
+    outFile << endl << "=" << string(70, '=') << endl;
+    outFile << "Total: " << grammar.firstSets.size() << " symbols" << endl;
+    outFile << "=" << string(70, '=') << endl;
+    
+    outFile.close();
+    cout << "[PARSER] FIRST sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "first_sets.txt" << endl;
+}
+
+void exportFollowSets()
+{   
+    ofstream outFile(PARSE_ANALYSIS_TABLE_PATH + "follow_sets.txt");
+    if (!outFile.is_open())
+    {
+        cerr << "[PARSER] Error: Cannot create follow_sets.txt" << endl;
+        return;
+    }
+    
+    size_t maxSymbolLen = 0;
+    for (const auto& pair : grammar.followSets)
+        maxSymbolLen = max(maxSymbolLen, pair.first.length());
+    
+    outFile << left << setw(maxSymbolLen + 2) << "Symbol" << "FOLLOW Set" << endl;
+    outFile << string(70, '-') << endl;
+    
+    for (const auto& pair : grammar.followSets)
+    {
+        outFile << left << setw(maxSymbolLen + 2) << pair.first << "{ ";
+        
+        bool first = true;
+        for (const string& symbol : pair.second)
+        {
+            if (!first) outFile << ", ";
+            outFile << symbol;
+            first = false;
+        }
+        
+        outFile << " }" << endl;
+    }
+    
+    outFile << endl << "=" << string(70, '=') << endl;
+    outFile << "Total: " << grammar.followSets.size() << " symbols" << endl;
+    outFile << "=" << string(70, '=') << endl;
+    
+    outFile.close();
+    cout << "[PARSER] FOLLOW sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "follow_sets.txt" << endl;
 }
 
 void initGrammar() 
@@ -709,6 +781,9 @@ void initGrammar()
 
     buildParseDFA();
     buildAnalysisTable();
+    
+    exportFirstSets();
+    exportFollowSets();
 
     cout << "[DEBUG] initGrammar() completed" << endl;
 
@@ -821,7 +896,7 @@ public:
         
         if (!inputFilename.empty()) 
         {
-            string mdFilePath = "case/" + inputFilename + "_parse_tree.md";
+            string mdFilePath = CASEE_PATH + inputFilename + "_parse_tree.md";
             ofstream mdFile(mdFilePath);
             if (mdFile.is_open()) 
             {
@@ -841,14 +916,14 @@ public:
         ofstream parseLog;
         if (!inputFilename.empty()) 
         {
-            string logPath = "case/" + inputFilename + "_parse_analysis.txt";
+            string logPath = CASEE_PATH + inputFilename + "_parse_analysis.txt";
             parseLog.open(logPath);
             if (!parseLog.is_open())
                 cerr << "[PARSER] Error: Cannot create parse analysis log: " << logPath << endl;
             else 
             {
                 cout << "[PARSER] Parse analysis log: " << logPath << endl;
-                // 输出表头
+
                 parseLog << left << setw(8) << "Step" 
                          << setw(12) << "State" 
                          << setw(20) << "Symbol Stack" 
