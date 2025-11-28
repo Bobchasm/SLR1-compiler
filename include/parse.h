@@ -447,7 +447,7 @@ struct Grammar
 
 Grammar grammar;
 
-static vector<pair<int, pair<string, vector<string> > > > originalProductions = {
+vector<pair<int, pair<string, vector<string> > > > originalProductions = {
     // 1. Program -> compUnit
     {1, {"Program", {"compUnit"}}},
     

@@ -791,6 +791,24 @@ public:
             string tokenType = dfa.tokenType[lastAcceptState];
             string tokenValue = dfa.tokenValue[lastAcceptState];
 
+            if ((tokenType == "INT" || tokenType == "FLOAT") && pos < input.length())
+            {
+                char nextChar = input[pos];
+                if (isalpha(nextChar) || nextChar == '_')
+                {
+                    size_t errorEnd = pos;
+                    while (errorEnd < input.length() && 
+                           (isalnum(input[errorEnd]) || input[errorEnd] == '_' || input[errorEnd] == '.'))
+                        errorEnd++;
+                    
+                    string errorText = input.substr(startPos, errorEnd - startPos);
+                    column += (errorEnd - pos);
+                    pos = errorEnd;
+                    
+                    return make_tuple(errorText, "ERROR", to_string(startLine) + "," + to_string(startColumn), true);
+                }
+            }
+
             if (tokenType == "IDN")
             {
                 string lowerToken = tokenText;
@@ -1064,8 +1082,13 @@ extern "C"
         token.value[255] = '\0';
         token.valid = 1;
 
-        if (token_output_file.is_open() && tokenType != "ERROR")
-            token_output_file << tokenText << "\t<" << (isMain ? "KW" : tokenType) << "," << (isMain ? "5" : tokenValue) << ">" << endl;
+        if (token_output_file.is_open())
+        {
+            if (tokenType == "ERROR")
+                token_output_file << tokenText << "\t<ERROR," << tokenValue << ">" << endl;
+            else
+                token_output_file << tokenText << "\t<" << (isMain ? "KW" : tokenType) << "," << (isMain ? "5" : tokenValue) << ">" << endl;
+        }
 
         return token;
     }

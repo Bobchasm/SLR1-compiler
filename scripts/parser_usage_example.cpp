@@ -11,9 +11,9 @@
 #include <fstream>
 #include "parse.h"
 #include "lexer.h"
-#include "slr1parser.h"
+#include "parser_class.h"
 #include "ast.h"
-#include "ir_generator.h"
+// #include "ir_generator.h"
 
 using namespace std;
 
@@ -67,6 +67,8 @@ int main(int argc, char* argv[])
         free(input);
         return 1;
     }
+
+    buildAnalysisTable();
     
     // 5.获取语法树
     ParseTreeNode* parseTree = parser.getParseTree();
@@ -78,26 +80,26 @@ int main(int argc, char* argv[])
         return 1;
     }
     
-    // 6.中间代码部分
-    cout << "\n=== 开始生成中间代码 ===" << endl;
+    // // 6.中间代码部分
+    // cout << "\n=== 开始生成中间代码 ===" << endl;
     
-    // 直接使用ParseTreeNode生成IR
-    IRGenerator generator;
-    string source_file = "../input/" + filename;
-    string ir_code = generator.generateFromParseTree(parseTree, source_file);
+    // // 直接使用ParseTreeNode生成IR
+    // IRGenerator generator;
+    // string source_file = "../input/" + filename;
+    // string ir_code = generator.generateFromParseTree(parseTree, source_file);
     
-    // 输出IR代码
-    cout << "\n生成的LLVM IR:\n" << endl;
-    cout << ir_code << endl;
+    // // 输出IR代码
+    // cout << "\n生成的LLVM IR:\n" << endl;
+    // cout << ir_code << endl;
     
-    // 保存到文件
-    string output_file = "case/" + pureFilename + "_output.ll";
-    ofstream out(output_file);
-    if (out.is_open()) {
-        out << ir_code;
-        out.close();
-        cout << "\nIR代码已保存到: " << output_file << endl;
-    }
+    // // 保存到文件
+    // string output_file = "case/" + pureFilename + "_output.ll";
+    // ofstream out(output_file);
+    // if (out.is_open()) {
+    //     out << ir_code;
+    //     out.close();
+    //     cout << "\nIR代码已保存到: " << output_file << endl;
+    // }
 
 
 

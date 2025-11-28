@@ -1,5 +1,5 @@
-CXX = G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe
-CXXFLAGS = -std=c++11 -Wall -Iinclude -Iir_lib/include
+CXX = g++
+CXXFLAGS = -std=c++11 -Wall -Iinclude
 
 SRC_DIR = src
 INCLUDE_DIR = include
