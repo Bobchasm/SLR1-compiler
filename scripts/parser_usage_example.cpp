@@ -11,7 +11,6 @@
 #include <fstream>
 #include "parse.h"
 #include "lexer.h"
-#include "parser_class.h"
 #include "ast.h"
 // #include "ir_generator.h"
 
