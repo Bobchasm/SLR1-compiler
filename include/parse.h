@@ -25,7 +25,7 @@ enum NodeType
     NODE_NONTERMINAL    // 非终结符节点（内部节点）
 };
 
-// 语法树节点
+// 语法树节点（扩展为带语义属性的AST节点）
 struct ParseTreeNode 
 {
     NodeType type;           // 节点类型
@@ -33,10 +33,20 @@ struct ParseTreeNode
     string value;            // 终结符的值（对于终结符节点）
     int prodIndex;           // 使用的产生式索引（对于非终结符节点）
     
+    // 语义属性字段
+    string semanticType;     // 语义节点类型（VarDecl, FunctionDef, BinaryExpr, Assignment 等）
+    string varType;          // 变量/函数返回类型（int, float, void）
+    string varName;          // 变量名/函数名
+    bool isGlobal;           // 是否全局变量
+    bool isConst;            // 是否常量
+    string initValue;        // 初始化值
+    string operatorType;     // 运算符类型（+, -, *, / 等）
+    
     vector<ParseTreeNode*> children;  // 子节点列表
     
     ParseTreeNode(NodeType t, const string& sym, const string& val = "", int prod = -1)
-        : type(t), symbol(sym), value(val), prodIndex(prod) {}
+        : type(t), symbol(sym), value(val), prodIndex(prod), 
+          isGlobal(false), isConst(false) {}
     
     ~ParseTreeNode()
     {
@@ -47,6 +57,102 @@ struct ParseTreeNode
     bool isLeaf() const 
     {
         return type == NODE_TERMINAL;
+    }
+    
+    // 获取节点文本（用于visitor）
+    string getText() const 
+    {
+        if (type == NODE_TERMINAL)
+            return value.empty() ? symbol : value;
+        return symbol;
+    }
+    
+    string toSemanticString(int indent = 0, bool isLast = true, const string& prefix = "") const 
+    {
+        string result;
+        
+        if (!semanticType.empty()) 
+        {
+            // 当前节点的连接符
+            if (indent > 0)
+            {
+                result += prefix;
+                result += (isLast ? "└── " : "├── ");
+            }
+            
+            result += semanticType;
+            
+            if (semanticType == "VarDecl") 
+            {
+                result += ": ";
+                if (isGlobal) result += "global ";
+                else result += "local ";
+                if (isConst) result += "const ";
+                result += varType + " " + varName;
+                if (!initValue.empty())
+                    result += " = " + initValue;
+            }
+            else if (semanticType == "FunctionDef") 
+            {
+                result += ": " + varType + " " + varName + "()";
+            }
+            else if (semanticType == "Assignment") 
+            {
+                result += ": " + varName + " = ";
+                if (!children.empty())
+                    result += children[0]->semanticType.empty() ? "" : children[0]->semanticType;
+            }
+            else if (semanticType == "BinaryExpr") 
+            {
+                result += ": " + operatorType;
+            }
+            else if (semanticType == "Variable") 
+            {
+                result += ": " + varName;
+            }
+            else if (semanticType == "Number") 
+            {
+                result += ": " + value;
+            }
+            else if (semanticType == "ReturnStmt") 
+            {
+                result += ": ";
+                if (!children.empty())
+                    result += children[0]->semanticType.empty() ? "" : children[0]->semanticType;
+            }
+            
+            result += "\n";
+            
+            // 准备子节点的前缀
+            string childPrefix = prefix;
+            if (indent > 0)
+                childPrefix += (isLast ? "    " : "│   ");
+            
+            // 递归输出子节点（只输出有语义类型的节点）
+            vector<ParseTreeNode*> semanticChildren;
+            for (const ParseTreeNode* child : children) 
+            {
+                if (child && !child->semanticType.empty())
+                    semanticChildren.push_back(const_cast<ParseTreeNode*>(child));
+            }
+            
+            for (size_t i = 0; i < semanticChildren.size(); i++) 
+            {
+                bool childIsLast = (i == semanticChildren.size() - 1);
+                result += semanticChildren[i]->toSemanticString(indent + 1, childIsLast, childPrefix);
+            }
+        }
+        else 
+        {
+            // 如果没有语义类型，只递归处理子节点
+            for (const ParseTreeNode* child : children) 
+            {
+                if (child)
+                    result += child->toSemanticString(indent, isLast, prefix);
+            }
+        }
+        
+        return result;
     }
     
     // 使用Markdown的Mermaid 可视化语法分析树
@@ -341,7 +447,7 @@ struct Grammar
 
 Grammar grammar;
 
-vector<pair<int, pair<string, vector<string> > > > originalProductions = {
+static vector<pair<int, pair<string, vector<string> > > > originalProductions = {
     // 1. Program -> compUnit
     {1, {"Program", {"compUnit"}}},
     

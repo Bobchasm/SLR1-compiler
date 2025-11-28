@@ -21,6 +21,7 @@ compiler/
 │   └── 2025秋季编译原理大作业.pdf
 ├── include/               # 头文件目录
 │   ├── lexer.h           # 词法分析器头文件
+│   ├── parser_class.h      # 语法分析器接口声明头文件
 │   └── parser.h           # 语法分析器头文件
 ├── logs/                 # 记录每次运行信息的日志目录
 ├── scripts/               # 脚本和工具目录

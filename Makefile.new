@@ -1,4 +1,4 @@
-CXX = G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe
+CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Iinclude -Iir_lib/include
 
 SRC_DIR = src
@@ -34,7 +34,7 @@ IR_LIB = $(BUILD_DIR)/libir.a
 # 完整编译器相关
 MAIN_SRC = $(SRC_DIR)/main.cpp
 MAIN_OBJ = $(BUILD_DIR)/main.o
-COMPILER_EXE = $(BUILD_DIR)/compiler.exe
+COMPILER_EXE = $(BUILD_DIR)/compiler
 COMPILER_OBJS = $(LEXER_OBJ) $(PARSER_OBJ) $(AST_OBJ) $(SYMBOL_TABLE_OBJ) $(IR_GENERATOR_OBJ) $(MAIN_OBJ)
 
 .PHONY: all
@@ -163,6 +163,7 @@ info:
 	@echo   - Symbol Table:  $(SYMBOL_TABLE_SRC)
 	@echo   - IR Generator:  $(IR_GENERATOR_SRC)
 	@echo   - Main:          $(MAIN_SRC)
+	@echo.
 	@echo Build targets:
 	@echo   - Lexer exe:     $(LEXER_EXE)
 	@echo   - Parser exe:    $(PARSER_EXE)
@@ -180,15 +181,18 @@ help:
 	@echo   compiler       - Build complete compiler (lexer + parser + IR)
 	@echo   lexer          - Build only the lexer
 	@echo   parser         - Build only the parser
+	@echo.
 	@echo Run targets:
 	@echo   run            - Run compiler with stdin
 	@echo   run-lexer      - Run lexer with stdin
 	@echo   run-parser     - Run parser with stdin
+	@echo.
 	@echo Test targets:
 	@echo   test           - Run compiler with case/test.sy
 	@echo   test-lexer     - Run lexer with case/test.sy
 	@echo   test-parser    - Run parser with case/test.sy
 	@echo   test-ir        - Generate IR to output/test.ll
+	@echo.
 	@echo Utility targets:
 	@echo   clean          - Remove build files
 	@echo   clean-all      - Remove build and output files

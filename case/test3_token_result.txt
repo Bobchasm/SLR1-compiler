@@ -1,5 +1,0 @@
-VoID	<KW,2>
-MaIn	<IDN,MaIn>
-(	<SE,23>
-)	<SE,24>
-{	<SE,25>

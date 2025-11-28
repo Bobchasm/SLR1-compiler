@@ -811,6 +811,460 @@ private:
 
     int stepCount;    // 步骤(从1开始)
     string inputFilename;  // 输入文件名
+
+
+    
+    bool isInGlobalScope;  // 当前是否在全局作用域
+    
+    // 从子节点中查找特定 symbol 的节点
+    ParseTreeNode* findChild(const vector<ParseTreeNode*>& children, const string& symbol) 
+    {
+        for (ParseTreeNode* child : children) 
+        {
+            if (child && child->symbol == symbol)
+                return child;
+        }
+        return nullptr;
+    }
+    
+    // 递归提取表达式的值（用于常量/初始化值）
+    string extractExpressionValue(ParseTreeNode* node) 
+    {
+        if (!node) return "";
+        
+        if (node->symbol == "IntConst" || node->symbol == "floatConst")
+            return node->value;
+        
+        for (ParseTreeNode* child : node->children) 
+        {
+            string val = extractExpressionValue(child);
+            if (!val.empty()) return val;
+        }
+        
+        return "";
+    }
+    
+    // 递归收集有语义类型的子节点
+    void collectSemanticChildren(ParseTreeNode* node, vector<ParseTreeNode*>& result)
+    {
+        if (!node) return;
+        
+        cout << "[COLLECT] Node: " << node->symbol << ", semanticType: '" 
+             << node->semanticType << "', children: " << node->children.size() << endl;
+        
+        // 如果当前节点有语义类型，直接添加
+        if (!node->semanticType.empty())
+        {
+            cout << "[COLLECT] Adding node with semanticType: " << node->semanticType << endl;
+            result.push_back(node);
+        }
+        else
+        {
+            // 否则递归处理所有子节点
+            for (ParseTreeNode* child : node->children)
+            {
+                if (child)
+                    collectSemanticChildren(child, result);
+            }
+        }
+    }
+    
+    // 递归设置节点及其子节点为局部作用域
+    void setLocalScope(ParseTreeNode* node)
+    {
+        if (!node) return;
+        node->isGlobal = false;
+        for (ParseTreeNode* child : node->children)
+            setLocalScope(child);
+    }
+    
+    // 语义分析
+    void fillSemanticAttributes(ParseTreeNode* node, int originalIndex, const vector<ParseTreeNode*>& children) 
+    {
+        if (!node) return;
+        
+        cout << "[SEMANTIC] Filling attributes for production " << originalIndex 
+             << " (" << node->symbol << ")" << endl;
+        
+        switch (originalIndex) 
+        {
+            // 1.Program -> compUnit
+            case 1:
+            {
+                node->semanticType = "Program";
+                cout << "[SEMANTIC] Set Program semanticType" << endl;
+                
+                // compUnit
+                ParseTreeNode* compUnitNode = findChild(children, "compUnit");
+                if (compUnitNode)
+                {
+                    cout << "[SEMANTIC] Found compUnit, collecting its semantic children" << endl;
+                    vector<ParseTreeNode*> semanticChildren;
+                    collectSemanticChildren(compUnitNode, semanticChildren);
+                    cout << "[SEMANTIC] Program collected " << semanticChildren.size() << " semantic children" << endl;
+                    node->children = semanticChildren;
+                }
+                break;
+            }
+            
+            // 2-6.compUnit 相关：收集所有声明和函数定义
+            case 2:
+            {
+                cout << "[SEMANTIC] Processing compUnit, children count: " << children.size() << endl;
+                // compUnit_list
+                ParseTreeNode* listNode = findChild(children, "compUnit_list");
+                if (listNode)
+                {
+                    cout << "[SEMANTIC] Found compUnit_list, collecting semantic children" << endl;
+                    // 递归收集 compUnit_list 中所有有语义的节点
+                    vector<ParseTreeNode*> semanticChildren;
+                    collectSemanticChildren(listNode, semanticChildren);
+                    cout << "[SEMANTIC] Collected " << semanticChildren.size() << " semantic children" << endl;
+                    node->children = semanticChildren;
+                }
+                else
+                {
+                    cout << "[SEMANTIC] WARNING: compUnit_list not found!" << endl;
+                }
+                break;
+            }
+            case 3:  // compUnit_list -> compUnit_list compUnit_item
+            case 5:  // compUnit_item -> decl
+            case 6:  // compUnit_item -> funcDef
+                {
+                    vector<ParseTreeNode*> semanticChildren;
+                    for (ParseTreeNode* child : children)
+                    {
+                        if (child)
+                            collectSemanticChildren(child, semanticChildren);
+                    }
+                    node->children = semanticChildren;
+                }
+                break;
+            case 4:  // compUnit_list -> epsilon
+                // epsilon 产生式，children 为空
+                node->children.clear();
+                break;
+            
+            // 7.decl -> constDecl
+            case 7:
+                // decl 只是中间节点，不设置 semanticType，直接保留 children 以便 collectSemanticChildren 穿透
+                break;
+            
+            // 8.decl -> varDecl
+            case 8:
+                break;
+            
+            // 9.constDecl -> 'const' bType constDef (',' constDef)* ';'
+            case 9:
+            {
+                ParseTreeNode* bTypeNode = findChild(children, "bType");
+                ParseTreeNode* constDefNode = findChild(children, "constDef");
+                
+                if (bTypeNode && constDefNode)
+                {
+                    node->semanticType = "VarDecl";
+                    node->varType = bTypeNode->varType;
+                    node->varName = constDefNode->varName;
+                    node->isConst = true;
+                    node->isGlobal = isInGlobalScope;
+                    node->initValue = constDefNode->initValue;
+                    
+                    node->children.clear();
+                }
+                break;
+            }
+            
+            // 12-14.bType -> 'int' | 'float' | 'void'
+            case 12:
+                node->varType = "int";
+                break;
+            case 13:
+                node->varType = "float";
+                break;
+            case 14:
+                node->varType = "void";
+                break;
+            
+            // 15.constDef -> Ident '=' constInitVal
+            case 15:
+            {
+                ParseTreeNode* identNode = findChild(children, "Ident");
+                ParseTreeNode* initValNode = findChild(children, "constInitVal");
+                
+                if (identNode)
+                    node->varName = identNode->value;
+                if (initValNode)
+                    node->initValue = extractExpressionValue(initValNode);
+                break;
+            }
+            
+            // 17.varDecl -> bType varDef (',' varDef)* ';'
+            case 17:
+            {
+                cout << "[SEMANTIC] Processing varDecl" << endl;
+                ParseTreeNode* bTypeNode = findChild(children, "bType");
+                ParseTreeNode* varDefNode = findChild(children, "varDef");
+                
+                cout << "[SEMANTIC] bTypeNode: " << (bTypeNode ? "found" : "null") 
+                     << ", varDefNode: " << (varDefNode ? "found" : "null") << endl;
+                
+                if (bTypeNode && varDefNode)
+                {
+                    node->semanticType = "VarDecl";
+                    node->varType = bTypeNode->varType;
+                    node->varName = varDefNode->varName;
+                    node->isConst = false;
+                    node->isGlobal = isInGlobalScope;
+                    node->initValue = varDefNode->initValue;
+                    
+                    node->children.clear();
+                    
+                    cout << "[SEMANTIC] Created VarDecl: " << node->varType << " " 
+                         << node->varName << " = " << node->initValue 
+                         << " (isGlobal=" << node->isGlobal << ")" << endl;
+                }
+                break;
+            }
+            
+            // 20.varDef -> Ident
+            case 20:
+            {
+                ParseTreeNode* identNode = findChild(children, "Ident");
+                if (identNode)
+                    node->varName = identNode->value;
+                break;
+            }
+            
+            // 21.varDef -> Ident '=' initVal
+            case 21:
+            {
+                ParseTreeNode* identNode = findChild(children, "Ident");
+                ParseTreeNode* initValNode = findChild(children, "initVal");
+                
+                cout << "[SEMANTIC] case 21: identNode=" << (identNode ? "found" : "null") 
+                     << ", initValNode=" << (initValNode ? "found" : "null") << endl;
+                
+                if (identNode)
+                    node->varName = identNode->value;
+                if (initValNode)
+                {
+                    cout << "[SEMANTIC] initValNode children count: " << initValNode->children.size() << endl;
+                    
+                    ParseTreeNode* expNode = findChild(initValNode->children, "exp");
+                    cout << "[SEMANTIC] expNode=" << (expNode ? "found" : "null");
+                    if (expNode)
+                    {
+                        cout << ", expNode->value='" << expNode->value << "'" 
+                             << ", expNode->semanticType='" << expNode->semanticType << "'" << endl;
+                    }
+                    else
+                        cout << endl;
+                    
+                    if (expNode && !expNode->value.empty())
+                        node->initValue = expNode->value;
+                    else
+                        node->initValue = extractExpressionValue(initValNode);
+                    cout << "[SEMANTIC] varDef (case 21): varName='" << node->varName 
+                         << "', initValue='" << node->initValue << "'" << endl;
+                }
+                break;
+            }
+            
+            // 23.funcDef -> bType Ident '(' (funcFParams)? ')' block
+            case 23:
+            {
+                ParseTreeNode* bTypeNode = findChild(children, "bType");
+                ParseTreeNode* identNode = findChild(children, "Ident");
+                ParseTreeNode* blockNode = findChild(children, "block");
+                
+                if (bTypeNode && identNode)
+                {
+                    node->semanticType = "FunctionDef";
+                    node->varType = bTypeNode->varType;
+                    node->varName = identNode->value;
+                    
+                    // 将 block 的语义子节点添加为当前节点的子节点
+                    if (blockNode)
+                    {
+                        for (ParseTreeNode* child : blockNode->children)
+                        {
+                            if (child && !child->semanticType.empty())
+                                node->children.push_back(child);
+                        }
+                    }
+                    
+                    // 进入函数作用域
+                    isInGlobalScope = false;
+                }
+                break;
+            }
+            
+            // 30-32.block -> '{' blockItem_list '}'
+            case 30:  // block -> '{' blockItem_list '}'
+            {
+                // blockItem_list
+                ParseTreeNode* listNode = findChild(children, "blockItem_list");
+                if (listNode)
+                {
+                    vector<ParseTreeNode*> semanticChildren;
+                    collectSemanticChildren(listNode, semanticChildren);
+                    node->children = semanticChildren;
+                }
+                break;
+            }
+            case 31:  // blockItem_list -> blockItem_list blockItem
+                {
+                    vector<ParseTreeNode*> semanticChildren;
+                    for (ParseTreeNode* child : children)
+                    {
+                        if (child)
+                            collectSemanticChildren(child, semanticChildren);
+                    }
+                    node->children = semanticChildren;
+                }
+                break;
+            case 32:  // blockItem_list -> epsilon
+                node->children.clear();
+                break;
+            
+            // 33-34.blockItem -> decl | stmt
+            case 33:  // blockItem -> decl
+                // blockItem 只是中间节点，不设置 semanticType
+                // 需要处理 isGlobal：block 内的声明是局部的
+                if (!children.empty() && children[0])
+                    setLocalScope(children[0]);
+                break;
+            case 34:  // blockItem -> stmt
+                break;
+            
+            // 35.stmt -> lVal '=' exp ';'
+            case 35:
+            {
+                ParseTreeNode* lValNode = findChild(children, "lVal");
+                ParseTreeNode* expNode = findChild(children, "exp");
+                
+                if (lValNode && expNode)
+                {
+                    node->semanticType = "Assignment";
+                    node->varName = lValNode->varName;
+                    
+                    if (!expNode->semanticType.empty())
+                    {
+                        node->children.clear();
+                        node->children.push_back(expNode);
+                    }
+                }
+                break;
+            }
+            
+            // 36-37.stmt -> exp_opt ';' | block
+            case 36:  // stmt -> exp_opt ';'
+            case 37:  // stmt -> block
+                // 这些类型暂不处理或直接传递
+                break;
+            
+            // 39.stmt -> 'return' (exp)? ';'
+            case 39:
+            {
+                node->semanticType = "ReturnStmt";
+                
+                ParseTreeNode* expOptNode = findChild(children, "exp_opt");
+                if (expOptNode)
+                {
+                    // 查找 exp_opt 的子节点
+                    for (ParseTreeNode* child : expOptNode->children)
+                    {
+                        if (child && !child->semanticType.empty())
+                        {
+                            node->children.clear();
+                            node->children.push_back(child);
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+            
+            // 40-43.可选表达式和 else 分支
+            case 40:  // exp_opt -> exp
+            case 41:  // exp_opt -> epsilon
+            case 42:  // else_opt -> else stmt
+            case 43:  // else_opt -> epsilon
+                break;
+            
+            // 46.lVal -> Ident
+            case 46:
+            {
+                ParseTreeNode* identNode = findChild(children, "Ident");
+                if (identNode)
+                {
+                    node->semanticType = "Variable";
+                    node->varName = identNode->value;
+                    node->children.clear();
+                }
+                break;
+            }
+            
+            // 50-51.number -> IntConst | floatConst
+            case 50:
+            case 51:
+            {
+                if (!children.empty() && children[0])
+                {
+                    node->semanticType = "Number";
+                    node->value = children[0]->value;
+                    node->children.clear();
+                }
+                break;
+            }
+            
+            // 表达式传递：将子表达式的语义信息向上传递
+            // 44.exp -> addExp
+            case 44:
+            // 48.primaryExp -> lVal
+            case 48:
+            // 49.primaryExp -> number
+            case 49:
+            // 52.unaryExp -> primaryExp
+            case 52:
+            // 54-63.unaryExp -> unaryOp unaryExp | Ident '(' funcRParams_opt ')' 
+            // 64-67.mulExp -> mulExp ('*' | '/' | '%') unaryExp | unaryExp
+            case 54:
+            case 55:
+            case 56:
+            case 57:
+            case 58:
+            case 59:
+            case 60:
+            case 61:
+            case 62:
+            case 63:
+            case 64:
+            case 65:
+            case 66:
+            case 67:
+            // 68-70.addExp -> addExp ('+' | '-') mulExp | mulExp
+            case 68:
+            case 69:
+            case 70:
+            {
+                if (!children.empty() && children[0] && !children[0]->semanticType.empty())
+                {
+                    node->semanticType = children[0]->semanticType;
+                    node->varName = children[0]->varName;
+                    node->value = children[0]->value;
+                    node->operatorType = children[0]->operatorType;
+                    
+                    node->children.clear();
+                }
+                break;
+            }
+            
+            default:
+                break;
+        }
+    }
     
     // 将token转换为文法终结符名
     string getCurrentToken(Token &token) 
@@ -864,7 +1318,7 @@ private:
     
 public:
     SLR1Parser(ostream &out, const string& filename = "") 
-        : output(out), stepCount(1), inputFilename(filename), parseTree(nullptr)
+        : parseTree(nullptr), output(out), stepCount(1), inputFilename(filename), isInGlobalScope(true)
     {
         initGrammar();
     }
@@ -897,15 +1351,27 @@ public:
         
         if (!inputFilename.empty()) 
         {
+            // 输出Mermaid格式
             string mdFilePath = CASEE_PATH + inputFilename + "_parse_tree.md";
             ofstream mdFile(mdFilePath);
             if (mdFile.is_open()) 
             {
                 mdFile << parseTree->toMermaidMarkdown();
-
                 mdFile.close();
-                cout << "[PARSER] Parse tree saved to: " << mdFilePath << endl;
+                cout << "[PARSER] Parse tree (Mermaid) saved to: " << mdFilePath << endl;
             }
+            
+            // 输出语义树简化格式
+            string semanticFilePath = CASEE_PATH + inputFilename + "_semantic_tree.txt";
+            ofstream semanticFile(semanticFilePath);
+            if (semanticFile.is_open()) 
+            {
+                semanticFile << parseTree->toSemanticString();
+                semanticFile.close();
+                cout << "[PARSER] Semantic tree saved to: " << semanticFilePath << endl;
+            }
+            
+            // cout << "\n[PARSER] Semantic Tree:\n" << endl;
         }
     }
     
@@ -1068,6 +1534,9 @@ public:
                 reverse(childrenNodes.begin(), childrenNodes.end());
                 nonterminalNode->children = childrenNodes;
                 
+                // ===== 语义分析：根据产生式填充语义属性 =====
+                fillSemanticAttributes(nonterminalNode, prod.original_index, childrenNodes);
+                
                 // (2)获取当前状态栈顶
                 if (statusStack.empty()) 
                 {
@@ -1142,7 +1611,7 @@ public:
 
 
 
-
+#ifndef NO_MAIN
 int main(int argc, char *argv[]) 
 {
     bool fileInput = (argc == 2);
@@ -1272,3 +1741,4 @@ int main(int argc, char *argv[])
     cout << "[DEBUG] main() completed" << endl;
     return 0;
 }
+#endif
