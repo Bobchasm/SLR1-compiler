@@ -13,6 +13,7 @@
 #include "lexer.h"
 #include "ast.h"
 #include "ir_generator.h"
+#include "parser_class.h"
 
 using namespace std;
 

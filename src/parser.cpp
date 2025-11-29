@@ -25,6 +25,174 @@
 
 using namespace std;
 
+// 全局变量定义
+Grammar grammar;
+ParseTreeNode* parseTree = nullptr;
+
+// 序号用于分析表终结符唯一标识，注意这里与词法分析器那里的标号无关
+map<string, pair<string,int> > tokenTypeToTerminal = {
+    {"int", {"int",1}}, {"void", {"void",2}}, {"return", {"return",3}}, {"const", {"const",4}}, {"float", {"float",5}}, {"if", {"if",6}}, {"else", {"else",7}}, 
+    
+    {"+", {"+",8}}, {"-", {"-",9}}, {"*", {"*",10}}, {"/", {"/",11}}, {"%", {"%",12}},
+    
+    {"=", {"=",13}}, {">", {">",14}}, {"<", {"<",15}}, {"==", {"==",16}}, {"<=", {"<=",17}}, 
+    {">=", {">=",18}}, {"!=", {"!=",19}}, {"&&", {"&&",20}}, {"||", {"||",21}}, {"!", {"!",22}},
+    
+    {"(", {"(",23}}, {")", {")",24}}, {"{", {"{",25}}, {"}", {"}",26}}, {";", {";",27}}, {",", {",",28}},
+    
+    {"IDN", {"Ident",29}}, {"INT", {"IntConst",30}}, {"FLOAT",{"floatConst",31}}
+};
+
+
+vector<pair<int, pair<string, vector<string> > > > originalProductions = {
+    // 1. Program -> compUnit
+    {1, {"Program", {"compUnit"}}},
+    
+    // 2. compUnit -> (decl | funcDef)* EOF
+    {2, {"compUnit", {"compUnit_list", "EOF"}}},
+    {3, {"compUnit_list", {"compUnit_list", "compUnit_item"}}},
+    {4, {"compUnit_list", {EPSILON}}},
+    {5, {"compUnit_item", {"decl"}}},
+    {6, {"compUnit_item", {"funcDef"}}},
+    
+    // 3. decl -> constDecl | varDecl
+    {7, {"decl", {"constDecl"}}},
+    {8, {"decl", {"varDecl"}}},
+    
+    // 4. constDecl -> 'const' bType constDef (',' constDef)* ';'
+    {9, {"constDecl", {"const", "bType", "constDef", "constDef_list", ";"}}},
+    {10, {"constDef_list", {",", "constDef", "constDef_list"}}},
+    {11, {"constDef_list", {EPSILON}}},
+    
+    // 5. bType -> 'int' | 'float' | 'void'
+    {12, {"bType", {"int"}}},
+    {13, {"bType", {"float"}}},
+    {14, {"bType", {"void"}}},
+    
+    // 6. constDef -> Ident '=' constInitVal
+    {15, {"constDef", {"Ident", "=", "constInitVal"}}},
+    
+    // 7. constInitVal -> constExp
+    {16, {"constInitVal", {"constExp"}}},
+    
+    // 8. varDecl -> bType varDef (',' varDef)* ';'
+    {17, {"varDecl", {"bType", "varDef", "varDef_list", ";"}}},
+    {18, {"varDef_list", {",", "varDef", "varDef_list"}}},
+    {19, {"varDef_list", {EPSILON}}},
+    
+    // 9. varDef -> Ident | Ident '=' initVal
+    {20, {"varDef", {"Ident"}}},
+    {21, {"varDef", {"Ident", "=", "initVal"}}},
+    
+    // 10. initVal -> exp
+    {22, {"initVal", {"exp"}}},
+    
+    // 11. funcDef -> bType Ident '(' (funcFParams)? ')' block  (修改：funcType改为bType)
+    {23, {"funcDef", {"bType", "Ident", "(", "funcFParams_opt", ")", "block"}}},
+    {24, {"funcFParams_opt", {"funcFParams"}}},
+    {25, {"funcFParams_opt", {EPSILON}}},
+    
+    // 12. funcFParams -> funcFParam (',' funcFParam)*  (修改：序号调整)
+    {26, {"funcFParams", {"funcFParam", "funcFParam_list"}}},
+    {27, {"funcFParam_list", {",", "funcFParam", "funcFParam_list"}}},
+    {28, {"funcFParam_list", {EPSILON}}},
+    
+    // 13. funcFParam -> bType Ident
+    {29, {"funcFParam", {"bType", "Ident"}}},
+    
+    // 14. block -> '{' (blockItem)* '}'
+    {30, {"block", {"{", "blockItem_list", "}"}}},
+    {31, {"blockItem_list", {"blockItem_list", "blockItem"}}},
+    {32, {"blockItem_list", {EPSILON}}},
+    
+    // 15. blockItem -> decl | stmt
+    {33, {"blockItem", {"decl"}}},
+    {34, {"blockItem", {"stmt"}}},
+    
+    // 16. stmt -> lVal '=' exp ';' | (exp)? ';' | block | 'if' '(' cond ')' stmt ('else' stmt)? | 'return' (exp)? ';'
+    {35, {"stmt", {"lVal", "=", "exp", ";"}}},
+    {36, {"stmt", {"exp_opt", ";"}}},
+    {37, {"stmt", {"block"}}},
+    {38, {"stmt", {"if", "(", "cond", ")", "stmt", "else_opt"}}},
+    {39, {"stmt", {"return", "exp_opt", ";"}}},
+    {40, {"exp_opt", {"exp"}}},
+    {41, {"exp_opt", {EPSILON}}},
+    {42, {"else_opt", {"else", "stmt"}}},
+    {43, {"else_opt", {EPSILON}}},
+    
+    // 17. exp -> addExp
+    {44, {"exp", {"addExp"}}},
+    
+    // 18. cond -> lOrExp
+    {45, {"cond", {"lOrExp"}}},
+    
+    // 19. lVal -> Ident
+    {46, {"lVal", {"Ident"}}},
+    
+    // 20. primaryExp -> '(' exp ')' | lVal | number
+    {47, {"primaryExp", {"(", "exp", ")"}}},
+    {48, {"primaryExp", {"lVal"}}},
+    {49, {"primaryExp", {"number"}}},
+    
+    // 21. number -> IntConst | floatConst
+    {50, {"number", {"IntConst"}}},
+    {51, {"number", {"floatConst"}}},
+    
+    // 22. unaryExp -> primaryExp | Ident '(' (funcRParams)? ')' | unaryOp unaryExp
+    {52, {"unaryExp", {"primaryExp"}}},
+    {53, {"unaryExp", {"Ident", "(", "funcRParams_opt", ")"}}},
+    {54, {"unaryExp", {"unaryOp", "unaryExp"}}},
+    {55, {"funcRParams_opt", {"funcRParams"}}},
+    {56, {"funcRParams_opt", {EPSILON}}},
+    
+    // 23. unaryOp -> '+' | '-' | '!'
+    {57, {"unaryOp", {"+"}}},
+    {58, {"unaryOp", {"-"}}},
+    {59, {"unaryOp", {"!"}}},
+    
+    // 24. funcRParams -> funcRParam (',' funcRParam)*
+    {60, {"funcRParams", {"funcRParam", "funcRParam_list"}}},
+    {61, {"funcRParam_list", {",", "funcRParam", "funcRParam_list"}}},
+    {62, {"funcRParam_list", {EPSILON}}},
+    
+    // 25. funcRParam -> exp
+    {63, {"funcRParam", {"exp"}}},
+    
+    // 26. mulExp -> unaryExp | mulExp ('*' | '/' | '%') unaryExp
+    {64, {"mulExp", {"unaryExp"}}},
+    {65, {"mulExp", {"mulExp", "*", "unaryExp"}}},
+    {66, {"mulExp", {"mulExp", "/", "unaryExp"}}},
+    {67, {"mulExp", {"mulExp", "%", "unaryExp"}}},
+    
+    // 27. addExp -> mulExp | addExp ('+' | '-') mulExp
+    {68, {"addExp", {"mulExp"}}},
+    {69, {"addExp", {"addExp", "+", "mulExp"}}},
+    {70, {"addExp", {"addExp", "-", "mulExp"}}},
+    
+    // 28. relExp -> addExp | relExp ('<' | '>' | '<=' | '>=') addExp
+    {71, {"relExp", {"addExp"}}},
+    {72, {"relExp", {"relExp", "<", "addExp"}}},
+    {73, {"relExp", {"relExp", ">", "addExp"}}},
+    {74, {"relExp", {"relExp", "<=", "addExp"}}},
+    {75, {"relExp", {"relExp", ">=", "addExp"}}},
+    
+    // 29. eqExp -> relExp | eqExp ('==' | '!=') relExp
+    {76, {"eqExp", {"relExp"}}},
+    {77, {"eqExp", {"eqExp", "==", "relExp"}}},
+    {78, {"eqExp", {"eqExp", "!=", "relExp"}}},
+    
+    // 30. lAndExp -> eqExp | lAndExp '&&' eqExp
+    {79, {"lAndExp", {"eqExp"}}},
+    {80, {"lAndExp", {"lAndExp", "&&", "eqExp"}}},
+    
+    // 31. lOrExp -> lAndExp | lOrExp '||' lAndExp
+    {81, {"lOrExp", {"lAndExp"}}},
+    {82, {"lOrExp", {"lOrExp", "||", "lAndExp"}}},
+    
+    // 32. constExp -> addExp
+    {83, {"constExp", {"addExp"}}}
+};
+
 
 string PARSE_ANALYSIS_TABLE_PATH = "process/";
 string CASEE_PATH = "case/";
@@ -805,7 +973,7 @@ private:
     stack<string> symbolStack;      // 符号栈
 
     stack<ParseTreeNode*> treeStack;  // 语法树节点栈
-    ParseTreeNode* parseTree;       // 完整的语法分析树根节点
+
 
     ostream &output;
 
@@ -1318,7 +1486,7 @@ private:
     
 public:
     SLR1Parser(ostream &out, const string& filename = "") 
-        : parseTree(nullptr), output(out), stepCount(1), inputFilename(filename), isInGlobalScope(true)
+        : output(out), stepCount(1), inputFilename(filename), isInGlobalScope(true)
     {
         initGrammar();
     }
@@ -1610,6 +1778,113 @@ public:
 };
 
 
+ParseTreeNode* getParseTree(string inputFilename)
+{
+    // 确保有一个干净的开始状态
+    cleanupLexer();
+    parseTree = nullptr;
+    
+    // ======================== 重定向日志 =========================
+    time_t now = time(0);
+    struct tm* timeinfo = localtime(&now);
+    char timestamp[64];
+    strftime(timestamp, sizeof(timestamp), "%Y%m%d_%H%M%S", timeinfo);
+    
+    string logFilename = "logs/log_" + string(timestamp) + ".txt";
+    
+    std::ofstream debugLog(logFilename, ios::out | ios::trunc);
+    if (debugLog.is_open()) 
+    {
+        char timeStr[100];
+        strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", timeinfo);
+        debugLog << "==============================================" << endl;
+        debugLog << "Parser Log" << endl;
+        debugLog << "Time: " << timeStr << endl;
+        debugLog << "Test File: " << inputFilename << endl;
+        debugLog << "==============================================" << endl;
+        debugLog << endl;
+        
+        std::cout.rdbuf(debugLog.rdbuf());
+    }
+
+
+    // ======================== 获取源文件内容 =========================
+
+    char *input = nullptr;
+
+    cout << "[DEBUG] Opening file: " << inputFilename << endl;
+    FILE *fp = fopen(inputFilename.c_str(), "rb");
+    if (!fp)
+    {
+        cerr << "Cannot open file: " << inputFilename << endl;
+        return NULL;
+    }
+
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    input = (char *)malloc(size + 1);
+    if (input == nullptr) 
+    {
+        cerr << "Error: Memory allocation failed" << endl;
+        fclose(fp);
+        return NULL;
+    }
+    
+    size_t read_bytes = fread(input, 1, size, fp);
+    if (read_bytes != (size_t)size) 
+    {
+        cerr << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
+        free(input);
+        fclose(fp);
+        return NULL;
+    }
+    input[size] = '\0';
+    fclose(fp);
+    cout << "[DEBUG] File read, size=" << size << endl;
+
+
+    // ======================== 初始化词法分析器 =========================
+
+    cout << "[DEBUG] Calling initLexer()" << endl;
+
+    size_t last_slash = inputFilename.find_last_of("/\\");
+    string filename_only = (last_slash != string::npos) ? inputFilename.substr(last_slash + 1) : inputFilename;
+    setTestCase("case/", filename_only);
+
+    initLexer(input);
+    
+    string pureFilename = "";
+
+    string baseFilename = inputFilename;
+    size_t dotPos = baseFilename.find_last_of('.');
+    if (dotPos != string::npos)
+        baseFilename = baseFilename.substr(0, dotPos);
+
+    size_t slashPos = baseFilename.find_last_of("\\/");
+    pureFilename = (slashPos != string::npos) ? baseFilename.substr(slashPos + 1) : baseFilename;
+
+
+    // ======================== 初始语法分析器 =========================
+
+    cout << "[DEBUG] Creating SLR1Parser" << endl;
+    SLR1Parser parser(cout, pureFilename);
+    cout << "[DEBUG] SLR1Parser created, calling parse()" << endl;
+    bool result = parser.parse();
+    
+    if (result)
+        cout << "[DEBUG] Parsing succeeded" << endl;
+    else
+        cout << "[DEBUG] Parsing failed" << endl;
+    
+    cleanupLexer();
+    free(input);
+    
+    cout << "[DEBUG] Completed" << endl;
+    return parseTree;
+}
+
 
 #ifndef NO_MAIN
 int main(int argc, char *argv[]) 
@@ -1658,7 +1933,8 @@ int main(int argc, char *argv[])
     }
 
 
-
+    cleanupLexer();
+    parseTree = nullptr;
 
 
     cout << "[DEBUG] main() started, argc=" << argc << endl;
@@ -1668,7 +1944,7 @@ int main(int argc, char *argv[])
     if (fileInput) 
     {
         cout << "[DEBUG] Opening file: " << argv[1] << endl;
-        FILE *fp = fopen(argv[1], "r");
+        FILE *fp = fopen(argv[1], "rb");
         if (!fp) 
         {
             cerr << "Cannot open file: " << argv[1] << endl;
@@ -1680,7 +1956,21 @@ int main(int argc, char *argv[])
         fseek(fp, 0, SEEK_SET);
         
         input = (char*)malloc(size + 1);
-        fread(input, 1, size, fp);
+        if (input == nullptr) 
+        {
+            cerr << "Error: Memory allocation failed" << endl;
+            fclose(fp);
+            return 1;
+        }
+        
+        size_t read_bytes = fread(input, 1, size, fp);
+        if (read_bytes != (size_t)size) 
+        {
+            cerr << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
+            free(input);
+            fclose(fp);
+            return 1;
+        }
         input[size] = '\0';
         fclose(fp);
         cout << "[DEBUG] File read, size=" << size << endl;

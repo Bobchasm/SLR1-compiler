@@ -21,11 +21,10 @@ compiler/
 │   └── 2025秋季编译原理大作业.pdf
 ├── include/               # 头文件目录
 │   ├── lexer.h           # 词法分析器头文件
-│   ├── parser_class.h      # 语法分析器接口声明头文件
 │   └── parser.h           # 语法分析器头文件
 ├── logs/                 # 记录每次运行信息的日志目录
 ├── scripts/               # 脚本和工具目录
-│   └── test.cpp          # 测试脚本
+│   └── parser_usage_example.cpp          # 用于测试语法分析树获取是否可以被正常调用
 ├── src/                   # 源代码目录
 │   ├── lexer.cpp         # 词法分析器实现
 │   ├── parser.cpp           # 语法分析器实现

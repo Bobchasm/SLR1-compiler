@@ -1,0 +1,14 @@
+Program
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 1
+    ├── VarDecl: local int b = 2
+    ├── Assignment: a = Variable
+    │   └── Variable: a
+    ├── Variable: a
+    ├── Number: 2
+    ├── ReturnStmt: Number
+    │   └── Number: 0
+    ├── Assignment: b = Variable
+    │   └── Variable: b
+    └── ReturnStmt: Number
+        └── Number: 1
