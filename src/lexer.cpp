@@ -733,6 +733,14 @@ public:
         for (const auto &trans : dfa.transitions)
             transitionTable[trans.from][trans.symbol] = trans.to;
     }
+    
+    ~Lexer() 
+    {
+        pos = 0;
+        line = 1;
+        column = 1;
+        transitionTable.clear();
+    }
 
     tuple<string, string, string, bool> nextToken()
     {
@@ -1030,7 +1038,14 @@ extern "C"
         // #EXPORT_DEBUG# 输出词法分析状态转移矩阵
         // exportDFATransitionMatrix(global_dfa, TRANSITION_MATRIX_PATH + "lexer_state_transition_matrix.csv");
         
-        global_lexer = new Lexer(global_dfa, string(input));
+        if (input == nullptr)
+            global_lexer = new Lexer(global_dfa, string(""));
+        else 
+        {
+            // 计算输入长度，避免读取到意外的内存数据
+            size_t input_length = strlen(input);
+            global_lexer = new Lexer(global_dfa, string(input, input_length));
+        }
         
         if (!test_case_path.empty() && !test_file_name.empty())
         {
@@ -1066,6 +1081,8 @@ extern "C"
 
         if (!success)
         {
+            cout<< "ACC" << endl;
+            token_output_file << "ACC" <<endl;
             if (token_output_file.is_open())
                 token_output_file.close();
             return token;
@@ -1101,8 +1118,19 @@ extern "C"
             global_lexer = nullptr;
         }
         
+        // 清理DFA数据
+        global_dfa = DFA();
+        
+        // 关闭并清理文件流
         if (token_output_file.is_open())
+        {
+            token_output_file.flush();
             token_output_file.close();
+        }
+        
+        // 重置位置计数器和路径信息
+        test_case_path = "";
+        test_file_name = "";
     }
     
     void setTestCase(const char* path, const string fileName)

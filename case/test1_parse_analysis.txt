@@ -172,6 +172,11 @@ Step    State       Symbol Stack        Input               Action
 170     97          stmt                }                   r34            
 171     90          blockItem           }                   r31            
 172     83          blockItem_list      }                   s98            
-173     98          }                   Ident               r30            
-174     69          block               Ident               error          
-174     69          block               Ident               Error: No action
+173     98          }                   EOF                 r30            
+174     69          block               EOF                 r23            
+175     11          funcDef             EOF                 r6             
+176     6           compUnit_item       EOF                 r3             
+177     3           compUnit_list       EOF                 s4             
+178     4           EOF                 EOF                 r2             
+179     2           compUnit            EOF                 r1             
+180     1           Program             EOF                 acc            

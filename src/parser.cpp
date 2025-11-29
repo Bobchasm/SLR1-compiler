@@ -1780,6 +1780,10 @@ public:
 
 ParseTreeNode* getParseTree(string inputFilename)
 {
+    // 确保有一个干净的开始状态
+    cleanupLexer();
+    parseTree = nullptr;
+    
     // ======================== 重定向日志 =========================
     time_t now = time(0);
     struct tm* timeinfo = localtime(&now);
@@ -1809,7 +1813,7 @@ ParseTreeNode* getParseTree(string inputFilename)
     char *input = nullptr;
 
     cout << "[DEBUG] Opening file: " << inputFilename << endl;
-    FILE *fp = fopen(inputFilename.c_str(), "r");
+    FILE *fp = fopen(inputFilename.c_str(), "rb");
     if (!fp)
     {
         cerr << "Cannot open file: " << inputFilename << endl;
@@ -1821,7 +1825,21 @@ ParseTreeNode* getParseTree(string inputFilename)
     fseek(fp, 0, SEEK_SET);
 
     input = (char *)malloc(size + 1);
-    fread(input, 1, size, fp);
+    if (input == nullptr) 
+    {
+        cerr << "Error: Memory allocation failed" << endl;
+        fclose(fp);
+        return NULL;
+    }
+    
+    size_t read_bytes = fread(input, 1, size, fp);
+    if (read_bytes != (size_t)size) 
+    {
+        cerr << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
+        free(input);
+        fclose(fp);
+        return NULL;
+    }
     input[size] = '\0';
     fclose(fp);
     cout << "[DEBUG] File read, size=" << size << endl;
@@ -1915,7 +1933,8 @@ int main(int argc, char *argv[])
     }
 
 
-
+    cleanupLexer();
+    parseTree = nullptr;
 
 
     cout << "[DEBUG] main() started, argc=" << argc << endl;
@@ -1925,7 +1944,7 @@ int main(int argc, char *argv[])
     if (fileInput) 
     {
         cout << "[DEBUG] Opening file: " << argv[1] << endl;
-        FILE *fp = fopen(argv[1], "r");
+        FILE *fp = fopen(argv[1], "rb");
         if (!fp) 
         {
             cerr << "Cannot open file: " << argv[1] << endl;
@@ -1937,7 +1956,21 @@ int main(int argc, char *argv[])
         fseek(fp, 0, SEEK_SET);
         
         input = (char*)malloc(size + 1);
-        fread(input, 1, size, fp);
+        if (input == nullptr) 
+        {
+            cerr << "Error: Memory allocation failed" << endl;
+            fclose(fp);
+            return 1;
+        }
+        
+        size_t read_bytes = fread(input, 1, size, fp);
+        if (read_bytes != (size_t)size) 
+        {
+            cerr << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
+            free(input);
+            fclose(fp);
+            return 1;
+        }
         input[size] = '\0';
         fclose(fp);
         cout << "[DEBUG] File read, size=" << size << endl;

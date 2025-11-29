@@ -49,4 +49,4 @@ return	<KW,3>
 ;	<SE,27>
 }	<SE,26>
 }	<SE,26>
-neIntel	<IDN,neIntel>
+ACC
