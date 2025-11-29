@@ -432,10 +432,10 @@ struct Grammar
     vector<vector<Action>> parseTable;
 };
 
-Grammar grammar;
+extern Grammar grammar;
 
 
-
+extern ParseTreeNode* parseTree;       // 完整的语法分析树根节点
 
 void initGrammar();
 
@@ -448,3 +448,5 @@ void exportAnalysisTable(vector<vector<vector<Action> > > tableWithConflicts);
 void exportFirstSets();
 
 void exportFollowSets();
+
+ParseTreeNode* getParseTree(string inputFilename);

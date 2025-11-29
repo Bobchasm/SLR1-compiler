@@ -25,6 +25,10 @@
 
 using namespace std;
 
+// 全局变量定义
+Grammar grammar;
+ParseTreeNode* parseTree = nullptr;
+
 // 序号用于分析表终结符唯一标识，注意这里与词法分析器那里的标号无关
 map<string, pair<string,int> > tokenTypeToTerminal = {
     {"int", {"int",1}}, {"void", {"void",2}}, {"return", {"return",3}}, {"const", {"const",4}}, {"float", {"float",5}}, {"if", {"if",6}}, {"else", {"else",7}}, 
@@ -969,7 +973,7 @@ private:
     stack<string> symbolStack;      // 符号栈
 
     stack<ParseTreeNode*> treeStack;  // 语法树节点栈
-    ParseTreeNode* parseTree;       // 完整的语法分析树根节点
+
 
     ostream &output;
 
@@ -1482,7 +1486,7 @@ private:
     
 public:
     SLR1Parser(ostream &out, const string& filename = "") 
-        : parseTree(nullptr), output(out), stepCount(1), inputFilename(filename), isInGlobalScope(true)
+        : output(out), stepCount(1), inputFilename(filename), isInGlobalScope(true)
     {
         initGrammar();
     }
@@ -1773,6 +1777,95 @@ public:
     }
 };
 
+
+ParseTreeNode* getParseTree(string inputFilename)
+{
+    // ======================== 重定向日志 =========================
+    time_t now = time(0);
+    struct tm* timeinfo = localtime(&now);
+    char timestamp[64];
+    strftime(timestamp, sizeof(timestamp), "%Y%m%d_%H%M%S", timeinfo);
+    
+    string logFilename = "logs/log_" + string(timestamp) + ".txt";
+    
+    std::ofstream debugLog(logFilename, ios::out | ios::trunc);
+    if (debugLog.is_open()) 
+    {
+        char timeStr[100];
+        strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", timeinfo);
+        debugLog << "==============================================" << endl;
+        debugLog << "Parser Log" << endl;
+        debugLog << "Time: " << timeStr << endl;
+        debugLog << "Test File: " << inputFilename << endl;
+        debugLog << "==============================================" << endl;
+        debugLog << endl;
+        
+        std::cout.rdbuf(debugLog.rdbuf());
+    }
+
+
+    // ======================== 获取源文件内容 =========================
+
+    char *input = nullptr;
+
+    cout << "[DEBUG] Opening file: " << inputFilename << endl;
+    FILE *fp = fopen(inputFilename.c_str(), "r");
+    if (!fp)
+    {
+        cerr << "Cannot open file: " << inputFilename << endl;
+        return NULL;
+    }
+
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    input = (char *)malloc(size + 1);
+    fread(input, 1, size, fp);
+    input[size] = '\0';
+    fclose(fp);
+    cout << "[DEBUG] File read, size=" << size << endl;
+
+
+    // ======================== 初始化词法分析器 =========================
+
+    cout << "[DEBUG] Calling initLexer()" << endl;
+
+    size_t last_slash = inputFilename.find_last_of("/\\");
+    string filename_only = (last_slash != string::npos) ? inputFilename.substr(last_slash + 1) : inputFilename;
+    setTestCase("case/", filename_only);
+
+    initLexer(input);
+    
+    string pureFilename = "";
+
+    string baseFilename = inputFilename;
+    size_t dotPos = baseFilename.find_last_of('.');
+    if (dotPos != string::npos)
+        baseFilename = baseFilename.substr(0, dotPos);
+
+    size_t slashPos = baseFilename.find_last_of("\\/");
+    pureFilename = (slashPos != string::npos) ? baseFilename.substr(slashPos + 1) : baseFilename;
+
+
+    // ======================== 初始语法分析器 =========================
+
+    cout << "[DEBUG] Creating SLR1Parser" << endl;
+    SLR1Parser parser(cout, pureFilename);
+    cout << "[DEBUG] SLR1Parser created, calling parse()" << endl;
+    bool result = parser.parse();
+    
+    if (result)
+        cout << "[DEBUG] Parsing succeeded" << endl;
+    else
+        cout << "[DEBUG] Parsing failed" << endl;
+    
+    cleanupLexer();
+    free(input);
+    
+    cout << "[DEBUG] Completed" << endl;
+
+}
 
 
 #ifndef NO_MAIN
