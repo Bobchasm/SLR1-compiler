@@ -155,8 +155,14 @@ test: compiler
 .PHONY: test-ir
 test-ir: compiler
 	@if not exist "output" mkdir "output"
-	$(COMPILER_EXE) case/test.sy > output/test.ll 2>&1
-	@echo IR code saved to output/test.ll
+	$(COMPILER_EXE) case/test.sy > output/test_debug.ll 2>&1
+	@echo Debug output saved to output/test_debug.ll
+
+.PHONY: test-ir-clean
+test-ir-clean: compiler
+	@if not exist "output" mkdir "output"
+	$(COMPILER_EXE) case/test.sy 2> output/test.ll
+	@echo Clean IR code saved to output/test.ll
 
 # 测试IR生成器核心功能
 .PHONY: test-ir-generator

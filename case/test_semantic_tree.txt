@@ -1,8 +1,0 @@
-Program
-├── VarDecl: global int a = 10
-│   └── Number: 10
-└── FunctionDef: int main()
-    ├── Assignment: a = Number
-    │   └── Number: 10
-    └── ReturnStmt: Number
-        └── Number: 0
