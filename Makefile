@@ -1,5 +1,5 @@
 # Compiler configuration - allow override via environment variables
-CXX ?= g++
+CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Iinclude -Iir_lib/include
 
 # On Windows, try to find available compiler
@@ -98,7 +98,7 @@ $(COMPILER_EXE): $(COMPILER_OBJS) $(IR_LIB)
 $(LEXER_OBJ): $(LEXER_SRC) $(INCLUDE_DIR)/lexer.h
 	$(CXX) $(CXXFLAGS) -DNO_MAIN -c -o $@ $(LEXER_SRC)
 
-$(PARSER_OBJ): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/slr1parser.h
+$(PARSER_OBJ): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h
 	$(CXX) $(CXXFLAGS) -DNO_MAIN -c -o $@ $(PARSER_SRC)
 
 $(AST_OBJ): $(AST_SRC) $(INCLUDE_DIR)/ast.h
@@ -110,7 +110,7 @@ $(SYMBOL_TABLE_OBJ): $(SYMBOL_TABLE_SRC) $(INCLUDE_DIR)/symbol_table.h
 $(IR_GENERATOR_OBJ): $(IR_GENERATOR_SRC) $(INCLUDE_DIR)/ir_generator.h $(INCLUDE_DIR)/ast.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $(IR_GENERATOR_SRC)
 
-$(MAIN_OBJ): $(MAIN_SRC) $(INCLUDE_DIR)/ast.h $(INCLUDE_DIR)/ir_generator.h
+$(MAIN_OBJ): $(MAIN_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/ast.h $(INCLUDE_DIR)/ir_generator.h $(INCLUDE_DIR)/symbol_table.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $(MAIN_SRC)
 
 # ==================== 清理 ====================
