@@ -1864,7 +1864,7 @@ ParseTreeNode* getParseTree(string inputFilename)
     free(input);
     
     cout << "[DEBUG] Completed" << endl;
-
+    return parseTree;
 }
 
 
