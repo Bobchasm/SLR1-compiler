@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     initLexer(input);
     
     // 4.创建 Parser 并解析
-    SLR1Parser parser(cout, pureFilename);
+    Parser parser(cout, pureFilename);
     bool success = parser.parse();
     
     if (!success) 
