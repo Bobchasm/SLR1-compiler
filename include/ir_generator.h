@@ -21,6 +21,15 @@ private:
     SymbolTable* symbol_table_;
     int temp_counter_;
 
+    // RAII深度管理类
+    class DepthGuard {
+    private:
+        int& depth_;
+    public:
+        DepthGuard(int& depth) : depth_(depth) { depth_++; }
+        ~DepthGuard() { depth_--; }
+    };
+
 public:
     IRGenerator();
     ~IRGenerator();

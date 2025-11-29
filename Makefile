@@ -1,5 +1,5 @@
 # Compiler configuration - allow override via environment variables
-CXX = g++
+CXX = G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe
 CXXFLAGS = -std=c++11 -Wall -Iinclude -Iir_lib/include
 
 # On Windows, try to find available compiler

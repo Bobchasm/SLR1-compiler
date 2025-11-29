@@ -28,10 +28,27 @@ std::string IRGenerator::generateFromParseTree(ParseTreeNode* parseTree, const s
 
     std::cout << "[IRGEN] ParseTree semanticType: " << parseTree->semanticType << std::endl;
 
+    // 内存检查：检查parseTree的关键属性
+    std::cout << "[IRGEN] ParseTree memory check:" << std::endl;
+    std::cout << "[IRGEN]   semanticChildren size: " << parseTree->semanticChildren.size() << std::endl;
+    std::cout << "[IRGEN]   varName: '" << parseTree->varName << "'" << std::endl;
+    std::cout << "[IRGEN]   varType: '" << parseTree->varType << "'" << std::endl;
+
     // 创建模块
     std::cout << "[IRGEN] Creating module..." << std::endl;
     module_ = new Module("sysy2022_compiler");
-    std::cout << "[IRGEN] Module created" << std::endl;
+    if (!module_) {
+        std::cout << "[IRGEN] ERROR: Failed to create module!" << std::endl;
+        return "";
+    }
+    std::cout << "[IRGEN] Module created successfully" << std::endl;
+
+    // 检查模块类型系统
+    std::cout << "[IRGEN] Module type system initialization check:" << std::endl;
+    std::cout << "[IRGEN]   int32_type: " << (module_->get_int32_type() ? "OK" : "NULL") << std::endl;
+    std::cout << "[IRGEN]   void_type: " << (module_->get_void_type() ? "OK" : "NULL") << std::endl;
+    std::cout << "[IRGEN]   float_type: " << (module_->get_float_type() ? "OK" : "NULL") << std::endl;
+    std::cout << "[IRGEN]   int32_ptr_type: " << (module_->get_int32_ptr_type() ? "OK" : "NULL") << std::endl;
 
     // 设置源文件名
     if (!source_file.empty()) {
@@ -58,47 +75,149 @@ std::string IRGenerator::generateFromParseTree(ParseTreeNode* parseTree, const s
 
 void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
     static int depth = 0;
-    std::string indent(depth * 2, ' ');
-    std::cout << indent << "[IRGEN] visitParseTreeNode: " << (node ? node->semanticType : "null") << " (depth=" << depth << ")" << std::endl;
+    const int MAX_DEPTH = 100;
+
+    try {
+
+        std::string indent(depth * 2, ' ');
+        std::cout << indent << "[IRGEN] visitParseTreeNode: " << (node ? node->semanticType : "null") << " (depth=" << depth << ")" << std::endl;
+
+        if (depth > MAX_DEPTH) {
+            std::cout << indent << "[IRGEN] Error: Maximum recursion depth exceeded (" << depth << ")" << std::endl;
+            return;
+        }
 
     if (!node) {
         std::cout << indent << "[IRGEN] Node is null, returning" << std::endl;
         return;
     }
 
-    depth++;
+    // 边界检查
+    if (node->semanticChildren.empty()) {
+        std::cout << indent << "[IRGEN] Warning: Node has no semantic children, semanticType: " << node->semanticType << std::endl;
+    }
+
+    DepthGuard guard(depth);  // RAII管理深度计数
 
     if (node->semanticType.empty()) {
         // 跳过没有语义信息的节点
         std::cout << indent << "[IRGEN] Node has empty semanticType, processing " << node->semanticChildren.size() << " semantic children" << std::endl;
-        if (node) {
-            for (auto* child : node->semanticChildren) {
-                visitParseTreeNode(child);
-            }
+        for (auto* child : node->semanticChildren) {
+            visitParseTreeNode(child);
         }
-        depth--;
         return;
     }
 
     // 处理不同类型的节点
     if (node->semanticType == "Program") {
         // 处理Program节点：先处理全局变量，再处理函数
-        std::cout << indent << "[IRGEN] Processing Program node with " << node->semanticChildren.size() << " children" << std::endl;
-        for (auto* child : node->semanticChildren) {
-            if (child) {
-                std::cout << indent << "[IRGEN] Child semanticType: '" << child->semanticType << "'" << std::endl;
-                if (child->semanticType == "VarDecl" && child->isGlobal) {
-                    std::cout << indent << "[IRGEN] Processing global VarDecl" << std::endl;
-                    visitParseTreeNode(child);
+        std::cout << indent << "[IRGEN] === Processing Program ===" << std::endl;
+
+        // 检查模块状态
+        if (!module_) {
+            std::cout << indent << "[IRGEN] ERROR: Module is null!" << std::endl;
+            return;
+        }
+
+        std::cout << indent << "[IRGEN] Module check:" << std::endl;
+        std::cout << indent << "[IRGEN]   int32_type: " << (module_->get_int32_type() ? "OK" : "NULL") << std::endl;
+        std::cout << indent << "[IRGEN]   void_type: " << (module_->get_void_type() ? "OK" : "NULL") << std::endl;
+        std::cout << indent << "[IRGEN]   float_type: " << (module_->get_float_type() ? "OK" : "NULL") << std::endl;
+
+        std::cout << indent << "[IRGEN] Children count: " << node->semanticChildren.size() << std::endl;
+
+    // 关键调试点1：检查semanticChildren向量本身
+    std::cout << indent << "[IRGEN] DEBUG: Checking semanticChildren vector..." << std::endl;
+    if (node->semanticChildren.empty()) {
+        std::cout << indent << "[IRGEN] semanticChildren is empty" << std::endl;
+    } else {
+        std::cout << indent << "[IRGEN] semanticChildren is not empty, size: " << node->semanticChildren.size() << std::endl;
+    }
+
+    // 详细输出每个子节点信息 - 添加逐个子节点的处理
+    for (size_t i = 0; i < node->semanticChildren.size(); i++) {
+        std::cout << indent << "[IRGEN] DEBUG: Starting to process child " << i << std::endl;
+
+        auto* child = node->semanticChildren[i];
+        if (child) {
+            std::cout << indent << "[IRGEN] Child " << i << " is not null" << std::endl;
+
+            // 关键调试点2：逐个输出属性，避免一次性输出可能的问题
+            std::cout << indent << "[IRGEN]   Getting semanticType..." << std::endl;
+            std::cout << indent << "[IRGEN]   semanticType: '" << child->semanticType << "'" << std::endl;
+
+            std::cout << indent << "[IRGEN]   Getting varName..." << std::endl;
+            std::cout << indent << "[IRGEN]   varName: '" << child->varName << "'" << std::endl;
+
+            std::cout << indent << "[IRGEN]   Getting varType..." << std::endl;
+            std::cout << indent << "[IRGEN]   varType: '" << child->varType << "'" << std::endl;
+
+            std::cout << indent << "[IRGEN]   Getting isGlobal..." << std::endl;
+            std::cout << indent << "[IRGEN]   isGlobal: " << child->isGlobal << std::endl;
+
+            std::cout << indent << "[IRGEN]   Getting semanticChildren count..." << std::endl;
+            std::cout << indent << "[IRGEN]   semanticChildren count: " << child->semanticChildren.size() << std::endl;
+
+            // 检查关键属性
+            if (child->semanticType.empty()) {
+                std::cout << indent << "[IRGEN] WARNING: Child " << i << " has empty semanticType" << std::endl;
+            }
+            if (child->varName.empty()) {
+                std::cout << indent << "[IRGEN] WARNING: Child " << i << " has empty varName" << std::endl;
+            }
+        } else {
+            std::cout << indent << "[IRGEN] Child " << i << ": NULL" << std::endl;
+        }
+        std::cout << indent << "[IRGEN] DEBUG: Finished processing child " << i << std::endl;
+    }
+
+    std::cout << indent << "[IRGEN] DEBUG: Finished listing all children" << std::endl;
+
+    // 关键调试点3：检查第一个循环开始
+    std::cout << indent << "[IRGEN] DEBUG: Starting first loop (global variables)" << std::endl;
+
+    // 第一个循环：处理全局变量
+    std::cout << indent << "[IRGEN] First loop: Processing global variables" << std::endl;
+    int globalVarCount = 0;
+    for (auto* child : node->semanticChildren) {
+        if (child) {
+            std::cout << indent << "[IRGEN] Checking child for VarDecl: " << child->semanticType
+                      << ", isGlobal=" << child->isGlobal << std::endl;
+            if (child->semanticType == "VarDecl" && child->isGlobal) {
+                std::cout << indent << "[IRGEN] Processing global VarDecl" << std::endl;
+                globalVarCount++;
+                visitParseTreeNode(child);
+                std::cout << indent << "[IRGEN] Completed global VarDecl: " << child->varName << std::endl;
+            }
+        }
+    }
+    std::cout << indent << "[IRGEN] Processed " << globalVarCount << " global variables" << std::endl;
+
+    // 关键调试点4：检查第二个循环开始
+    std::cout << indent << "[IRGEN] DEBUG: Starting second loop (FunctionDef)" << std::endl;
+
+    // 第二个循环：处理函数定义
+    std::cout << indent << "[IRGEN] Second loop: Processing FunctionDef" << std::endl;
+    int functionCount = 0;
+    for (auto* child : node->semanticChildren) {
+        if (child) {
+            std::cout << indent << "[IRGEN] Checking child for FunctionDef: " << child->semanticType << std::endl;
+            if (child->semanticType == "FunctionDef") {
+                std::cout << indent << "[IRGEN] Processing FunctionDef: " << child->varName << std::endl;
+                functionCount++;
+                visitParseTreeNode(child);
+                std::cout << indent << "[IRGEN] Completed FunctionDef: " << child->varName << std::endl;
+            } else if (child->semanticType.empty()) {
+                std::cout << indent << "[IRGEN] Warning: Skipping empty semanticType child in Program" << std::endl;
+                // 可以选择递归处理空节点的子节点
+                for (auto* grandchild : child->semanticChildren) {
+                    visitParseTreeNode(grandchild);
                 }
             }
         }
-        for (auto* child : node->semanticChildren) {
-            if (child && child->semanticType == "FunctionDef") {
-                std::cout << indent << "[IRGEN] Processing FunctionDef" << std::endl;
-                visitParseTreeNode(child);
-            }
-        }
+    }
+    std::cout << indent << "[IRGEN] Processed " << functionCount << " functions" << std::endl;
+    std::cout << indent << "[IRGEN] Finished all FunctionDef processing" << std::endl;
     }
     else if (node->semanticType == "VarDecl") {
         std::cout << indent << "[IRGEN] Processing VarDecl: " << node->varName << std::endl;
@@ -152,26 +271,57 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
     }
     else if (node->semanticType == "FunctionDef") {
         std::cout << indent << "[IRGEN] Processing FunctionDef: " << node->varName << std::endl;
+
+        // 检查关键属性
+        if (node->varName.empty()) {
+            std::cout << indent << "[IRGEN] ERROR: FunctionDef has empty varName!" << std::endl;
+            return;
+        }
+        if (node->varType.empty()) {
+            std::cout << indent << "[IRGEN] ERROR: FunctionDef has empty varType!" << std::endl;
+            return;
+        }
+
+        std::cout << indent << "[IRGEN] FunctionDef has " << node->semanticChildren.size() << " semantic children" << std::endl;
+
         // 处理函数定义
+        std::cout << indent << "[IRGEN] Converting return type: " << node->varType << std::endl;
         Type* return_type = convert_type(node->varType);
+        if (!return_type) {
+            std::cout << indent << "[IRGEN] ERROR: Failed to convert return type!" << std::endl;
+            return;
+        }
+        std::cout << indent << "[IRGEN] Return type converted successfully" << std::endl;
 
         // 处理函数参数
         std::vector<Type*> param_types;
         std::vector<std::string> param_names;
 
         // 根据对接文档，FunctionDef的semanticChildren包含FuncParam和函数体
+        std::cout << indent << "[IRGEN] Processing function parameters..." << std::endl;
         for (auto* child : node->semanticChildren) {
-            if (child && child->semanticType == "FuncParam") {
-                // 收集参数类型和名称
-                param_types.push_back(convert_type(child->varType));
-                param_names.push_back(child->varName);
+            if (child) {
+                std::cout << indent << "[IRGEN]   Child type: '" << child->semanticType << "', varName: '" << child->varName << "', varType: '" << child->varType << "'" << std::endl;
+                if (child->semanticType == "FuncParam") {
+                    std::cout << indent << "[IRGEN] Found FuncParam: " << child->varName << " type: " << child->varType << std::endl;
+                    // 收集参数类型和名称
+                    param_types.push_back(convert_type(child->varType));
+                    param_names.push_back(child->varName);
+                }
             }
         }
+        std::cout << indent << "[IRGEN] Collected " << param_types.size() << " parameters" << std::endl;
 
+        std::cout << indent << "[IRGEN] Creating FunctionType with " << param_types.size() << " params..." << std::endl;
         FunctionType* func_type = FunctionType::get(return_type, param_types);
+        std::cout << indent << "[IRGEN] FunctionType created successfully" << std::endl;
+        std::cout << indent << "[IRGEN] Creating Function: " << node->varName << std::endl;
         Function* function = Function::create(func_type, node->varName, module_);
+        std::cout << indent << "[IRGEN] Function created successfully: " << node->varName << std::endl;
 
         current_function_ = function;
+        std::cout << indent << "[IRGEN] Set current_function_ to: " << node->varName << std::endl;
+        std::cout << indent << "[IRGEN] Creating new symbol table scope for function: " << node->varName << std::endl;
         SymbolTable* parent_table = symbol_table_; // 保存父作用域
         symbol_table_ = new SymbolTable(symbol_table_); // 新的作用域
 
@@ -203,13 +353,17 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
 
         // 处理函数体 - 根据对接文档，semanticChildren包含FuncParam和函数体语句
         std::cout << indent << "[IRGEN] Processing function body, children count: " << node->semanticChildren.size() << std::endl;
+        int body_stmt_count = 0;
         for (auto* child : node->semanticChildren) {
             if (child && child->semanticType != "FuncParam") {
                 // 跳过参数，处理函数体语句
-                std::cout << indent << "[IRGEN] Processing function body child: " << child->semanticType << std::endl;
+                body_stmt_count++;
+                std::cout << indent << "[IRGEN] Processing function body child #" << body_stmt_count << ": " << child->semanticType << " (varName: " << child->varName << ")" << std::endl;
                 visitParseTreeNode(child);
+                std::cout << indent << "[IRGEN] Finished processing function body child #" << body_stmt_count << ": " << child->semanticType << std::endl;
             }
         }
+        std::cout << indent << "[IRGEN] Function body processing completed, processed " << body_stmt_count << " statements" << std::endl;
 
         // 确保函数有终结指令
         if (current_block_ && !current_block_->get_terminator()) {
@@ -221,12 +375,14 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
             }
         }
 
+        std::cout << indent << "[IRGEN] Restoring parent symbol table for function: " << node->varName << std::endl;
         delete symbol_table_;
         symbol_table_ = parent_table; // 恢复父作用域
         delete builder_;
         builder_ = nullptr;
         current_function_ = nullptr;
         current_block_ = nullptr;
+        std::cout << indent << "[IRGEN] FunctionDef processing completed for: " << node->varName << std::endl;
     }
     else if (node->semanticType == "Assignment") {
         std::cout << indent << "[IRGEN] Processing Assignment for var '" << node->varName << "'" << std::endl;
@@ -234,25 +390,14 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
         Value* left_var = symbol_table_->get(node->varName);
         if (!left_var) {
             std::cout << indent << "[IRGEN] Error: Undefined variable '" << node->varName << "'" << std::endl;
-            depth--;
             return;
         }
 
-        // 获取右值 - 先尝试semanticChildren，如果为空则尝试children
+        // 获取右值 - 使用semanticChildren
         Value* right_value = nullptr;
         if (!node->semanticChildren.empty()) {
             std::cout << indent << "[IRGEN] Using semanticChildren[0]" << std::endl;
             right_value = visitParseTreeExpr(node->semanticChildren[0]);
-        } else if (!node->children.empty()) {
-            std::cout << indent << "[IRGEN] semanticChildren empty, trying children" << std::endl;
-            // 找到表达式子节点（跳过lVal和等号）
-            for (auto* child : node->children) {
-                if (child && (child->semanticType == "Number" || child->semanticType == "Variable" ||
-                              child->semanticType == "BinaryExpr" || child->semanticType == "UnaryExp")) {
-                    right_value = visitParseTreeExpr(child);
-                    break;
-                }
-            }
         }
 
         if (right_value && builder_) {
@@ -264,26 +409,21 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
     }
     else if (node->semanticType == "ReturnStmt") {
         std::cout << indent << "[IRGEN] Processing ReturnStmt" << std::endl;
-        // 处理return语句 - 先尝试semanticChildren，如果为空则尝试children
-        if (node->semanticChildren.empty() && node->children.empty()) {
+        // 处理return语句 - 直接使用semanticChildren
+        if (node->semanticChildren.empty()) {
             std::cout << indent << "[IRGEN] Void return" << std::endl;
             builder_->create_void_ret();
         } else {
-            Value* ret_val = nullptr;
-            if (!node->semanticChildren.empty()) {
-                std::cout << indent << "[IRGEN] Using semanticChildren[0] for return" << std::endl;
-                ret_val = visitParseTreeExpr(node->semanticChildren[0]);
-            } else if (!node->children.empty()) {
-                std::cout << indent << "[IRGEN] semanticChildren empty, trying children for return" << std::endl;
-                // 找到返回值表达式
-                for (auto* child : node->children) {
-                    if (child && (child->semanticType == "Number" || child->semanticType == "Variable" ||
-                                  child->semanticType == "BinaryExpr" || child->semanticType == "UnaryExp")) {
-                        ret_val = visitParseTreeExpr(child);
-                        break;
-                    }
-                }
+            // 添加安全检查
+            if (!node->semanticChildren[0]) {
+                std::cout << indent << "[IRGEN] Error: Return expression child is null" << std::endl;
+                builder_->create_void_ret();
+                return;
             }
+
+            std::cout << indent << "[IRGEN] Using semanticChildren[0] for return, type: "
+                      << node->semanticChildren[0]->semanticType << std::endl;
+            Value* ret_val = visitParseTreeExpr(node->semanticChildren[0]);
             if (ret_val) {
                 std::cout << indent << "[IRGEN] Creating return with value" << std::endl;
                 builder_->create_ret(ret_val);
@@ -293,21 +433,41 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
             }
         }
     }
+    else if (node->semanticType == "IfStmt") {
+        std::cout << indent << "[IRGEN] Processing IfStmt" << std::endl;
+        handleIfStatement(node);
+    }
     else {
-        std::cout << indent << "[IRGEN] Unknown semanticType: '" << node->semanticType << "', processing children" << std::endl;
+        std::cout << indent << "[IRGEN] Unknown semanticType: '" << node->semanticType << "', processing semantic children" << std::endl;
         // 其他节点，递归处理子节点
-        for (auto* child : node->children) {
+        for (auto* child : node->semanticChildren) {
             visitParseTreeNode(child);
         }
     }
 
-    depth--;
-    std::cout << indent << "[IRGEN] visitParseTreeNode completed for: " << node->semanticType << std::endl;
+        std::cout << indent << "[IRGEN] visitParseTreeNode completed for: " << node->semanticType << std::endl;
+    } catch (const std::exception& e) {
+        std::cout << "[IRGEN] Exception in visitParseTreeNode: " << e.what() << std::endl;
+        std::cout << "[IRGEN] Node semanticType: " << (node ? node->semanticType : "null") << std::endl;
+        std::cout << "[IRGEN] Current depth: " << depth << std::endl;
+    } catch (...) {
+        std::cout << "[IRGEN] Unknown exception in visitParseTreeNode" << std::endl;
+        std::cout << "[IRGEN] Node semanticType: " << (node ? node->semanticType : "null") << std::endl;
+        std::cout << "[IRGEN] Current depth: " << depth << std::endl;
+    }
 }
 
 
 Value* IRGenerator::visitParseTreeExpr(ParseTreeNode* node) {
-    if (!node) return nullptr;
+    if (!node) {
+        std::cout << "[IRGEN] visitParseTreeExpr: node is null" << std::endl;
+        return nullptr;
+    }
+
+    std::cout << "[IRGEN] visitParseTreeExpr: semanticType='" << node->semanticType
+              << "', value='" << node->value << "', varName='" << node->varName
+              << "', operatorType='" << node->operatorType << "'" << std::endl;
+    std::cout << "[IRGEN]   has " << node->semanticChildren.size() << " children" << std::endl;
 
     if (node->semanticType == "Number") {
         // 数字常量
@@ -325,9 +485,24 @@ Value* IRGenerator::visitParseTreeExpr(ParseTreeNode* node) {
         return builder_->create_load(var);
     }
     else if (node->semanticType == "UnaryExp") {
-        // 一元表达式 (暂时只处理基础情况)
-        if (!node->children.empty()) {
-            return visitParseTreeExpr(node->children[0]);
+        // 一元表达式
+        if (!node->semanticChildren.empty()) {
+            Value* operand = visitParseTreeExpr(node->semanticChildren[0]);
+            if (!operand) return nullptr;
+
+            std::string op = node->operatorType;
+            if (op == "-") {
+                // 负号：0 - operand
+                Value* zero = ConstantInt::get(0, module_);
+                return builder_->create_isub(zero, operand);
+            } else if (op == "!") {
+                // 逻辑非：转换为比较 operand == 0
+                Value* zero = ConstantInt::get(0, module_);
+                return builder_->create_icmp_eq(operand, zero);
+            } else if (op == "+") {
+                // 正号：直接返回操作数
+                return operand;
+            }
         }
     }
     else if (node->semanticType == "BinaryExpr" ||
@@ -363,9 +538,39 @@ Value* IRGenerator::visitParseTreeExpr(ParseTreeNode* node) {
         // 逻辑或表达式
         return handleLOrExpr(node);
     }
+    else if (node->semanticType == "FunctionCall") {
+        // 函数调用
+        std::string funcName = node->varName;
+        std::vector<Value*> args;
+
+        // 计算所有参数
+        for (auto* arg : node->semanticChildren) {
+            Value* argValue = visitParseTreeExpr(arg);
+            if (argValue) {
+                args.push_back(argValue);
+            }
+        }
+
+        // 获取函数
+        Function* func = nullptr;
+        auto functions = module_->get_functions();
+        for (auto* f : functions) {
+            if (f->get_name() == funcName) {
+                func = f;
+                break;
+            }
+        }
+        if (!func) {
+            std::cout << "Error: Function '" << funcName << "' not found" << std::endl;
+            return nullptr;
+        }
+
+        // 生成call指令
+        return builder_->create_call(func, args);
+    }
     else if (node->semanticType == "Cond") {
         // 条件表达式
-        return visitParseTreeExpr(node->children.empty() ? nullptr : node->children[0]);
+        return visitParseTreeExpr(node->semanticChildren.empty() ? nullptr : node->semanticChildren[0]);
     }
     else if (!node->operatorType.empty()) {
         // 通用二元表达式处理
@@ -373,7 +578,7 @@ Value* IRGenerator::visitParseTreeExpr(ParseTreeNode* node) {
     }
     else {
         // 递归处理子表达式
-        for (auto* child : node->children) {
+        for (auto* child : node->semanticChildren) {
             Value* result = visitParseTreeExpr(child);
             if (result) return result;
         }
@@ -385,26 +590,17 @@ Value* IRGenerator::visitParseTreeExpr(ParseTreeNode* node) {
 Value* IRGenerator::handleBinaryExpr(ParseTreeNode* node) {
     if (!node) return nullptr;
 
-    // 处理两种结构：
-    // 1. 三个子节点: lhs, op, rhs
-    // 2. 两个子节点 + operatorType: lhs, rhs (操作符在operatorType中)
+    // 语义树结构：semanticChildren[0]和semanticChildren[1]分别是左右操作数
+    // 操作符通过operatorType获取
 
-    if (node->children.size() >= 2) {
-        Value* lhs = visitParseTreeExpr(node->children[0]);
-        Value* rhs = visitParseTreeExpr(node->children[1]);
+    if (node->semanticChildren.size() >= 2) {
+        Value* lhs = visitParseTreeExpr(node->semanticChildren[0]);
+        Value* rhs = visitParseTreeExpr(node->semanticChildren[1]);
 
         if (!lhs || !rhs || !builder_) return nullptr;
 
-        std::string op;
-        if (node->children.size() >= 3) {
-            // 三个子节点的情况
-            op = node->children[1]->symbol;
-        } else if (!node->operatorType.empty()) {
-            // 使用operatorType的情况
-            op = node->operatorType;
-        } else {
-            return nullptr;
-        }
+        std::string op = node->operatorType;
+        if (op.empty()) return nullptr;
 
         if (op == "+") {
             return builder_->create_iadd(lhs, rhs);
@@ -427,23 +623,17 @@ Value* IRGenerator::handleBinaryExpr(ParseTreeNode* node) {
 Value* IRGenerator::handleRelExpr(ParseTreeNode* node) {
     if (!node) return nullptr;
 
-    Value* lhs = nullptr;
-    Value* rhs = nullptr;
-    std::string op;
+    // 语义树结构：semanticChildren[0]和semanticChildren[1]分别是左右操作数
+    // 操作符通过operatorType获取
+    if (node->semanticChildren.size() < 2) return nullptr;
 
-    if (node->children.size() >= 2) {
-        lhs = visitParseTreeExpr(node->children[0]);
-        rhs = visitParseTreeExpr(node->children[1]);
-
-        if (node->children.size() >= 3) {
-            op = node->children[1]->symbol;
-            rhs = visitParseTreeExpr(node->children[2]);
-        } else if (!node->operatorType.empty()) {
-            op = node->operatorType;
-        }
-    }
+    Value* lhs = visitParseTreeExpr(node->semanticChildren[0]);
+    Value* rhs = visitParseTreeExpr(node->semanticChildren[1]);
 
     if (!lhs || !rhs || !builder_) return nullptr;
+
+    std::string op = node->operatorType;
+    if (op.empty()) return nullptr;
 
     if (op == "<") {
         return builder_->create_icmp_lt(lhs, rhs);
@@ -461,23 +651,17 @@ Value* IRGenerator::handleRelExpr(ParseTreeNode* node) {
 Value* IRGenerator::handleEqExpr(ParseTreeNode* node) {
     if (!node) return nullptr;
 
-    Value* lhs = nullptr;
-    Value* rhs = nullptr;
-    std::string op;
+    // 语义树结构：semanticChildren[0]和semanticChildren[1]分别是左右操作数
+    // 操作符通过operatorType获取
+    if (node->semanticChildren.size() < 2) return nullptr;
 
-    if (node->children.size() >= 2) {
-        lhs = visitParseTreeExpr(node->children[0]);
-        rhs = visitParseTreeExpr(node->children[1]);
-
-        if (node->children.size() >= 3) {
-            op = node->children[1]->symbol;
-            rhs = visitParseTreeExpr(node->children[2]);
-        } else if (!node->operatorType.empty()) {
-            op = node->operatorType;
-        }
-    }
+    Value* lhs = visitParseTreeExpr(node->semanticChildren[0]);
+    Value* rhs = visitParseTreeExpr(node->semanticChildren[1]);
 
     if (!lhs || !rhs || !builder_) return nullptr;
+
+    std::string op = node->operatorType;
+    if (op.empty()) return nullptr;
 
     if (op == "==") {
         return builder_->create_icmp_eq(lhs, rhs);
@@ -489,71 +673,51 @@ Value* IRGenerator::handleEqExpr(ParseTreeNode* node) {
 }
 
 Value* IRGenerator::handleLAndExpr(ParseTreeNode* node) {
-    // 逻辑与: 转换为条件分支
-    if (!node || node->children.size() < 3 || !builder_) return nullptr;
+    // 逻辑与: lhs && rhs
+    if (!node || node->semanticChildren.size() < 2 || !builder_) return nullptr;
 
-    // 创建基本块
-    BasicBlock* rhs_block = BasicBlock::create(module_, new_temp() + "_land_rhs", current_function_);
-    BasicBlock* false_block = BasicBlock::create(module_, new_temp() + "_land_false", current_function_);
-    BasicBlock* merge_block = BasicBlock::create(module_, new_temp() + "_land_merge", current_function_);
+    // 计算左右操作数
+    Value* lhs = visitParseTreeExpr(node->semanticChildren[0]);
+    Value* rhs = visitParseTreeExpr(node->semanticChildren[1]);
+    if (!lhs || !rhs) return nullptr;
 
-    // 计算左操作数
-    Value* lhs = visitParseTreeExpr(node->children[0]);
-    if (!lhs) return nullptr;
+    // 逻辑与：两个操作数都为真时结果为真
+    // 先将操作数转换为i1类型（如果需要）
+    if (lhs->get_type()->is_int32_type()) {
+        Value* zero = ConstantInt::get(0, module_);
+        lhs = builder_->create_icmp_ne(lhs, zero);
+    }
+    if (rhs->get_type()->is_int32_type()) {
+        Value* zero = ConstantInt::get(0, module_);
+        rhs = builder_->create_icmp_ne(rhs, zero);
+    }
 
-    // 左操作数为假时跳转到false块
-    builder_->create_cond_br(lhs, rhs_block, false_block);
-
-    // 计算右操作数
-    set_current_block(rhs_block);
-    Value* rhs = visitParseTreeExpr(node->children[2]);
-    if (!rhs) return nullptr;
-
-    // 右操作数结果跳转到merge块
-    builder_->create_br(merge_block);
-
-    // false块
-    set_current_block(false_block);
-    builder_->create_br(merge_block);
-
-    // merge块 - 这里需要Phi指令来合并结果
-    set_current_block(merge_block);
-    // 简化处理：返回右操作数的结果
-    return rhs;
+    // 生成逻辑与操作
+    return builder_->create_iand(lhs, rhs);
 }
 
 Value* IRGenerator::handleLOrExpr(ParseTreeNode* node) {
-    // 逻辑或: 转换为条件分支
-    if (!node || node->children.size() < 3 || !builder_) return nullptr;
+    // 逻辑或: lhs || rhs
+    if (!node || node->semanticChildren.size() < 2 || !builder_) return nullptr;
 
-    // 创建基本块
-    BasicBlock* rhs_block = BasicBlock::create(module_, new_temp() + "_lor_rhs", current_function_);
-    BasicBlock* true_block = BasicBlock::create(module_, new_temp() + "_lor_true", current_function_);
-    BasicBlock* merge_block = BasicBlock::create(module_, new_temp() + "_lor_merge", current_function_);
+    // 计算左右操作数
+    Value* lhs = visitParseTreeExpr(node->semanticChildren[0]);
+    Value* rhs = visitParseTreeExpr(node->semanticChildren[1]);
+    if (!lhs || !rhs) return nullptr;
 
-    // 计算左操作数
-    Value* lhs = visitParseTreeExpr(node->children[0]);
-    if (!lhs) return nullptr;
+    // 逻辑或：只要有一个操作数为真，结果就为真
+    // 先将操作数转换为i1类型（如果需要）
+    if (lhs->get_type()->is_int32_type()) {
+        Value* zero = ConstantInt::get(0, module_);
+        lhs = builder_->create_icmp_ne(lhs, zero);
+    }
+    if (rhs->get_type()->is_int32_type()) {
+        Value* zero = ConstantInt::get(0, module_);
+        rhs = builder_->create_icmp_ne(rhs, zero);
+    }
 
-    // 左操作数为真时跳转到true块
-    builder_->create_cond_br(lhs, true_block, rhs_block);
-
-    // 计算右操作数
-    set_current_block(rhs_block);
-    Value* rhs = visitParseTreeExpr(node->children[2]);
-    if (!rhs) return nullptr;
-
-    // 右操作数结果跳转到merge块
-    builder_->create_br(merge_block);
-
-    // true块
-    set_current_block(true_block);
-    builder_->create_br(merge_block);
-
-    // merge块
-    set_current_block(merge_block);
-    // 简化处理：返回右操作数的结果
-    return rhs;
+    // 生成逻辑或操作
+    return builder_->create_ior(lhs, rhs);
 }
 
 std::string IRGenerator::new_temp() {
@@ -568,14 +732,37 @@ void IRGenerator::set_current_block(BasicBlock* bb) {
 }
 
 Type* IRGenerator::convert_type(const std::string& type_name) {
-    if (type_name == "int") {
+    try {
+        if (!module_) {
+            std::cout << "[IRGEN] ERROR: Module is null in convert_type!" << std::endl;
+            return nullptr;
+        }
+
+        std::cout << "[IRGEN] Converting type: '" << type_name << "'" << std::endl;
+
+        if (type_name == "int") {
+            auto* type = module_->get_int32_type();
+            std::cout << "[IRGEN]   -> int32_type: " << (type ? "OK" : "NULL") << std::endl;
+            return type;
+        } else if (type_name == "float") {
+            auto* type = module_->get_float_type();
+            std::cout << "[IRGEN]   -> float_type: " << (type ? "OK" : "NULL") << std::endl;
+            return type;
+        } else if (type_name == "void") {
+            auto* type = module_->get_void_type();
+            std::cout << "[IRGEN]   -> void_type: " << (type ? "OK" : "NULL") << std::endl;
+            return type;
+        }
+
+        std::cout << "[IRGEN] WARNING: Unknown type '" << type_name << "', defaulting to int32" << std::endl;
         return module_->get_int32_type();
-    } else if (type_name == "float") {
-        return module_->get_float_type();
-    } else if (type_name == "void") {
-        return module_->get_void_type();
+    } catch (const std::exception& e) {
+        std::cout << "[IRGEN] Exception in convert_type: " << e.what() << std::endl;
+        return nullptr;
+    } catch (...) {
+        std::cout << "[IRGEN] Unknown exception in convert_type" << std::endl;
+        return nullptr;
     }
-    return module_->get_int32_type();
 }
 
 void IRGenerator::handleAssignment(ParseTreeNode* node) {
@@ -598,11 +785,13 @@ void IRGenerator::handleAssignment(ParseTreeNode* node) {
 }
 
 void IRGenerator::handleIfStatement(ParseTreeNode* node) {
-    // IfStmt结构: [condition, then_stmt, else_stmt]
-    if (!builder_ || node->children.size() < 2) return;
+    // IfStmt结构: semanticChildren[0]=Condition, [1]=ThenBranch, [2]=ElseBranch(可选)
+    if (!builder_ || node->semanticChildren.size() < 2) return;
 
-    // 第一个子节点是条件
-    Value* condition = visitParseTreeExpr(node->children[0]);
+    // 获取Condition节点的子节点作为条件表达式
+    ParseTreeNode* conditionNode = node->semanticChildren[0];
+    Value* condition = visitParseTreeExpr(conditionNode->semanticChildren.empty() ?
+                                          nullptr : conditionNode->semanticChildren[0]);
     if (!condition) return;
 
     // 创建基本块
@@ -610,8 +799,8 @@ void IRGenerator::handleIfStatement(ParseTreeNode* node) {
     BasicBlock* else_block = nullptr;
     BasicBlock* merge_block = BasicBlock::create(module_, new_temp() + "_merge", current_function_);
 
-    // 检查是否有else分支（第三个子节点）
-    bool has_else = (node->children.size() >= 3);
+    // 检查是否有else分支
+    bool has_else = (node->semanticChildren.size() >= 3);
 
     if (has_else) {
         else_block = BasicBlock::create(module_, new_temp() + "_else", current_function_);
@@ -622,20 +811,24 @@ void IRGenerator::handleIfStatement(ParseTreeNode* node) {
     // 创建条件分支
     builder_->create_cond_br(condition, then_block, else_block);
 
-    // 处理then分支（第二个子节点）
+    // 处理then分支
     set_current_block(then_block);
-    if (node->children.size() >= 2) {
-        visitParseTreeNode(node->children[1]);
+    ParseTreeNode* thenBranch = node->semanticChildren[1];
+    for (auto* stmt : thenBranch->semanticChildren) {
+        visitParseTreeNode(stmt);
     }
 
     if (!then_block->get_terminator()) {
         builder_->create_br(merge_block);
     }
 
-    // 处理else分支（第三个子节点）
+    // 处理else分支
     if (has_else) {
         set_current_block(else_block);
-        visitParseTreeNode(node->children[2]);
+        ParseTreeNode* elseBranch = node->semanticChildren[2];
+        for (auto* stmt : elseBranch->semanticChildren) {
+            visitParseTreeNode(stmt);
+        }
 
         if (!else_block->get_terminator()) {
             builder_->create_br(merge_block);
@@ -671,9 +864,9 @@ void IRGenerator::collectFuncFParamList(ParseTreeNode* node, std::vector<Type*>&
 
     if (node->semanticType == "FuncFParam") {
         // 处理单个参数
-        if (!node->children.empty()) {
+        if (!node->semanticChildren.empty()) {
             // 第一个子节点应该是类型
-            auto* type_node = node->children[0];
+            auto* type_node = node->semanticChildren[0];
             if (type_node) {
                 Type* param_type = convert_type(type_node->symbol);
                 param_types.push_back(param_type);
@@ -685,7 +878,7 @@ void IRGenerator::collectFuncFParamList(ParseTreeNode* node, std::vector<Type*>&
     }
 
     // 递归处理参数列表
-    for (auto* child : node->children) {
+    for (auto* child : node->semanticChildren) {
         if (child && (child->semanticType == "FuncFParam" || child->semanticType == "FuncFParamList")) {
             collectFuncFParamList(child, param_types, param_names);
         }
