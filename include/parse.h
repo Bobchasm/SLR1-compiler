@@ -42,7 +42,8 @@ struct ParseTreeNode
     string initValue;        // 初始化值
     string operatorType;     // 运算符类型（+, -, *, / 等）
     
-    vector<ParseTreeNode*> children;  // 子节点列表
+    vector<ParseTreeNode*> children;          // 子节点列表（完整的语法树结构）
+    vector<ParseTreeNode*> semanticChildren;  // 语义子节点（简化的语义树结构）
     
     ParseTreeNode(NodeType t, const string& sym, const string& val = "", int prod = -1)
         : type(t), symbol(sym), value(val), prodIndex(prod), 
@@ -96,11 +97,15 @@ struct ParseTreeNode
             {
                 result += ": " + varType + " " + varName + "()";
             }
+            else if (semanticType == "FuncParam")
+            {
+                result += ": " + varType + " " + varName;
+            }
             else if (semanticType == "Assignment") 
             {
                 result += ": " + varName + " = ";
-                if (!children.empty())
-                    result += children[0]->semanticType.empty() ? "" : children[0]->semanticType;
+                if (!semanticChildren.empty())
+                    result += semanticChildren[0]->semanticType.empty() ? "" : semanticChildren[0]->semanticType;
             }
             else if (semanticType == "BinaryExpr") 
             {
@@ -117,8 +122,38 @@ struct ParseTreeNode
             else if (semanticType == "ReturnStmt") 
             {
                 result += ": ";
-                if (!children.empty())
-                    result += children[0]->semanticType.empty() ? "" : children[0]->semanticType;
+                if (!semanticChildren.empty())
+                    result += semanticChildren[0]->semanticType.empty() ? "" : semanticChildren[0]->semanticType;
+            }
+            else if (semanticType == "IfStmt")
+            {
+                result += ": ";
+                // If语句的子节点包括：条件 + then分支 + else分支
+            }
+            else if (semanticType == "Condition")
+            {
+                result += ": ";
+            }
+            else if (semanticType == "ThenBranch")
+            {
+                result += ": ";
+            }
+            else if (semanticType == "ElseBranch")
+            {
+                result += ": ";
+            }
+            else if (semanticType == "BinaryExpr")
+            {
+                // 显示运算符和操作数
+                result += ": " + operatorType;
+            }
+            else if (semanticType == "UnaryExpr")
+            {
+                result += ": " + operatorType;
+            }
+            else if (semanticType == "FunctionCall")
+            {
+                result += ": " + varName + "()";
             }
             
             result += "\n";
@@ -128,18 +163,33 @@ struct ParseTreeNode
             if (indent > 0)
                 childPrefix += (isLast ? "    " : "│   ");
             
-            // 递归输出子节点（只输出有语义类型的节点）
-            vector<ParseTreeNode*> semanticChildren;
-            for (const ParseTreeNode* child : children) 
+            // 递归输出语义子节点
+            // 优先使用显式设置的semanticChildren
+            if (!semanticChildren.empty())
             {
-                if (child && !child->semanticType.empty())
-                    semanticChildren.push_back(const_cast<ParseTreeNode*>(child));
+                for (size_t i = 0; i < semanticChildren.size(); i++) 
+                {
+                    bool childIsLast = (i == semanticChildren.size() - 1);
+                    result += semanticChildren[i]->toSemanticString(indent + 1, childIsLast, childPrefix);
+                }
             }
-            
-            for (size_t i = 0; i < semanticChildren.size(); i++) 
+            // 如果semanticChildren为空，且当前节点不是叶子语义节点，才从children过滤
+            // 叶子语义节点：Number, Variable (没有语义子节点)
+            else if (semanticType != "Number" && semanticType != "Variable")
             {
-                bool childIsLast = (i == semanticChildren.size() - 1);
-                result += semanticChildren[i]->toSemanticString(indent + 1, childIsLast, childPrefix);
+                // 从children中收集有语义类型的节点
+                vector<ParseTreeNode*> filteredChildren;
+                for (const ParseTreeNode* child : children) 
+                {
+                    if (child && !child->semanticType.empty())
+                        filteredChildren.push_back(const_cast<ParseTreeNode*>(child));
+                }
+                
+                for (size_t i = 0; i < filteredChildren.size(); i++) 
+                {
+                    bool childIsLast = (i == filteredChildren.size() - 1);
+                    result += filteredChildren[i]->toSemanticString(indent + 1, childIsLast, childPrefix);
+                }
             }
         }
         else 
@@ -178,6 +228,8 @@ private:
                 result += c;
             else if (c == ' ')
                 result += '_';
+            else
+                result += c;  // 保留其他字符（如括号、运算符等）
         }
         return result;
     }
@@ -191,9 +243,10 @@ private:
         
         if (type == NODE_TERMINAL) 
         {
-            nodeLabel = escapeMermaid(value.empty() ? symbol : value);
+            nodeLabel = value.empty() ? symbol : value;
             if (nodeLabel.empty()) nodeLabel = "T" + to_string(currentId);
-            nodeShape = "((" + nodeLabel + "))";
+            // 使用引号包裹终结符，避免特殊字符问题
+            nodeShape = "((\"" + nodeLabel + "\"))";
         } 
         else 
         {
@@ -436,15 +489,6 @@ extern Grammar grammar;
 
 
 extern ParseTreeNode* parseTree;       // 完整的语法分析树根节点
-
-// 全局函数声明
-#ifdef __cplusplus
-extern "C" {
-#endif
-ParseTreeNode* getParseTree(std::string inputFilename);
-#ifdef __cplusplus
-}
-#endif
 
 void initGrammar();
 

@@ -3,8 +3,17 @@
 
 #include <string>
 #include <unordered_map>
-
-
+#include "../ir_lib/include/Module.h"
+#include "../ir_lib/include/Function.h"
+#include "../ir_lib/include/BasicBlock.h"
+#include "../ir_lib/include/IRbuilder.h"
+#include "../ir_lib/include/IRprinter.h"
+#include "../ir_lib/include/Constant.h"
+#include "../ir_lib/include/Value.h"
+#include "../ir_lib/include/GlobalVariable.h"
+#include "../ir_lib/include/Instruction.h"
+#include "../ir_lib/include/Type.h"
+#include "../ir_lib/include/User.h"
 
 class SymbolTable {
 private:

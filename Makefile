@@ -1,5 +1,17 @@
-CXX = G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe
+# Compiler configuration - allow override via environment variables
+CXX ?= g++
 CXXFLAGS = -std=c++11 -Wall -Iinclude -Iir_lib/include
+
+# On Windows, try to find available compiler
+ifeq ($(OS),Windows_NT)
+    # Check if standard g++ exists
+    ifeq ($(shell where g++ 2>nul),)
+        # Try MSYS g++
+        ifneq ($(wildcard G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe),)
+            CXX = G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe
+        endif
+    endif
+endif
 
 SRC_DIR = src
 INCLUDE_DIR = include
