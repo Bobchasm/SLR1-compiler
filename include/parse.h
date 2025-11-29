@@ -437,6 +437,15 @@ extern Grammar grammar;
 
 extern ParseTreeNode* parseTree;       // 完整的语法分析树根节点
 
+// 全局函数声明
+#ifdef __cplusplus
+extern "C" {
+#endif
+ParseTreeNode* getParseTree(std::string inputFilename);
+#ifdef __cplusplus
+}
+#endif
+
 void initGrammar();
 
 void buildParseDFA();

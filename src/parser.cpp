@@ -26,176 +26,219 @@
 using namespace std;
 
 // 全局变量定义
+map<string, pair<int, string>> tokenTypeToTerminal;
+vector<pair<int, pair<string, vector<string>>>> originalProductions;
 Grammar grammar;
 ParseTreeNode* parseTree = nullptr;
 
-// 序号用于分析表终结符唯一标识，注意这里与词法分析器那里的标号无关
-map<string, pair<string,int> > tokenTypeToTerminal = {
-    {"int", {"int",1}}, {"void", {"void",2}}, {"return", {"return",3}}, {"const", {"const",4}}, {"float", {"float",5}}, {"if", {"if",6}}, {"else", {"else",7}}, 
-    
-    {"+", {"+",8}}, {"-", {"-",9}}, {"*", {"*",10}}, {"/", {"/",11}}, {"%", {"%",12}},
-    
-    {"=", {"=",13}}, {">", {">",14}}, {"<", {"<",15}}, {"==", {"==",16}}, {"<=", {"<=",17}}, 
-    {">=", {">=",18}}, {"!=", {"!=",19}}, {"&&", {"&&",20}}, {"||", {"||",21}}, {"!", {"!",22}},
-    
-    {"(", {"(",23}}, {")", {")",24}}, {"{", {"{",25}}, {"}", {"}",26}}, {";", {";",27}}, {",", {",",28}},
-    
-    {"IDN", {"Ident",29}}, {"INT", {"IntConst",30}}, {"FLOAT",{"floatConst",31}}
-};
-
-
-vector<pair<int, pair<string, vector<string> > > > originalProductions = {
-    // 1. Program -> compUnit
-    {1, {"Program", {"compUnit"}}},
-    
-    // 2. compUnit -> (decl | funcDef)* EOF
-    {2, {"compUnit", {"compUnit_list", "EOF"}}},
-    {3, {"compUnit_list", {"compUnit_list", "compUnit_item"}}},
-    {4, {"compUnit_list", {EPSILON}}},
-    {5, {"compUnit_item", {"decl"}}},
-    {6, {"compUnit_item", {"funcDef"}}},
-    
-    // 3. decl -> constDecl | varDecl
-    {7, {"decl", {"constDecl"}}},
-    {8, {"decl", {"varDecl"}}},
-    
-    // 4. constDecl -> 'const' bType constDef (',' constDef)* ';'
-    {9, {"constDecl", {"const", "bType", "constDef", "constDef_list", ";"}}},
-    {10, {"constDef_list", {",", "constDef", "constDef_list"}}},
-    {11, {"constDef_list", {EPSILON}}},
-    
-    // 5. bType -> 'int' | 'float' | 'void'
-    {12, {"bType", {"int"}}},
-    {13, {"bType", {"float"}}},
-    {14, {"bType", {"void"}}},
-    
-    // 6. constDef -> Ident '=' constInitVal
-    {15, {"constDef", {"Ident", "=", "constInitVal"}}},
-    
-    // 7. constInitVal -> constExp
-    {16, {"constInitVal", {"constExp"}}},
-    
-    // 8. varDecl -> bType varDef (',' varDef)* ';'
-    {17, {"varDecl", {"bType", "varDef", "varDef_list", ";"}}},
-    {18, {"varDef_list", {",", "varDef", "varDef_list"}}},
-    {19, {"varDef_list", {EPSILON}}},
-    
-    // 9. varDef -> Ident | Ident '=' initVal
-    {20, {"varDef", {"Ident"}}},
-    {21, {"varDef", {"Ident", "=", "initVal"}}},
-    
-    // 10. initVal -> exp
-    {22, {"initVal", {"exp"}}},
-    
-    // 11. funcDef -> bType Ident '(' (funcFParams)? ')' block  (修改：funcType改为bType)
-    {23, {"funcDef", {"bType", "Ident", "(", "funcFParams_opt", ")", "block"}}},
-    {24, {"funcFParams_opt", {"funcFParams"}}},
-    {25, {"funcFParams_opt", {EPSILON}}},
-    
-    // 12. funcFParams -> funcFParam (',' funcFParam)*  (修改：序号调整)
-    {26, {"funcFParams", {"funcFParam", "funcFParam_list"}}},
-    {27, {"funcFParam_list", {",", "funcFParam", "funcFParam_list"}}},
-    {28, {"funcFParam_list", {EPSILON}}},
-    
-    // 13. funcFParam -> bType Ident
-    {29, {"funcFParam", {"bType", "Ident"}}},
-    
-    // 14. block -> '{' (blockItem)* '}'
-    {30, {"block", {"{", "blockItem_list", "}"}}},
-    {31, {"blockItem_list", {"blockItem_list", "blockItem"}}},
-    {32, {"blockItem_list", {EPSILON}}},
-    
-    // 15. blockItem -> decl | stmt
-    {33, {"blockItem", {"decl"}}},
-    {34, {"blockItem", {"stmt"}}},
-    
-    // 16. stmt -> lVal '=' exp ';' | (exp)? ';' | block | 'if' '(' cond ')' stmt ('else' stmt)? | 'return' (exp)? ';'
-    {35, {"stmt", {"lVal", "=", "exp", ";"}}},
-    {36, {"stmt", {"exp_opt", ";"}}},
-    {37, {"stmt", {"block"}}},
-    {38, {"stmt", {"if", "(", "cond", ")", "stmt", "else_opt"}}},
-    {39, {"stmt", {"return", "exp_opt", ";"}}},
-    {40, {"exp_opt", {"exp"}}},
-    {41, {"exp_opt", {EPSILON}}},
-    {42, {"else_opt", {"else", "stmt"}}},
-    {43, {"else_opt", {EPSILON}}},
-    
-    // 17. exp -> addExp
-    {44, {"exp", {"addExp"}}},
-    
-    // 18. cond -> lOrExp
-    {45, {"cond", {"lOrExp"}}},
-    
-    // 19. lVal -> Ident
-    {46, {"lVal", {"Ident"}}},
-    
-    // 20. primaryExp -> '(' exp ')' | lVal | number
-    {47, {"primaryExp", {"(", "exp", ")"}}},
-    {48, {"primaryExp", {"lVal"}}},
-    {49, {"primaryExp", {"number"}}},
-    
-    // 21. number -> IntConst | floatConst
-    {50, {"number", {"IntConst"}}},
-    {51, {"number", {"floatConst"}}},
-    
-    // 22. unaryExp -> primaryExp | Ident '(' (funcRParams)? ')' | unaryOp unaryExp
-    {52, {"unaryExp", {"primaryExp"}}},
-    {53, {"unaryExp", {"Ident", "(", "funcRParams_opt", ")"}}},
-    {54, {"unaryExp", {"unaryOp", "unaryExp"}}},
-    {55, {"funcRParams_opt", {"funcRParams"}}},
-    {56, {"funcRParams_opt", {EPSILON}}},
-    
-    // 23. unaryOp -> '+' | '-' | '!'
-    {57, {"unaryOp", {"+"}}},
-    {58, {"unaryOp", {"-"}}},
-    {59, {"unaryOp", {"!"}}},
-    
-    // 24. funcRParams -> funcRParam (',' funcRParam)*
-    {60, {"funcRParams", {"funcRParam", "funcRParam_list"}}},
-    {61, {"funcRParam_list", {",", "funcRParam", "funcRParam_list"}}},
-    {62, {"funcRParam_list", {EPSILON}}},
-    
-    // 25. funcRParam -> exp
-    {63, {"funcRParam", {"exp"}}},
-    
-    // 26. mulExp -> unaryExp | mulExp ('*' | '/' | '%') unaryExp
-    {64, {"mulExp", {"unaryExp"}}},
-    {65, {"mulExp", {"mulExp", "*", "unaryExp"}}},
-    {66, {"mulExp", {"mulExp", "/", "unaryExp"}}},
-    {67, {"mulExp", {"mulExp", "%", "unaryExp"}}},
-    
-    // 27. addExp -> mulExp | addExp ('+' | '-') mulExp
-    {68, {"addExp", {"mulExp"}}},
-    {69, {"addExp", {"addExp", "+", "mulExp"}}},
-    {70, {"addExp", {"addExp", "-", "mulExp"}}},
-    
-    // 28. relExp -> addExp | relExp ('<' | '>' | '<=' | '>=') addExp
-    {71, {"relExp", {"addExp"}}},
-    {72, {"relExp", {"relExp", "<", "addExp"}}},
-    {73, {"relExp", {"relExp", ">", "addExp"}}},
-    {74, {"relExp", {"relExp", "<=", "addExp"}}},
-    {75, {"relExp", {"relExp", ">=", "addExp"}}},
-    
-    // 29. eqExp -> relExp | eqExp ('==' | '!=') relExp
-    {76, {"eqExp", {"relExp"}}},
-    {77, {"eqExp", {"eqExp", "==", "relExp"}}},
-    {78, {"eqExp", {"eqExp", "!=", "relExp"}}},
-    
-    // 30. lAndExp -> eqExp | lAndExp '&&' eqExp
-    {79, {"lAndExp", {"eqExp"}}},
-    {80, {"lAndExp", {"lAndExp", "&&", "eqExp"}}},
-    
-    // 31. lOrExp -> lAndExp | lOrExp '||' lAndExp
-    {81, {"lOrExp", {"lAndExp"}}},
-    {82, {"lOrExp", {"lOrExp", "||", "lAndExp"}}},
-    
-    // 32. constExp -> addExp
-    {83, {"constExp", {"addExp"}}}
-};
-
-
 string PARSE_ANALYSIS_TABLE_PATH = "process/";
 string CASEE_PATH = "case/";
+
+// 初始化文法数据
+void initGrammarData() {
+    // 清空现有数据
+    tokenTypeToTerminal.clear();
+    originalProductions.clear();
+    
+    // =============== 终结符映射 ===============
+    // 格式: {token_type, {index, terminal_symbol}}
+    tokenTypeToTerminal["CONST"] = {1, "const"};
+    tokenTypeToTerminal["INT"] = {2, "int"};
+    tokenTypeToTerminal["FLOAT"] = {3, "float"};
+    tokenTypeToTerminal["VOID"] = {4, "void"};
+    tokenTypeToTerminal["IF"] = {5, "if"};
+    tokenTypeToTerminal["ELSE"] = {6, "else"};
+    tokenTypeToTerminal["RETURN"] = {7, "return"};
+    tokenTypeToTerminal["WHILE"] = {8, "while"};
+    tokenTypeToTerminal["FOR"] = {9, "for"};
+    tokenTypeToTerminal["ASSIGN"] = {10, "="};
+    tokenTypeToTerminal["COMMA"] = {11, ","};
+    tokenTypeToTerminal["SEMICOLON"] = {12, ";"};
+    tokenTypeToTerminal["LPAREN"] = {13, "("};
+    tokenTypeToTerminal["RPAREN"] = {14, ")"};
+    tokenTypeToTerminal["LBRACE"] = {15, "{"};
+    tokenTypeToTerminal["RBRACE"] = {16, "}"};
+    tokenTypeToTerminal["PLUS"] = {17, "+"};
+    tokenTypeToTerminal["MINUS"] = {18, "-"};
+    tokenTypeToTerminal["MULTIPLY"] = {19, "*"};
+    tokenTypeToTerminal["DIVIDE"] = {20, "/"};
+    tokenTypeToTerminal["MOD"] = {21, "%"};
+    tokenTypeToTerminal["NOT"] = {22, "!"};
+    tokenTypeToTerminal["LT"] = {23, "<"};
+    tokenTypeToTerminal["GT"] = {24, ">"};
+    tokenTypeToTerminal["LE"] = {25, "<="};
+    tokenTypeToTerminal["GE"] = {26, ">="};
+    tokenTypeToTerminal["EQ"] = {27, "=="};
+    tokenTypeToTerminal["NE"] = {28, "!="};
+    tokenTypeToTerminal["AND"] = {29, "&&"};
+    tokenTypeToTerminal["OR"] = {30, "||"};
+    tokenTypeToTerminal["IDENT"] = {31, "Ident"};
+    tokenTypeToTerminal["INT_CONST"] = {32, "IntConst"};
+    tokenTypeToTerminal["FLOAT_CONST"] = {33, "floatConst"};
+    
+    // =============== 产生式规则 ===============
+    // 格式: {original_index, {left_symbol, {right_symbols}}}
+    
+    // 1. Program -> compUnit
+    originalProductions.push_back({1, {"Program", {"compUnit"}}});
+    
+    // 2. compUnit -> decl compUnit | funcDef compUnit | epsilon
+    originalProductions.push_back({2, {"compUnit", {"decl", "compUnit"}}});
+    originalProductions.push_back({3, {"compUnit", {"funcDef", "compUnit"}}});
+    originalProductions.push_back({4, {"compUnit", {EPSILON}}});
+    
+    // 5. decl -> constDecl | varDecl
+    originalProductions.push_back({5, {"decl", {"constDecl"}}});
+    originalProductions.push_back({6, {"decl", {"varDecl"}}});
+    
+    // 7. constDecl -> 'const' bType constDefList ';'
+    originalProductions.push_back({7, {"constDecl", {"const", "bType", "constDefList", ";"}}});
+    
+    // 8. constDefList -> constDef | constDef ',' constDefList
+    originalProductions.push_back({8, {"constDefList", {"constDef"}}});
+    originalProductions.push_back({9, {"constDefList", {"constDef", ",", "constDefList"}}});
+    
+    // 10. constDef -> Ident '=' constInitVal
+    originalProductions.push_back({10, {"constDef", {"Ident", "=", "constInitVal"}}});
+    
+    // 11. constInitVal -> constExp
+    originalProductions.push_back({11, {"constInitVal", {"constExp"}}});
+    
+    // 12. bType -> 'int' | 'float'
+    originalProductions.push_back({12, {"bType", {"int"}}});
+    originalProductions.push_back({13, {"bType", {"float"}}});
+    
+    // 14. varDecl -> bType varDefList ';'
+    originalProductions.push_back({14, {"varDecl", {"bType", "varDefList", ";"}}});
+    
+    // 15. varDefList -> varDef | varDef ',' varDefList
+    originalProductions.push_back({15, {"varDefList", {"varDef"}}});
+    originalProductions.push_back({16, {"varDefList", {"varDef", ",", "varDefList"}}});
+    
+    // 17. varDef -> Ident | Ident '=' initVal
+    originalProductions.push_back({17, {"varDef", {"Ident"}}});
+    originalProductions.push_back({18, {"varDef", {"Ident", "=", "initVal"}}});
+    
+    // 19. initVal -> exp
+    originalProductions.push_back({19, {"initVal", {"exp"}}});
+    
+    // 20. funcDef -> funcType Ident '(' funcFParams ')' block
+    originalProductions.push_back({20, {"funcDef", {"funcType", "Ident", "(", "funcFParams", ")", "block"}}});
+    
+    // 21. funcDef -> funcType Ident '(' ')' block  // 无参数
+    originalProductions.push_back({21, {"funcDef", {"funcType", "Ident", "(", ")", "block"}}});
+    
+    // 22. funcType -> 'void' | 'int' | 'float'
+    originalProductions.push_back({22, {"funcType", {"void"}}});
+    originalProductions.push_back({23, {"funcType", {"int"}}});
+    originalProductions.push_back({24, {"funcType", {"float"}}});
+    
+    // 25. funcFParams -> funcFParam funcFParamList
+    originalProductions.push_back({25, {"funcFParams", {"funcFParam", "funcFParamList"}}});
+    
+    // 26. funcFParamList -> ',' funcFParam funcFParamList | epsilon
+    originalProductions.push_back({26, {"funcFParamList", {",", "funcFParam", "funcFParamList"}}});
+    originalProductions.push_back({27, {"funcFParamList", {EPSILON}}});
+    
+    // 28. funcFParam -> bType Ident
+    originalProductions.push_back({28, {"funcFParam", {"bType", "Ident"}}});
+    
+    // 29. block -> '{' blockItemList '}'
+    originalProductions.push_back({29, {"block", {"{", "blockItemList", "}"}}});
+    
+    // 30. blockItemList -> blockItem blockItemList | epsilon
+    originalProductions.push_back({30, {"blockItemList", {"blockItem", "blockItemList"}}});
+    originalProductions.push_back({31, {"blockItemList", {EPSILON}}});
+    
+    // 32. blockItem -> decl | stmt
+    originalProductions.push_back({32, {"blockItem", {"decl"}}});
+    originalProductions.push_back({33, {"blockItem", {"stmt"}}});
+    
+    // 34. stmt -> lVal '=' exp ';' | exp ';' | block | 'if' '(' cond ')' stmt | 'if' '(' cond ')' stmt 'else' stmt | 'return' exp ';' | 'return' ';'
+    originalProductions.push_back({34, {"stmt", {"lVal", "=", "exp", ";"}}});
+    originalProductions.push_back({35, {"stmt", {"exp", ";"}}});
+    originalProductions.push_back({36, {"stmt", {"block"}}});
+    originalProductions.push_back({37, {"stmt", {"if", "(", "cond", ")", "stmt"}}});
+    originalProductions.push_back({38, {"stmt", {"if", "(", "cond", ")", "stmt", "else", "stmt"}}});
+    originalProductions.push_back({39, {"stmt", {"return", "exp", ";"}}});
+    originalProductions.push_back({40, {"stmt", {"return", ";"}}});
+    
+    // 41. exp -> addExp
+    originalProductions.push_back({41, {"exp", {"addExp"}}});
+    
+    // 42. cond -> lOrExp
+    originalProductions.push_back({42, {"cond", {"lOrExp"}}});
+    
+    // 43. lVal -> Ident
+    originalProductions.push_back({43, {"lVal", {"Ident"}}});
+    
+    // 44. primaryExp -> '(' exp ')' | lVal | number
+    originalProductions.push_back({44, {"primaryExp", {"(", "exp", ")"}}});
+    originalProductions.push_back({45, {"primaryExp", {"lVal"}}});
+    originalProductions.push_back({46, {"primaryExp", {"number"}}});
+    
+    // 47. number -> IntConst | floatConst
+    originalProductions.push_back({47, {"number", {"IntConst"}}});
+    originalProductions.push_back({48, {"number", {"floatConst"}}});
+    
+    // 49. unaryExp -> primaryExp | Ident '(' funcRParams ')' | Ident '(' ')' | unaryOp unaryExp
+    originalProductions.push_back({49, {"unaryExp", {"primaryExp"}}});
+    originalProductions.push_back({50, {"unaryExp", {"Ident", "(", "funcRParams", ")"}}});
+    originalProductions.push_back({51, {"unaryExp", {"Ident", "(", ")"}}});
+    originalProductions.push_back({52, {"unaryExp", {"unaryOp", "unaryExp"}}});
+    
+    // 53. unaryOp -> '+' | '-' | '!'
+    originalProductions.push_back({53, {"unaryOp", {"+"}}});
+    originalProductions.push_back({54, {"unaryOp", {"-"}}});
+    originalProductions.push_back({55, {"unaryOp", {"!"}}});
+    
+    // 56. funcRParams -> funcRParam funcRParamList
+    originalProductions.push_back({56, {"funcRParams", {"funcRParam", "funcRParamList"}}});
+    
+    // 57. funcRParamList -> ',' funcRParam funcRParamList | epsilon
+    originalProductions.push_back({57, {"funcRParamList", {",", "funcRParam", "funcRParamList"}}});
+    originalProductions.push_back({58, {"funcRParamList", {EPSILON}}});
+    
+    // 59. funcRParam -> exp
+    originalProductions.push_back({59, {"funcRParam", {"exp"}}});
+    
+    // 60. mulExp -> unaryExp | mulExp '*' unaryExp | mulExp '/' unaryExp | mulExp '%' unaryExp
+    originalProductions.push_back({60, {"mulExp", {"unaryExp"}}});
+    originalProductions.push_back({61, {"mulExp", {"mulExp", "*", "unaryExp"}}});
+    originalProductions.push_back({62, {"mulExp", {"mulExp", "/", "unaryExp"}}});
+    originalProductions.push_back({63, {"mulExp", {"mulExp", "%", "unaryExp"}}});
+    
+    // 64. addExp -> mulExp | addExp '+' mulExp | addExp '-' mulExp
+    originalProductions.push_back({64, {"addExp", {"mulExp"}}});
+    originalProductions.push_back({65, {"addExp", {"addExp", "+", "mulExp"}}});
+    originalProductions.push_back({66, {"addExp", {"addExp", "-", "mulExp"}}});
+    
+    // 67. relExp -> addExp | relExp '<' addExp | relExp '>' addExp | relExp '<=' addExp | relExp '>=' addExp
+    originalProductions.push_back({67, {"relExp", {"addExp"}}});
+    originalProductions.push_back({68, {"relExp", {"relExp", "<", "addExp"}}});
+    originalProductions.push_back({69, {"relExp", {"relExp", ">", "addExp"}}});
+    originalProductions.push_back({70, {"relExp", {"relExp", "<=", "addExp"}}});
+    originalProductions.push_back({71, {"relExp", {"relExp", ">=", "addExp"}}});
+    
+    // 72. eqExp -> relExp | eqExp '==' relExp | eqExp '!=' relExp
+    originalProductions.push_back({72, {"eqExp", {"relExp"}}});
+    originalProductions.push_back({73, {"eqExp", {"eqExp", "==", "relExp"}}});
+    originalProductions.push_back({74, {"eqExp", {"eqExp", "!=", "relExp"}}});
+    
+    // 75. lAndExp -> eqExp | lAndExp '&&' eqExp
+    originalProductions.push_back({75, {"lAndExp", {"eqExp"}}});
+    originalProductions.push_back({76, {"lAndExp", {"lAndExp", "&&", "eqExp"}}});
+    
+    // 77. lOrExp -> lAndExp | lOrExp '||' lAndExp
+    originalProductions.push_back({77, {"lOrExp", {"lAndExp"}}});
+    originalProductions.push_back({78, {"lOrExp", {"lOrExp", "||", "lAndExp"}}});
+    
+    // 79. constExp -> addExp
+    originalProductions.push_back({79, {"constExp", {"addExp"}}});
+    
+    cout << "[DEBUG] Grammar data initialized: " << tokenTypeToTerminal.size() 
+         << " terminals, " << originalProductions.size() << " productions" << endl;
+}
 
 // ==================== SLR(1) DFA构造 ====================
 
@@ -633,7 +676,8 @@ void buildAnalysisTable()
     int stateCount = dfa.states.size();
     
     // 获取所有符号的总数（终结符+非终结符）
-    int symbolCount = grammar.terminals.size() + grammar.nonterminals.size();
+    int terminalCount = grammar.terminals.size();
+    int symbolCount = terminalCount + grammar.nonterminals.size();
     
     // 初始化分析表（所有动作默认为错误，该结构还存在冲突）
     vector<vector<vector<Action>>> tableWithConflicts(stateCount, vector<vector<Action>>(symbolCount));
@@ -656,8 +700,10 @@ void buildAnalysisTable()
                     int nextState = dfa.getTransition(stateNum, nextSymbol);
                     if (nextState != -1) 
                     {
-                        int symbolIndex = grammar.terminals.at(nextSymbol) - 1;   // 这里是为了数组下标起始为0，而符号的标号从1开始，为了直接从第0列填 [写的时候混乱了，就这样吧]
-                        tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
+                        int symbolIndex = grammar.terminals.at(nextSymbol) - 1;   // 终结符索引：0 到 terminalCount-1
+                        if (symbolIndex >= 0 && symbolIndex < terminalCount) {
+                            tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
+                        }
                     }
                 }
                 // 如果是非终结符，添加GOTO
@@ -666,8 +712,11 @@ void buildAnalysisTable()
                     int nextState = dfa.getTransition(stateNum, nextSymbol);
                     if (nextState != -1) 
                     {
-                        int symbolIndex = grammar.nonterminals.at(nextSymbol) - 1;
-                        tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
+                        // 非终结符索引：terminalCount 到 symbolCount-1
+                        int symbolIndex = terminalCount + (grammar.nonterminals.at(nextSymbol) - 1);
+                        if (symbolIndex >= terminalCount && symbolIndex < symbolCount) {
+                            tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
+                        }
                     }
                 }
             }
@@ -904,12 +953,15 @@ void exportFollowSets()
 
 void initGrammar() 
 {
+    // 初始化文法数据
+    initGrammarData();
+    
     cout << "[DEBUG] initGrammar() started" << endl;
     grammar.startSymbol = "Start";
 
     // 添加所有终结符
     for (auto &t : tokenTypeToTerminal)
-        grammar.terminals.insert(t.second);
+        grammar.terminals.insert({t.second.second, t.second.first});
     
     // 添加结束标记符号 EOF
     int eofIndex = grammar.terminals.size() + 1;
@@ -973,7 +1025,7 @@ private:
     stack<string> symbolStack;      // 符号栈
 
     stack<ParseTreeNode*> treeStack;  // 语法树节点栈
-
+    ParseTreeNode* parseTree;       // 完整的语法分析树根节点
 
     ostream &output;
 
@@ -1452,7 +1504,7 @@ private:
             transform(tokenText.begin(), tokenText.end(), tokenText.begin(), ::tolower);
         
         if (tokenTypeToTerminal.count(tokenText))
-            return tokenTypeToTerminal[tokenText].first;
+            return tokenTypeToTerminal[tokenText].second;
 
         return tokenText;
     }
@@ -1486,7 +1538,7 @@ private:
     
 public:
     SLR1Parser(ostream &out, const string& filename = "") 
-        : output(out), stepCount(1), inputFilename(filename), isInGlobalScope(true)
+        : parseTree(nullptr), output(out), stepCount(1), inputFilename(filename), isInGlobalScope(true)
     {
         initGrammar();
     }
@@ -1778,113 +1830,6 @@ public:
 };
 
 
-ParseTreeNode* getParseTree(string inputFilename)
-{
-    // 确保有一个干净的开始状态
-    cleanupLexer();
-    parseTree = nullptr;
-    
-    // ======================== 重定向日志 =========================
-    time_t now = time(0);
-    struct tm* timeinfo = localtime(&now);
-    char timestamp[64];
-    strftime(timestamp, sizeof(timestamp), "%Y%m%d_%H%M%S", timeinfo);
-    
-    string logFilename = "logs/log_" + string(timestamp) + ".txt";
-    
-    std::ofstream debugLog(logFilename, ios::out | ios::trunc);
-    if (debugLog.is_open()) 
-    {
-        char timeStr[100];
-        strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", timeinfo);
-        debugLog << "==============================================" << endl;
-        debugLog << "Parser Log" << endl;
-        debugLog << "Time: " << timeStr << endl;
-        debugLog << "Test File: " << inputFilename << endl;
-        debugLog << "==============================================" << endl;
-        debugLog << endl;
-        
-        std::cout.rdbuf(debugLog.rdbuf());
-    }
-
-
-    // ======================== 获取源文件内容 =========================
-
-    char *input = nullptr;
-
-    cout << "[DEBUG] Opening file: " << inputFilename << endl;
-    FILE *fp = fopen(inputFilename.c_str(), "rb");
-    if (!fp)
-    {
-        cerr << "Cannot open file: " << inputFilename << endl;
-        return NULL;
-    }
-
-    fseek(fp, 0, SEEK_END);
-    long size = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-
-    input = (char *)malloc(size + 1);
-    if (input == nullptr) 
-    {
-        cerr << "Error: Memory allocation failed" << endl;
-        fclose(fp);
-        return NULL;
-    }
-    
-    size_t read_bytes = fread(input, 1, size, fp);
-    if (read_bytes != (size_t)size) 
-    {
-        cerr << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
-        free(input);
-        fclose(fp);
-        return NULL;
-    }
-    input[size] = '\0';
-    fclose(fp);
-    cout << "[DEBUG] File read, size=" << size << endl;
-
-
-    // ======================== 初始化词法分析器 =========================
-
-    cout << "[DEBUG] Calling initLexer()" << endl;
-
-    size_t last_slash = inputFilename.find_last_of("/\\");
-    string filename_only = (last_slash != string::npos) ? inputFilename.substr(last_slash + 1) : inputFilename;
-    setTestCase("case/", filename_only);
-
-    initLexer(input);
-    
-    string pureFilename = "";
-
-    string baseFilename = inputFilename;
-    size_t dotPos = baseFilename.find_last_of('.');
-    if (dotPos != string::npos)
-        baseFilename = baseFilename.substr(0, dotPos);
-
-    size_t slashPos = baseFilename.find_last_of("\\/");
-    pureFilename = (slashPos != string::npos) ? baseFilename.substr(slashPos + 1) : baseFilename;
-
-
-    // ======================== 初始语法分析器 =========================
-
-    cout << "[DEBUG] Creating SLR1Parser" << endl;
-    SLR1Parser parser(cout, pureFilename);
-    cout << "[DEBUG] SLR1Parser created, calling parse()" << endl;
-    bool result = parser.parse();
-    
-    if (result)
-        cout << "[DEBUG] Parsing succeeded" << endl;
-    else
-        cout << "[DEBUG] Parsing failed" << endl;
-    
-    cleanupLexer();
-    free(input);
-    
-    cout << "[DEBUG] Completed" << endl;
-    return parseTree;
-}
-
 
 #ifndef NO_MAIN
 int main(int argc, char *argv[]) 
@@ -1933,8 +1878,7 @@ int main(int argc, char *argv[])
     }
 
 
-    cleanupLexer();
-    parseTree = nullptr;
+
 
 
     cout << "[DEBUG] main() started, argc=" << argc << endl;
@@ -1944,7 +1888,7 @@ int main(int argc, char *argv[])
     if (fileInput) 
     {
         cout << "[DEBUG] Opening file: " << argv[1] << endl;
-        FILE *fp = fopen(argv[1], "rb");
+        FILE *fp = fopen(argv[1], "r");
         if (!fp) 
         {
             cerr << "Cannot open file: " << argv[1] << endl;
@@ -1956,21 +1900,7 @@ int main(int argc, char *argv[])
         fseek(fp, 0, SEEK_SET);
         
         input = (char*)malloc(size + 1);
-        if (input == nullptr) 
-        {
-            cerr << "Error: Memory allocation failed" << endl;
-            fclose(fp);
-            return 1;
-        }
-        
-        size_t read_bytes = fread(input, 1, size, fp);
-        if (read_bytes != (size_t)size) 
-        {
-            cerr << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
-            free(input);
-            fclose(fp);
-            return 1;
-        }
+        fread(input, 1, size, fp);
         input[size] = '\0';
         fclose(fp);
         cout << "[DEBUG] File read, size=" << size << endl;
@@ -2032,3 +1962,63 @@ int main(int argc, char *argv[])
     return 0;
 }
 #endif
+
+// 全局getParseTree函数
+ParseTreeNode* getParseTree(string inputFilename) {
+    // 清理之前的状态
+    cleanupLexer();
+    parseTree = nullptr;
+    
+    // 读取文件
+    FILE *fp = fopen(inputFilename.c_str(), "rb");
+    if (!fp) {
+        cerr << "[getParseTree] Cannot open file: " << inputFilename << endl;
+        return nullptr;
+    }
+    
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    
+    char* input = (char*)malloc(size + 1);
+    if (!input) {
+        cerr << "[getParseTree] Memory allocation failed" << endl;
+        fclose(fp);
+        return nullptr;
+    }
+    
+    size_t read_bytes = fread(input, 1, size, fp);
+    input[size] = '\0';
+    fclose(fp);
+    
+    // 提取纯文件名（不含路径）
+    size_t last_slash = inputFilename.find_last_of("/\\");
+    string filename_only = (last_slash != string::npos) ? inputFilename.substr(last_slash + 1) : inputFilename;
+    
+    // 使用固定的 "case/" 路径（与 CASEE_PATH 一致）
+    setTestCase("case/", filename_only);
+    
+    // 初始化词法分析器
+    initLexer(input);
+    
+    // 提取纯文件名（不含扩展名）
+    string pureFilename = filename_only;
+    size_t dotPos = pureFilename.find_last_of('.');
+    if (dotPos != string::npos)
+        pureFilename = pureFilename.substr(0, dotPos);
+    
+    // 创建并运行语法分析器（只传纯文件名，不含路径）
+    SLR1Parser parser(cout, pureFilename);
+    bool success = parser.parse();
+    
+    // 清理
+    cleanupLexer();
+    free(input);
+    
+    if (!success) {
+        cerr << "[getParseTree] Parsing failed" << endl;
+        return nullptr;
+    }
+    
+    return parseTree;
+}

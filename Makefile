@@ -1,5 +1,5 @@
-CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Iinclude
+CXX = G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe
+CXXFLAGS = -std=c++11 -Wall -Iinclude -Iir_lib/include
 
 SRC_DIR = src
 INCLUDE_DIR = include
@@ -15,10 +15,6 @@ LEXER_EXE = $(BUILD_DIR)/lexer
 PARSER_SRC = $(SRC_DIR)/parser.cpp
 PARSER_OBJ = $(BUILD_DIR)/parser.o
 PARSER_EXE = $(BUILD_DIR)/parser
-
-# 语法分析器测试示例
-PARSER_EXAMPLE_SRC = scripts/parser_usage_example.cpp
-PARSER_EXAMPLE_EXE = $(BUILD_DIR)/parser_example.exe
 
 # 中间代码生成相关
 AST_SRC = $(SRC_DIR)/ast.cpp
@@ -75,17 +71,6 @@ $(PARSER_EXE): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h $(LEX
 	$(CXX) $(CXXFLAGS) -o $@ $(PARSER_SRC) $(LEXER_OBJ)
 	@echo Parser compiled successfully!
 
-# ==================== 语法分析器测试示例 ====================
-parser-example: $(BUILD_DIR) $(PROCESS_DIR) $(PARSER_EXAMPLE_EXE)
-
-$(PARSER_EXAMPLE_EXE): $(PARSER_EXAMPLE_SRC) $(LEXER_OBJ) $(PARSER_OBJ) $(AST_OBJ)
-	$(CXX) $(CXXFLAGS) -o $@ $(PARSER_EXAMPLE_SRC) $(LEXER_OBJ) $(PARSER_OBJ) $(AST_OBJ)
-	@echo Parser example compiled successfully!
-	@echo =========================================
-	@echo Generated: $(PARSER_EXAMPLE_EXE)
-	@echo Usage: $(PARSER_EXAMPLE_EXE) source_file.sy
-	@echo =========================================
-
 # ==================== 完整编译器（词法+语法+IR生成） ====================
 compiler: $(BUILD_DIR) $(PROCESS_DIR) $(IR_LIB) $(COMPILER_EXE)
 
@@ -101,7 +86,7 @@ $(COMPILER_EXE): $(COMPILER_OBJS) $(IR_LIB)
 $(LEXER_OBJ): $(LEXER_SRC) $(INCLUDE_DIR)/lexer.h
 	$(CXX) $(CXXFLAGS) -DNO_MAIN -c -o $@ $(LEXER_SRC)
 
-$(PARSER_OBJ): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h
+$(PARSER_OBJ): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/slr1parser.h
 	$(CXX) $(CXXFLAGS) -DNO_MAIN -c -o $@ $(PARSER_SRC)
 
 $(AST_OBJ): $(AST_SRC) $(INCLUDE_DIR)/ast.h
@@ -150,10 +135,6 @@ test-lexer: lexer
 test-parser: parser
 	$(PARSER_EXE) case/test.sy
 
-.PHONY: test-parser-example
-test-parser-example: parser-example
-	$(PARSER_EXAMPLE_EXE) case/test.sy
-
 .PHONY: test
 test: compiler
 	$(COMPILER_EXE) case/test.sy
@@ -199,17 +180,15 @@ help:
 	@echo   compiler       - Build complete compiler (lexer + parser + IR)
 	@echo   lexer          - Build only the lexer
 	@echo   parser         - Build only the parser
-	@echo   parser-example - Build parser usage example
 	@echo Run targets:
 	@echo   run            - Run compiler with stdin
 	@echo   run-lexer      - Run lexer with stdin
 	@echo   run-parser     - Run parser with stdin
 	@echo Test targets:
-	@echo   test              - Run compiler with case/test.sy
-	@echo   test-lexer        - Run lexer with case/test.sy
-	@echo   test-parser       - Run parser with case/test.sy
-	@echo   test-parser-example - Run parser example with case/test.sy
-	@echo   test-ir           - Generate IR to output/test.ll
+	@echo   test           - Run compiler with case/test.sy
+	@echo   test-lexer     - Run lexer with case/test.sy
+	@echo   test-parser    - Run parser with case/test.sy
+	@echo   test-ir        - Generate IR to output/test.ll
 	@echo Utility targets:
 	@echo   clean          - Remove build files
 	@echo   clean-all      - Remove build and output files
