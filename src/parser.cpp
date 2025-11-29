@@ -713,7 +713,7 @@ void buildAnalysisTable()
                     if (nextState != -1) 
                     {
                         // 非终结符索引：terminalCount 到 symbolCount-1
-                        int symbolIndex = terminalCount + (grammar.nonterminals.at(nextSymbol) - 1);
+                        int symbolIndex = terminalCount + (grammar.nonterminals.at(nextSymbol) - terminalCount - 1);
                         if (symbolIndex >= terminalCount && symbolIndex < symbolCount) {
                             tableWithConflicts[stateNum][symbolIndex].push_back(Action(MOVE, nextState));
                         }
@@ -1518,7 +1518,7 @@ private:
         
         auto it_nonterm = grammar.nonterminals.find(symbol);
         if (it_nonterm != grammar.nonterminals.end())
-            return it_nonterm->second - 1;
+            return grammar.terminals.size() + (it_nonterm->second - grammar.terminals.size() - 1);
         
         return -1;
     }
@@ -2010,6 +2010,10 @@ ParseTreeNode* getParseTree(string inputFilename) {
     // 创建并运行语法分析器（只传纯文件名，不含路径）
     SLR1Parser parser(cout, pureFilename);
     bool success = parser.parse();
+    
+    // 将SLR1Parser的parseTree赋值给全局parseTree变量
+    parseTree = parser.getParseTree();
+
     
     // 清理
     cleanupLexer();

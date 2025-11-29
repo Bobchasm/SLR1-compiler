@@ -2,3 +2,6 @@ Step    State       Symbol Stack        Input               Action
 ---------------------------------------------------------------------------
 1       0           #                   int                 s10            
 2       10          int                 Ident               r23            
+3       9           funcType            Ident               s21            
+4       21          Ident               =                   error          
+4       21          Ident               =                   Error: No action
