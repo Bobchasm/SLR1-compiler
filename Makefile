@@ -146,6 +146,16 @@ test-ir: compiler
 	$(COMPILER_EXE) case/test.sy > output/test.ll 2>&1
 	@echo IR code saved to output/test.ll
 
+# 测试IR生成器核心功能
+.PHONY: test-ir-generator
+test-ir-generator: $(BUILD_DIR) $(IR_LIB)
+	$(CXX) $(CXXFLAGS) -o $(BUILD_DIR)/test_ir.exe test_ir.cpp $(IR_GENERATOR_SRC) $(IR_LIB)
+	@echo IR generator test compiled successfully!
+	@echo =========================================
+	@echo Running IR generator test...
+	@echo =========================================
+	$(BUILD_DIR)/test_ir.exe
+
 # ==================== 调试和信息 ====================
 .PHONY: debug
 debug: CXXFLAGS += -g -DDEBUG
@@ -189,6 +199,7 @@ help:
 	@echo   test-lexer     - Run lexer with case/test.sy
 	@echo   test-parser    - Run parser with case/test.sy
 	@echo   test-ir        - Generate IR to output/test.ll
+	@echo   test-ir-generator - Test IR generator core functionality
 	@echo Utility targets:
 	@echo   clean          - Remove build files
 	@echo   clean-all      - Remove build and output files

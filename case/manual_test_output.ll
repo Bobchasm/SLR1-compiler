@@ -18,5 +18,7 @@ declare void @stoptime()
 
 define i32 @main() {
 label_main_entry:
+  %a = alloca i32
+  store i32 1, i32* %a
   ret i32 0
 }

@@ -37,6 +37,18 @@ private:
     // ParseTreeNode访问方法
     void visitParseTreeNode(ParseTreeNode* node);
     Value* visitParseTreeExpr(ParseTreeNode* node);
+
+    // 辅助方法
+    void handleAssignment(ParseTreeNode* node);
+    void handleIfStatement(ParseTreeNode* node);
+    Value* handleLVal(ParseTreeNode* node);
+    void collectFunctionParams(ParseTreeNode* node, std::vector<Type*>& param_types, std::vector<std::string>& param_names);
+    void collectFuncFParamList(ParseTreeNode* node, std::vector<Type*>& param_types, std::vector<std::string>& param_names);
+    Value* handleBinaryExpr(ParseTreeNode* node);
+    Value* handleRelExpr(ParseTreeNode* node);
+    Value* handleEqExpr(ParseTreeNode* node);
+    Value* handleLAndExpr(ParseTreeNode* node);
+    Value* handleLOrExpr(ParseTreeNode* node);
 };
 
 #endif
