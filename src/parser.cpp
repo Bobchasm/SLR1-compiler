@@ -2065,31 +2065,6 @@ ParseTreeNode* getParseTree(string inputFilename)
     cleanupLexer();
     parseTree = nullptr;
     
-    // ======================== 重定向日志 =========================
-    time_t now = time(0);
-    struct tm* timeinfo = localtime(&now);
-    char timestamp[64];
-    strftime(timestamp, sizeof(timestamp), "%Y%m%d_%H%M%S", timeinfo);
-    
-    string logFilename = "logs/log_" + string(timestamp) + ".txt";
-    
-    // Temporarily disable cout redirection for debugging
-    // std::ofstream debugLog(logFilename, ios::out | ios::trunc);
-    // if (debugLog.is_open())
-    // {
-    //     char timeStr[100];
-    //     strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", timeinfo);
-    //     debugLog << "==============================================" << endl;
-    //     debugLog << "Parser Log" << endl;
-    //     debugLog << "Time: " << timeStr << endl;
-    //     debugLog << "Test File: " << inputFilename << endl;
-    //     debugLog << "==============================================" << endl;
-    //     debugLog << endl;
-    //
-    //     std::cout.rdbuf(debugLog.rdbuf());
-    // }
-
-
     // ======================== 获取源文件内容 =========================
 
     char *input = nullptr;
