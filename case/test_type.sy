@@ -1,0 +1,22 @@
+int funcInt() {
+    return 42;
+}
+
+float funcFloat() {
+    return 3.14;
+}
+
+void main() {
+    float f = 10;    
+    int i = 3.14;
+
+    return;
+}
+
+int testReturnType1() {
+    return 3.14;
+}
+
+float testReturnType2() {
+    return 5;
+}

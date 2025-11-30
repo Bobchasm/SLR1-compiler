@@ -39,6 +39,7 @@ struct ParseTreeNode
     string symbol;           // 符号名称（终结符或非终结符）
     string value;            // 终结符的值（对于终结符节点）
     int prodIndex;           // 使用的产生式索引（对于非终结符节点）
+    int lineNumber;          // 源代码行号（用于错误报告）
     
     // 语义属性字段
     string semanticType;     // 语义节点类型（VarDecl, FunctionDef, BinaryExpr, Assignment 等）
@@ -53,7 +54,7 @@ struct ParseTreeNode
     vector<ParseTreeNode*> semanticChildren;  // 语义子节点（简化的语义树结构）
     
     ParseTreeNode(NodeType t, const string& sym, const string& val = "", int prod = -1)
-        : type(t), symbol(sym), value(val), prodIndex(prod), 
+        : type(t), symbol(sym), value(val), prodIndex(prod), lineNumber(0),
           isGlobal(false), isConst(false) {}
     
     ~ParseTreeNode()

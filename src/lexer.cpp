@@ -742,7 +742,7 @@ public:
         transitionTable.clear();
     }
 
-    tuple<string, string, string, bool> nextToken()
+    tuple<string, string, string, int, bool> nextToken()
     {
         while (pos < input.length())
         {
@@ -762,7 +762,7 @@ public:
         }
 
         if (pos >= input.length())
-            return make_tuple("", "", "", false);
+            return make_tuple("", "", "", 0, false);
 
         int currentState = dfa.startState;
         size_t startPos = pos;
@@ -813,7 +813,7 @@ public:
                     column += (errorEnd - pos);
                     pos = errorEnd;
                     
-                    return make_tuple(errorText, "ERROR", to_string(startLine) + "," + to_string(startColumn), true);
+                    return make_tuple(errorText, "ERROR", to_string(startLine) + "," + to_string(startColumn), startLine, true);
                 }
             }
 
@@ -842,7 +842,7 @@ public:
                     tokenValue = to_string(separators[tokenText].second);
             }
 
-            return make_tuple(tokenText, tokenType, tokenValue, true);
+            return make_tuple(tokenText, tokenType, tokenValue, startLine, true);
         }
         else
         {
@@ -850,7 +850,7 @@ public:
             pos++;
             column++;
 
-            return make_tuple(errorChar, "ERROR", to_string(startLine) + "," + to_string(startColumn), true);
+            return make_tuple(errorChar, "ERROR", to_string(startLine) + "," + to_string(startColumn), startLine, true);
         }
     }
 };
@@ -1077,7 +1077,8 @@ extern "C"
         string tokenText = get<0>(result);
         string tokenType = get<1>(result);
         string tokenValue = get<2>(result);
-        bool success = get<3>(result);
+        int lineNumber = get<3>(result);
+        bool success = get<4>(result);
 
         if (!success)
         {
@@ -1097,6 +1098,7 @@ extern "C"
         token.type[63] = '\0';
         strncpy(token.value, tokenValue.c_str(), 255);
         token.value[255] = '\0';
+        token.lineNumber = lineNumber;
         token.valid = 1;
 
         if (token_output_file.is_open())
@@ -1199,11 +1201,12 @@ int main(int argc, char *argv[])
         
         while (true)
         {
-            tuple<string, string, string, bool> result = lexer.nextToken();
+            tuple<string, string, string, int, bool> result = lexer.nextToken();
             string tokenText = get<0>(result);
             string tokenType = get<1>(result);
             string tokenValue = get<2>(result);
-            bool success = get<3>(result);
+            int lineNumber = get<3>(result);
+            bool success = get<4>(result);
 
             if (!success)
                 break;

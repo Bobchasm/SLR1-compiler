@@ -1,0 +1,4 @@
+Step    State       Symbol Stack        Input               Action         
+---------------------------------------------------------------------------
+1       0           #                   /                   error          
+1       0           #                   /                   Error: No action

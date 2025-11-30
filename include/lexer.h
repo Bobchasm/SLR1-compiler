@@ -11,6 +11,7 @@ extern "C"
         char text[256];
         char type[64];
         char value[256];
+        int lineNumber;      // 源代码行号
         int valid;
     } Token;
 

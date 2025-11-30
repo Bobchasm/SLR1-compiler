@@ -1081,6 +1081,7 @@ private:
                 // Create a new Number node with folded value
                 ParseTreeNode* foldedNode = new ParseTreeNode(NODE_NONTERMINAL, "Number", "", -1);
                 foldedNode->semanticType = "Number";
+                foldedNode->lineNumber = node->lineNumber;  // 继承行号
                 if (node->operatorType == "-")
                 {
                     foldedNode->value = "-" + node->semanticChildren[0]->value;
@@ -1127,6 +1128,10 @@ private:
     {
         if (!node) return;
         
+        // 自动从第一个子节点继承行号
+        if (!children.empty() && children[0])
+            node->lineNumber = children[0]->lineNumber;
+        
         cout << "[SEMANTIC] Filling attributes for production " << originalIndex 
              << " (" << node->symbol << ")" << endl;
         
@@ -1166,9 +1171,7 @@ private:
                     node->semanticChildren = semanticChildren;  // 使用semanticChildren，不修改children
                 }
                 else
-                {
                     cout << "[SEMANTIC] WARNING: compUnit_list not found!" << endl;
-                }
                 break;
             }
             case 3:  // compUnit_list -> compUnit_list compUnit_item
@@ -1247,6 +1250,7 @@ private:
                                 varDeclNode->isConst = true;
                                 varDeclNode->isGlobal = isInGlobalScope;
                                 varDeclNode->initValue = constDefNode->initValue;
+                                varDeclNode->lineNumber = constDefNode->lineNumber;  // 继承行号
                                 
                                 // 复制初始化表达式的语义子节点
                                 varDeclNode->semanticChildren = constDefNode->semanticChildren;
@@ -1344,6 +1348,7 @@ private:
                                 varDeclNode->isConst = false;
                                 varDeclNode->isGlobal = isInGlobalScope;  // 使用当前作用域状态
                                 varDeclNode->initValue = varDefNode->initValue;
+                                varDeclNode->lineNumber = varDefNode->lineNumber;
                                 
                                 // 复制初始化表达式的语义子节点
                                 varDeclNode->semanticChildren = varDefNode->semanticChildren;
@@ -1540,6 +1545,7 @@ private:
                 {
                     ParseTreeNode* conditionNode = new ParseTreeNode(NODE_NONTERMINAL, "Condition", "", -1);
                     conditionNode->semanticType = "Condition";
+                    conditionNode->lineNumber = condNode->lineNumber;
                     collectSemanticChildren(condNode, conditionNode->semanticChildren);
                     node->semanticChildren.push_back(conditionNode);
                 }
@@ -1549,6 +1555,7 @@ private:
                 {
                     ParseTreeNode* thenNode = new ParseTreeNode(NODE_NONTERMINAL, "ThenBranch", "", -1);
                     thenNode->semanticType = "ThenBranch";
+                    thenNode->lineNumber = thenStmt->lineNumber;
                     collectSemanticChildren(thenStmt, thenNode->semanticChildren);
                     node->semanticChildren.push_back(thenNode);
                 }
@@ -1563,6 +1570,7 @@ private:
                     {
                         ParseTreeNode* elseNode = new ParseTreeNode(NODE_NONTERMINAL, "ElseBranch", "", -1);
                         elseNode->semanticType = "ElseBranch";
+                        elseNode->lineNumber = elseOpt->lineNumber;
                         elseNode->semanticChildren = elseChildren;
                         node->semanticChildren.push_back(elseNode);
                     }
@@ -2014,6 +2022,7 @@ public:
                     currentSymbol, 
                     string(currentToken.text)  // 保存token的原始文本值
                 );
+                terminalNode->lineNumber = currentToken.lineNumber;
                 treeStack.push(terminalNode);
                 
                 // (4)读取下一个输入符号
