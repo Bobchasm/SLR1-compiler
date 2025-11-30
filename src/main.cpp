@@ -1,10 +1,3 @@
-/**
- * 
- *   make compiler
- * 
- *   ./build/simple case/test.sy
- */
-
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -14,10 +7,27 @@
 #include "ast.h"
 #include "ir_generator.h"
 #include "symbol_table.h"
+#include "semantic_analyzer.h"
 
-// #include "ir_generator.h"
 
 using namespace std;
+
+// 全局变量：保存原始的cout buffer（去除static，在parse.h中声明为extern）
+std::streambuf* g_originalCoutBuffer = nullptr;
+
+// 输出到终端的辅助函数（绕过日志重定向）
+void printToConsole(const string& message) 
+{
+    if (g_originalCoutBuffer) 
+    {
+        std::streambuf* currentBuffer = std::cout.rdbuf();
+        std::cout.rdbuf(g_originalCoutBuffer);  // 临时恢复到终端
+        cout << message;
+        std::cout.rdbuf(currentBuffer);  // 恢复日志重定向
+    } 
+    else
+        cout << message;  // 如果还没重定向，直接输出
+}
 
 void printTreeDetailed(ParseTreeNode* node, int depth = 0) {
     if (!node) return;
@@ -35,20 +45,25 @@ void printTreeDetailed(ParseTreeNode* node, int depth = 0) {
         cout << indent << "  Semantic children:" << endl;
         for (size_t i = 0; i < node->semanticChildren.size(); i++) {
             cout << indent << "    [" << i << "] ";
-            printTreeDetailed(node->semanticChildren[i], 0);
+            //printTreeDetailed(node->semanticChildren[i], 0);
         }
     }
 
-    for (auto* child : node->children) {
-        printTreeDetailed(child, depth + 1);
-    }
+    // 注释掉循环，以避免unused variable警告
+    // for (auto* child : node->children) {
+    //     printTreeDetailed(child, depth + 1);
+    // }
 }
 
 int main(int argc, char* argv[])
 {
+    // ===================== 一些准备 =============================
+    
+    printToConsole("\n[STEP 1/4] Preparing...\n");
+
     if (argc != 2)
     {
-        cerr << "Usage: " << argv[0] << " <source_file>" << endl;
+        printToConsole("Usage: " + string(argv[0]) + " <source_file>\n");
         return 1;
     }
 
@@ -59,14 +74,14 @@ int main(int argc, char* argv[])
     strftime(timestamp, sizeof(timestamp), "%Y%m%d_%H%M%S", timeinfo);
     string logFilename = "logs/log_" + string(timestamp) + ".txt";
     
-    // 保存原始的 cout 和 cerr streambuf
-    std::streambuf* originalCoutBuffer = std::cout.rdbuf();
-    std::streambuf* originalCerrBuffer = std::cerr.rdbuf();
+    // 保存原始cout buffer
+    g_originalCoutBuffer = std::cout.rdbuf();
     
     // 打开日志文件
     std::ofstream logFile(logFilename, ios::out | ios::trunc);
     
-    if (logFile.is_open()) {
+    if (logFile.is_open()) 
+    {
         char timeStr[100];
         strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", timeinfo);
         logFile << "==============================================" << endl;
@@ -76,57 +91,68 @@ int main(int argc, char* argv[])
         logFile << "==============================================" << endl;
         logFile << endl;
         
-        logFile << "==============================================" << endl;
-        logFile << "Parser Log" << endl;
-        logFile << "==============================================" << endl;
-        logFile << endl;
-        
         // 重定向 cout 到日志文件
         std::cout.rdbuf(logFile.rdbuf());
-    }
-    
-    cout << "[STEP 1/4] Starting lexical and syntax analysis..." << endl;
 
-    // 获取语法分析只需要下面，然后还需要引入 parser.h就行
+        printToConsole("[DEBUG] Logs saved to " + logFilename + "\n\n");
+    }
+
+
+    // ===================== 获取语法树 (语法分析) =============================
+    
+    printToConsole("[STEP 2/4] Starting lexical and syntax analysis...\n");
+
     ParseTreeNode* parseTree = getParseTree(argv[1]);
 
-    cout << "[STEP 2/4] Parse tree obtained, semanticType: " << (parseTree ? parseTree->semanticType : "null") << endl;
-
-    if (!parseTree) {
-        // 错误信息输出到终端
-        std::cerr.rdbuf(originalCerrBuffer);
-        cerr << "Failed to get parse tree!" << endl;
+    if (!parseTree) 
+    {
+        printToConsole("[ERROR] Failed to get parse tree!\n");
         return 1;
     }
+    printToConsole("[STEP 2/4] Lexical and syntax analysis completed!\n\n");
 
-    // Debug: print detailed tree structure
-    // cout << "Detailed parse tree:" << endl;
-    // printTreeDetailed(parseTree, 0);
 
-    // 将 IR 生成的调试输出重定向到日志文件
-    // if (logFile.is_open()) {
-    //     logFile << "\n=============================================="<< endl;
-    //     logFile << "IR Generation Log" << endl;
-    //     logFile << "==============================================" << endl;
-    //     logFile << endl;
-        
-    //     // 重定向 cerr 到日志文件(因为 IR 生成器使用 cerr)
-    //     std::cerr.rdbuf(logFile.rdbuf());
-    // }
     
-    // 6.中间代码部分
-    cout << "[STEP 3/4] Starting IR generation..." << endl;
+    // ==================== 语义检查 ====================
+
+    printToConsole("[STEP 3/4] Starting semantic analysis...\n");
+    
+    SemanticAnalyzer semanticAnalyzer;
+    bool semanticCheckPassed = semanticAnalyzer.check(parseTree);
+    
+    if (!semanticCheckPassed) 
+    {
+        // 语义错误信息输出到终端
+        printToConsole("[ERROR] Semantic analysis failed!\n");
+        
+        // 输出错误列表到终端
+        if (g_originalCoutBuffer) {
+            std::streambuf* currentBuffer = std::cout.rdbuf();
+            std::cout.rdbuf(g_originalCoutBuffer);
+            semanticAnalyzer.printErrors();
+            std::cout.rdbuf(currentBuffer);
+        } else {
+            semanticAnalyzer.printErrors();
+        }
+        
+        printToConsole("[SEMANTIC]  Compilation aborted due to semantic errors.\n\n");
+        return 1;
+    }
+    
+    printToConsole("[STEP 3/4] Semantic analysis passed successfully\n\n");
+
+
+
+    // ===================== 中间代码部分 =============================
+
+    printToConsole("[STEP 4/4] Starting IR generation...\n");
 
     // 直接使用ParseTreeNode生成IR
     IRGenerator generator;
-    cout << "[STEP 3.1] IRGenerator created" << endl;
     string ir_code = generator.generateFromParseTree(parseTree, argv[1]);
+
     
-    // 恢复 cout 和 cerr 到终端
-    // std::cout.rdbuf(originalCoutBuffer);
-    // std::cerr.rdbuf(originalCerrBuffer);
-    
-    cout << "[STEP 4/4] IR generation completed" << endl;
+    printToConsole("[STEP 4/4] IR generation completed\n\n");
 
 
     string inputFilename = argv[1];
@@ -143,8 +169,6 @@ int main(int argc, char* argv[])
         pureFilename = (slashPos != string::npos) ? baseFilename.substr(slashPos + 1) : baseFilename;
 
 
-
-
     string output_file = "case/" + pureFilename + "_output.ll";
     ofstream out(output_file);
     if (out.is_open()) {
@@ -152,10 +176,8 @@ int main(int argc, char* argv[])
         out.close();
         cout << "\nIR 代码已保存到: " << output_file << endl;
     } else {
-        cerr << "无法打开输出文件: " << output_file << endl;
+        cout << "无法打开输出文件: " << output_file << endl;
     }
 
-    // 输出IR代码到stderr（不受cout重定向影响）
-    // cerr << ir_code << endl;
     return 0;
 }

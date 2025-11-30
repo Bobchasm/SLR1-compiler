@@ -1,0 +1,28 @@
+Program
+├── VarDecl: global int a = 1
+│   └── Number: 1
+├── VarDecl: global const int b = 2
+│   └── Number: 2
+├── FunctionDef: int add()
+│   ├── FuncParam: int c
+│   ├── FuncParam: int d
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: a
+│           └── Variable: b
+└── FunctionDef: void main()
+    ├── VarDecl: local int x
+    │   └── FunctionCall: add()
+    │       ├── Variable: a
+    │       └── Variable: b
+    ├── Assignment: x = FunctionCall
+    │   └── FunctionCall: add()
+    │       ├── Variable: a
+    │       ├── Variable: b
+    │       └── Variable: b
+    ├── Assignment: x = FunctionCall
+    │   └── FunctionCall: sub()
+    ├── Assignment: b = Number
+    │   └── Number: 5
+    └── ReturnStmt: Number
+        └── Number: 0

@@ -1,7 +1,11 @@
+#ifndef PARSE_H
+#define PARSE_H
+
 #include <vector>
 #include <map>
 #include <set>
 #include <string>
+#include <iostream>
 
 #define ACC 0
 #define MOVE 1
@@ -9,6 +13,9 @@
 
 
 using namespace std;
+
+// 全局原始cout buffer，由main.cpp初始化，parser.cpp使用
+extern std::streambuf* g_originalCoutBuffer;
 
 const string EPSILON = "$";
 const string END_MARKER = "EOF";
@@ -51,8 +58,7 @@ struct ParseTreeNode
     
     ~ParseTreeNode()
     {
-        for (ParseTreeNode* child : children)
-            delete child;
+
     }
     
     bool isLeaf() const 
@@ -189,6 +195,7 @@ struct ParseTreeNode
         }
         else 
         {
+            // 如果没有语义类型，只递归处理子节点
             for (const ParseTreeNode* child : children) 
             {
                 if (child)
@@ -223,7 +230,7 @@ private:
             else if (c == ' ')
                 result += '_';
             else
-                result += c;
+                result += c;  // 保留其他字符（如括号、运算符等）
         }
         return result;
     }
@@ -497,3 +504,5 @@ void exportFirstSets();
 void exportFollowSets();
 
 ParseTreeNode* getParseTree(string inputFilename);
+
+#endif // PARSE_H

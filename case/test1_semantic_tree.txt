@@ -1,0 +1,31 @@
+Program
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 1
+    │   └── Number: 1
+    ├── VarDecl: local int b = 2
+    │   └── Number: 2
+    ├── Assignment: a = BinaryExpr
+    │   └── BinaryExpr: -
+    │       ├── BinaryExpr: +
+    │       │   ├── Variable: a
+    │       │   └── Variable: b
+    │       └── Number: 1
+    └── IfStmt: 
+        ├── Condition: 
+        │   └── BinaryExpr: ==
+        │       ├── Variable: a
+        │       └── Number: 2
+        ├── ThenBranch: 
+        │   └── ReturnStmt: Number
+        │       └── Number: 0
+        └── ElseBranch: 
+            ├── Assignment: b = BinaryExpr
+            │   └── BinaryExpr: %
+            │       ├── BinaryExpr: /
+            │       │   ├── BinaryExpr: *
+            │       │   │   ├── Variable: b
+            │       │   │   └── Number: 2
+            │       │   └── Number: 1
+            │       └── Number: 2
+            └── ReturnStmt: Number
+                └── Number: 1

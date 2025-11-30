@@ -15,34 +15,38 @@ Program
     ├── VarDecl: local int b = 2
     │   └── Number: 2
     ├── VarDecl: local int c = 32
-    │   └── UnaryExpr: -
-    │       └── Number: 32
+    │   └── Number: -32
     ├── VarDecl: local float f1 = 1.32
     │   └── Number: 1.32
     ├── VarDecl: local float f2 = 3123.3
-    │   └── UnaryExpr: -
-    │       └── Number: 3123.3
+    │   └── Number: -3123.3
     ├── Assignment: a = Number
     │   └── Number: 32
     ├── Assignment: b = BinaryExpr
     │   └── BinaryExpr: +
     │       ├── Variable: a
     │       └── Number: 1
-    ├── VarDecl: local int g
+    ├── VarDecl: local const int g
     │   └── BinaryExpr: +
-    │       ├── Variable: b
+    │       ├── UnaryExp
+    │       │   └── Variable: b
     │       └── BinaryExpr: *
     │           ├── BinaryExpr: +
     │           │   ├── Variable: a
     │           │   └── Variable: c
-    │           └── Variable: a
+    │           └── UnaryExp
+    │               └── Variable: a
     ├── IfStmt: 
     │   ├── Condition: 
-    │   │   └── UnaryExpr: !
-    │   │       └── Number: 0
+    │   │   └── BinaryExpr: &&
+    │   │       ├── UnaryExp
+    │   │       │   └── Number: 0
+    │   │       └── Number: 1
     │   └── ThenBranch: 
-    │       └── Assignment: a = Number
-    │           └── Number: 2
+    │       ├── Assignment: a = Number
+    │       │   └── Number: 2
+    │       └── Assignment: g = Number
+    │           └── Number: 1
     ├── VarDecl: local int ret
     │   └── FunctionCall: add()
     │       ├── Variable: b

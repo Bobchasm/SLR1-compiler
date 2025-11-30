@@ -1,0 +1,22 @@
+
+int a = 1;
+const int b = 2;
+
+int add(int c,int d)
+{
+    return a + b;
+}
+
+void main()
+{
+
+    int x = add(a,b);
+    x = add (a,b,b);
+
+    x= sub();
+
+    b=5;
+
+
+    return 0;
+}

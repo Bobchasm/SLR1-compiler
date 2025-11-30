@@ -25,6 +25,24 @@
 
 using namespace std;
 
+
+// 输出到终端的辅助函数（绕过日志重定向）
+void printToConsoleParse(const string& message) 
+{
+    if (g_originalCoutBuffer) 
+    {
+        std::streambuf* currentBuffer = std::cout.rdbuf();
+        std::cout.rdbuf(g_originalCoutBuffer);  // 临时恢复到终端
+        cout << message;
+        std::cout.rdbuf(currentBuffer);  // 恢复日志重定向
+    } 
+    else
+        cout << message;  // 如果还没重定向，直接输出
+}
+
+
+
+
 // 全局变量定义
 Grammar grammar;
 ParseTreeNode* parseTree = nullptr;
@@ -866,7 +884,9 @@ void exportFirstSets()
     outFile << "=" << string(70, '=') << endl;
     
     outFile.close();
-    cout << "[PARSER] FIRST sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "first_sets.txt" << endl;
+
+    printToConsoleParse("[PARSER] FIRST sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "first_sets.txt\n");
+    // cout << "[PARSER] FIRST sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "first_sets.txt" << endl;
 }
 
 void exportFollowSets()
@@ -905,7 +925,9 @@ void exportFollowSets()
     outFile << "=" << string(70, '=') << endl;
     
     outFile.close();
-    cout << "[PARSER] FOLLOW sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "follow_sets.txt" << endl;
+
+    printToConsoleParse("[PARSER] FOLLOW sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "follow_sets.txt\n");
+    // cout << "[PARSER] FOLLOW sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "follow_sets.txt" << endl;
 }
 
 void initGrammar() 
@@ -1008,9 +1030,9 @@ private:
     string inputFilename;  // 输入文件名
 
 
+    
     bool isInGlobalScope;  // 当前是否在全局作用域
     
-
     // 从子节点中查找特定 symbol 的节点
     ParseTreeNode* findChild(const vector<ParseTreeNode*>& children, const string& symbol) 
     {
@@ -1047,15 +1069,42 @@ private:
         cout << "[COLLECT] Node: " << node->symbol << ", semanticType: '" 
              << node->semanticType << "', children: " << node->children.size() << endl;
         
-        // 如果当前节点有语义类型，直接添加
+        // 如果当前节点有语义类型，检查是否可以优化
         if (!node->semanticType.empty())
         {
-            cout << "[COLLECT] Adding node with semanticType: " << node->semanticType << endl;
-            result.push_back(node);
+            // Constant folding: UnaryExp with +/- and single Number operand
+            if (node->semanticType == "UnaryExp" && 
+                (node->operatorType == "+" || node->operatorType == "-") &&
+                node->semanticChildren.size() == 1 &&
+                node->semanticChildren[0]->semanticType == "Number")
+            {
+                // Create a new Number node with folded value
+                ParseTreeNode* foldedNode = new ParseTreeNode(NODE_NONTERMINAL, "Number", "", -1);
+                foldedNode->semanticType = "Number";
+                if (node->operatorType == "-")
+                {
+                    foldedNode->value = "-" + node->semanticChildren[0]->value;
+                }
+                else  // "+"
+                {
+                    foldedNode->value = node->semanticChildren[0]->value;
+                }
+                foldedNode->semanticChildren.clear();
+                
+                cout << "[COLLECT] Folded UnaryExp " << node->operatorType 
+                     << " into Number: " << foldedNode->value << endl;
+                result.push_back(foldedNode);
+            }
+            else
+            {
+                // Normal case: add node as-is
+                cout << "[COLLECT] Adding node with semanticType: " << node->semanticType 
+                     << ", varName: " << node->varName << ", ptr: " << (void*)node << endl;
+                result.push_back(node);
+            }
         }
         else
-        {
-            // 否则递归处理所有子节点
+        {            // 否则递归处理所有子节点
             for (ParseTreeNode* child : node->children)
             {
                 if (child)
@@ -1265,7 +1314,7 @@ private:
                             node->varType = bTypeNode->varType;
                             node->varName = varDefNodes[0]->varName;
                             node->isConst = false;
-                            node->isGlobal = isInGlobalScope;
+                            node->isGlobal = isInGlobalScope;  // 使用当前作用域状态
                             node->initValue = varDefNodes[0]->initValue;
                             
                             // 收集初始化表达式的语义子节点
@@ -1293,7 +1342,7 @@ private:
                                 varDeclNode->varType = bTypeNode->varType;
                                 varDeclNode->varName = varDefNode->varName;
                                 varDeclNode->isConst = false;
-                                varDeclNode->isGlobal = isInGlobalScope;
+                                varDeclNode->isGlobal = isInGlobalScope;  // 使用当前作用域状态
                                 varDeclNode->initValue = varDefNode->initValue;
                                 
                                 // 复制初始化表达式的语义子节点
@@ -1379,7 +1428,17 @@ private:
                         cout << "[SEMANTIC] FunctionDef collected " << semanticChildren.size() << " semantic children from block" << endl;
                     }
                     
-                    // 进入函数作用域
+                    // 将所有从block收集的VarDecl设置为局部变量
+                    for (ParseTreeNode* child : node->semanticChildren)
+                    {
+                        if (child && child->semanticType == "VarDecl")
+                        {
+                            child->isGlobal = false;
+                            cout << "[SEMANTIC] Set VarDecl '" << child->varName << "' to local" << endl;
+                        }
+                    }
+                    
+                    // 设置全局作用域标志（用于后续可能的嵌套函数，虽然SysY不支持）
                     isInGlobalScope = false;
                 }
                 break;
@@ -1434,9 +1493,8 @@ private:
             // 33-34.blockItem -> decl | stmt
             case 33:  // blockItem -> decl
                 // blockItem 只是中间节点，不设置 semanticType
-                // 需要处理 isGlobal：block 内的声明是局部的
-                if (!children.empty() && children[0])
-                    setLocalScope(children[0]);
+                // isGlobal 已经在 FunctionDef 处理时通过 isInGlobalScope=false 设置
+                // 不需要再次调用 setLocalScope，因为 VarDecl 已经正确设置了 isGlobal
                 break;
             case 34:  // blockItem -> stmt
                 break;
@@ -1615,23 +1673,49 @@ private:
             // 54.unaryExp -> unaryOp unaryExp - 一元运算
             case 54:
             {
-                node->semanticType = "UnaryExpr";
-                
                 // 获取运算符
                 ParseTreeNode* unaryOpNode = findChild(children, "unaryOp");
+                string op;
                 if (unaryOpNode && !unaryOpNode->children.empty())
                 {
-                    node->operatorType = unaryOpNode->children[0]->symbol;  // +, -, !
+                    op = unaryOpNode->children[0]->symbol;  // +, -, !
                 }
                 
-                // 收集操作数
+                // 收集操作数（保持语义树结构：unaryExp 的语义子节点就是内部的表达式）
                 ParseTreeNode* unaryExpNode = findChild(children, "unaryExp");
                 if (unaryExpNode)
                 {
-                    collectSemanticChildren(unaryExpNode, node->semanticChildren);
+                    vector<ParseTreeNode*> operands;
+                    collectSemanticChildren(unaryExpNode, operands);
+                    
+                    // Optimization: if operand is a single Number constant and operator is + or -,
+                    // fold the sign into the number value directly
+                    if (!operands.empty() && operands.size() == 1 && 
+                        operands[0]->semanticType == "Number" && 
+                        (op == "+" || op == "-"))
+                    {
+                        // Fold constant: create a Number node with signed value
+                        node->semanticType = "Number";
+                        if (op == "-")
+                        {
+                            node->value = "-" + operands[0]->value;
+                        }
+                        else  // op == "+"
+                        {
+                            node->value = operands[0]->value;
+                        }
+                        node->semanticChildren.clear();
+                        cout << "[SEMANTIC] Folded UnaryExp " << op << " into Number: " << node->value << endl;
+                    }
+                    else
+                    {
+                        // General case: create UnaryExp node
+                        node->semanticType = "UnaryExp";
+                        node->operatorType = op;
+                        node->semanticChildren = operands;
+                        cout << "[SEMANTIC] Created UnaryExp: " << node->operatorType << endl;
+                    }
                 }
-                
-                cout << "[SEMANTIC] Created UnaryExpr: " << node->operatorType << endl;
                 break;
             }
             
@@ -1753,15 +1837,18 @@ public:
     }
     
     ~SLR1Parser() {
+        // BUGFIX: Do not delete parseTree or treeStack nodes
+        // These nodes are still referenced via semanticChildren pointers
+        // Deleting them causes dangling pointers
+        
+        // if (parseTree)
+        //     delete parseTree;
 
-        if (parseTree)
-            delete parseTree;
-
-        while (!treeStack.empty()) 
-        {
-            delete treeStack.top();
-            treeStack.pop();
-        }
+        // while (!treeStack.empty()) 
+        // {
+        //     delete treeStack.top();
+        //     treeStack.pop();
+        // }
     }
     
     ParseTreeNode* getParseTree() const 
@@ -1797,7 +1884,9 @@ public:
             {
                 semanticFile << parseTree->toSemanticString();
                 semanticFile.close();
-                cout << "[PARSER] Semantic tree saved to: " << semanticFilePath << endl;
+
+                printToConsoleParse("[PARSER] Semantic tree saved to: " + semanticFilePath + "\n");
+                // cout << "[PARSER] Semantic tree saved to: " << semanticFilePath << endl;
             }
             
             // cout << "\n[PARSER] Semantic Tree:\n" << endl;
@@ -1830,7 +1919,7 @@ public:
             }
         }
         
-
+        
 
         // ============ SLR(1) 分析步骤 ============
         
@@ -1872,8 +1961,7 @@ public:
             
             // 检查边界
             if (currentState < 0 || currentState >= (int)grammar.parseTable.size() || 
-                symbolIndex < 0 || symbolIndex >= (int)grammar.parseTable[currentState].size()) 
-                {
+                symbolIndex < 0 || symbolIndex >= (int)grammar.parseTable[currentState].size()) {
                 cout << "[PARSER] Error: Index out of bounds. currentState=" << currentState 
                      << ", symbolIndex=" << symbolIndex 
                      << ", parseTable.size()=" << grammar.parseTable.size()
@@ -2051,6 +2139,32 @@ public:
             parseLog.close();
         
         cout << "[PARSER] Total steps: " << step << endl;
+        
+        // DEBUG: Print FunctionDef semanticChildren addresses before returning
+        if (success && parseTree) {
+            cout << "[DEBUG] Before outputParseTree - checking tree integrity..." << endl;
+            if (!parseTree->semanticChildren.empty()) {
+                auto* prog = parseTree;
+                for (size_t i = 0; i < prog->semanticChildren.size(); i++) {
+                    auto* child = prog->semanticChildren[i];
+                    cout << "[DEBUG] Program child[" << i << "]: ptr=" << (void*)child;
+                    if (child) {
+                        cout << ", type=" << child->semanticType << ", varName=" << child->varName;
+                        if (child->semanticType == "FunctionDef" && !child->semanticChildren.empty()) {
+                            cout << "\n[DEBUG]   FunctionDef semanticChildren.size()=" << child->semanticChildren.size();
+                            for (size_t j = 0; j < child->semanticChildren.size(); j++) {
+                                auto* fchild = child->semanticChildren[j];
+                                cout << "\n[DEBUG]     [" << j << "]: ptr=" << (void*)fchild;
+                                if (fchild) {
+                                    cout << ", type=" << fchild->semanticType << ", varName=" << fchild->varName;
+                                }
+                            }
+                        }
+                    }
+                    cout << endl;
+                }
+            }
+        }
         
         // 输出语法分析树
         if (success && parseTree)
@@ -2234,8 +2348,7 @@ int main(int argc, char *argv[])
         fclose(fp);
         cout << "[DEBUG] File read, size=" << size << endl;
     } 
-    else 
-    {
+    else {
         size_t buffer_size = 1024;
         size_t content_size = 0;
         input = (char*)malloc(buffer_size);
@@ -2255,8 +2368,7 @@ int main(int argc, char *argv[])
     
     cout << "[DEBUG] Calling initLexer()" << endl;
 
-    if (fileInput) 
-    {
+    if (fileInput) {
         size_t last_slash = inputFilename.find_last_of("/\\");
         string filename_only = (last_slash != string::npos) ? inputFilename.substr(last_slash + 1) : inputFilename;
         setTestCase("case/", filename_only);
@@ -2281,15 +2393,12 @@ int main(int argc, char *argv[])
     cout << "[DEBUG] SLR1Parser created, calling parse()" << endl;
     bool result = parser.parse();
     
-    if (result) 
-    {
+    if (result) {
         cout << "[DEBUG] Parsing succeeded" << endl;
         cleanupLexer();
         free(input);
         return 0;
-    } 
-    else 
-    {
+    } else {
         cout << "[DEBUG] Parsing failed" << endl;
         cleanupLexer();
         free(input);

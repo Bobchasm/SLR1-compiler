@@ -449,284 +449,360 @@ flowchart TD
     N94 --> N223
     N224[decl]
     N223 --> N224
-    N225[varDecl]
+    N225[constDecl]
     N224 --> N225
-    N226[bType]
+    N226(("const"))
     N225 --> N226
-    N227(("int"))
-    N226 --> N227
-    N228[varDef]
-    N225 --> N228
-    N229(("g"))
-    N228 --> N229
-    N230(("="))
-    N228 --> N230
-    N231[initVal]
-    N228 --> N231
-    N232[exp]
-    N231 --> N232
-    N233[addExp]
+    N227[bType]
+    N225 --> N227
+    N228(("int"))
+    N227 --> N228
+    N229[constDef]
+    N225 --> N229
+    N230(("g"))
+    N229 --> N230
+    N231(("="))
+    N229 --> N231
+    N232[constInitVal]
+    N229 --> N232
+    N233[constExp]
     N232 --> N233
     N234[addExp]
     N233 --> N234
-    N235[mulExp]
+    N235[addExp]
     N234 --> N235
-    N236[unaryExp]
+    N236[mulExp]
     N235 --> N236
-    N237[primaryExp]
+    N237[unaryExp]
     N236 --> N237
-    N238[lVal]
+    N238[unaryOp]
     N237 --> N238
-    N239(("b"))
+    N239(("-"))
     N238 --> N239
-    N240(("+"))
-    N233 --> N240
-    N241[mulExp]
-    N233 --> N241
-    N242[mulExp]
+    N240[unaryExp]
+    N237 --> N240
+    N241[primaryExp]
+    N240 --> N241
+    N242[lVal]
     N241 --> N242
-    N243[unaryExp]
+    N243(("b"))
     N242 --> N243
-    N244[primaryExp]
-    N243 --> N244
-    N245(("("))
-    N244 --> N245
-    N246[exp]
-    N244 --> N246
-    N247[addExp]
+    N244(("+"))
+    N234 --> N244
+    N245[mulExp]
+    N234 --> N245
+    N246[mulExp]
+    N245 --> N246
+    N247[unaryExp]
     N246 --> N247
-    N248[addExp]
+    N248[primaryExp]
     N247 --> N248
-    N249[mulExp]
+    N249(("("))
     N248 --> N249
-    N250[unaryExp]
-    N249 --> N250
-    N251[primaryExp]
+    N250[exp]
+    N248 --> N250
+    N251[addExp]
     N250 --> N251
-    N252[lVal]
+    N252[addExp]
     N251 --> N252
-    N253(("a"))
+    N253[mulExp]
     N252 --> N253
-    N254(("+"))
-    N247 --> N254
-    N255[mulExp]
-    N247 --> N255
-    N256[unaryExp]
+    N254[unaryExp]
+    N253 --> N254
+    N255[primaryExp]
+    N254 --> N255
+    N256[lVal]
     N255 --> N256
-    N257[primaryExp]
+    N257(("a"))
     N256 --> N257
-    N258[lVal]
-    N257 --> N258
-    N259(("c"))
-    N258 --> N259
-    N260((")"))
-    N244 --> N260
-    N261(("*"))
-    N241 --> N261
-    N262[unaryExp]
-    N241 --> N262
-    N263[primaryExp]
+    N258(("+"))
+    N251 --> N258
+    N259[mulExp]
+    N251 --> N259
+    N260[unaryExp]
+    N259 --> N260
+    N261[primaryExp]
+    N260 --> N261
+    N262[lVal]
+    N261 --> N262
+    N263(("c"))
     N262 --> N263
-    N264[lVal]
-    N263 --> N264
-    N265(("a"))
-    N264 --> N265
-    N266[varDef_list]
-    N225 --> N266
-    N267((";"))
-    N225 --> N267
-    N268[blockItem]
-    N93 --> N268
-    N269[stmt]
-    N268 --> N269
-    N270(("if"))
+    N264((")"))
+    N248 --> N264
+    N265(("*"))
+    N245 --> N265
+    N266[unaryExp]
+    N245 --> N266
+    N267[primaryExp]
+    N266 --> N267
+    N268(("("))
+    N267 --> N268
+    N269[exp]
+    N267 --> N269
+    N270[addExp]
     N269 --> N270
-    N271(("("))
-    N269 --> N271
-    N272[cond]
-    N269 --> N272
-    N273[lOrExp]
+    N271[mulExp]
+    N270 --> N271
+    N272[unaryExp]
+    N271 --> N272
+    N273[unaryOp]
     N272 --> N273
-    N274[lAndExp]
+    N274(("-"))
     N273 --> N274
-    N275[eqExp]
-    N274 --> N275
-    N276[relExp]
+    N275[unaryExp]
+    N272 --> N275
+    N276[primaryExp]
     N275 --> N276
-    N277[addExp]
+    N277[lVal]
     N276 --> N277
-    N278[mulExp]
+    N278(("a"))
     N277 --> N278
-    N279[unaryExp]
-    N278 --> N279
-    N280[unaryOp]
-    N279 --> N280
-    N281(("!"))
-    N280 --> N281
-    N282[unaryExp]
-    N279 --> N282
-    N283[primaryExp]
+    N279((")"))
+    N267 --> N279
+    N280[constDef_list]
+    N225 --> N280
+    N281((";"))
+    N225 --> N281
+    N282[blockItem]
+    N93 --> N282
+    N283[stmt]
     N282 --> N283
-    N284[number]
+    N284(("if"))
     N283 --> N284
-    N285(("0"))
-    N284 --> N285
-    N286((")"))
-    N269 --> N286
-    N287[stmt]
-    N269 --> N287
-    N288[block]
+    N285(("("))
+    N283 --> N285
+    N286[cond]
+    N283 --> N286
+    N287[lOrExp]
+    N286 --> N287
+    N288[lAndExp]
     N287 --> N288
-    N289(("{"))
+    N289[lAndExp]
     N288 --> N289
-    N290[blockItem_list]
-    N288 --> N290
-    N291[blockItem_list]
+    N290[eqExp]
+    N289 --> N290
+    N291[relExp]
     N290 --> N291
-    N292[blockItem]
-    N290 --> N292
-    N293[stmt]
+    N292[addExp]
+    N291 --> N292
+    N293[mulExp]
     N292 --> N293
-    N294[lVal]
+    N294[unaryExp]
     N293 --> N294
-    N295(("a"))
+    N295[unaryOp]
     N294 --> N295
-    N296(("="))
-    N293 --> N296
-    N297[exp]
-    N293 --> N297
-    N298[addExp]
+    N296(("!"))
+    N295 --> N296
+    N297[unaryExp]
+    N294 --> N297
+    N298[primaryExp]
     N297 --> N298
-    N299[mulExp]
+    N299[number]
     N298 --> N299
-    N300[unaryExp]
+    N300(("0"))
     N299 --> N300
-    N301[primaryExp]
-    N300 --> N301
-    N302[number]
-    N301 --> N302
-    N303(("2"))
+    N301(("&&"))
+    N288 --> N301
+    N302[eqExp]
+    N288 --> N302
+    N303[relExp]
     N302 --> N303
-    N304((";"))
-    N293 --> N304
-    N305(("}"))
-    N288 --> N305
-    N306[else_opt]
-    N269 --> N306
-    N307[blockItem]
-    N92 --> N307
-    N308[decl]
+    N304[addExp]
+    N303 --> N304
+    N305[mulExp]
+    N304 --> N305
+    N306[unaryExp]
+    N305 --> N306
+    N307[primaryExp]
+    N306 --> N307
+    N308[number]
     N307 --> N308
-    N309[varDecl]
+    N309(("1"))
     N308 --> N309
-    N310[bType]
-    N309 --> N310
-    N311(("int"))
-    N310 --> N311
-    N312[varDef]
-    N309 --> N312
-    N313(("ret"))
+    N310((")"))
+    N283 --> N310
+    N311[stmt]
+    N283 --> N311
+    N312[block]
+    N311 --> N312
+    N313(("{"))
     N312 --> N313
-    N314(("="))
+    N314[blockItem_list]
     N312 --> N314
-    N315[initVal]
-    N312 --> N315
-    N316[exp]
+    N315[blockItem_list]
+    N314 --> N315
+    N316[blockItem_list]
     N315 --> N316
-    N317[addExp]
-    N316 --> N317
-    N318[mulExp]
+    N317[blockItem]
+    N315 --> N317
+    N318[stmt]
     N317 --> N318
-    N319[unaryExp]
+    N319[lVal]
     N318 --> N319
-    N320(("add"))
+    N320(("a"))
     N319 --> N320
-    N321(("("))
-    N319 --> N321
-    N322[funcRParams_opt]
-    N319 --> N322
-    N323[funcRParams]
+    N321(("="))
+    N318 --> N321
+    N322[exp]
+    N318 --> N322
+    N323[addExp]
     N322 --> N323
-    N324[funcRParam]
+    N324[mulExp]
     N323 --> N324
-    N325[exp]
+    N325[unaryExp]
     N324 --> N325
-    N326[addExp]
+    N326[primaryExp]
     N325 --> N326
-    N327[mulExp]
+    N327[number]
     N326 --> N327
-    N328[unaryExp]
+    N328(("2"))
     N327 --> N328
-    N329[primaryExp]
-    N328 --> N329
-    N330[lVal]
-    N329 --> N330
-    N331(("b"))
+    N329((";"))
+    N318 --> N329
+    N330[blockItem]
+    N314 --> N330
+    N331[stmt]
     N330 --> N331
-    N332[funcRParam_list]
-    N323 --> N332
-    N333[funcRParam_list]
+    N332[lVal]
+    N331 --> N332
+    N333(("g"))
     N332 --> N333
-    N334((","))
-    N332 --> N334
-    N335[funcRParam]
-    N332 --> N335
-    N336[exp]
+    N334(("="))
+    N331 --> N334
+    N335[exp]
+    N331 --> N335
+    N336[addExp]
     N335 --> N336
-    N337[addExp]
+    N337[mulExp]
     N336 --> N337
-    N338[mulExp]
+    N338[unaryExp]
     N337 --> N338
-    N339[unaryExp]
+    N339[primaryExp]
     N338 --> N339
-    N340[primaryExp]
+    N340[number]
     N339 --> N340
-    N341[lVal]
+    N341(("1"))
     N340 --> N341
-    N342(("c"))
-    N341 --> N342
-    N343((")"))
-    N319 --> N343
-    N344[varDef_list]
-    N309 --> N344
-    N345((";"))
-    N309 --> N345
-    N346[blockItem]
-    N91 --> N346
-    N347[stmt]
+    N342((";"))
+    N331 --> N342
+    N343(("}"))
+    N312 --> N343
+    N344[else_opt]
+    N283 --> N344
+    N345[blockItem]
+    N92 --> N345
+    N346[decl]
+    N345 --> N346
+    N347[varDecl]
     N346 --> N347
-    N348[exp_opt]
+    N348[bType]
     N347 --> N348
-    N349[exp]
+    N349(("int"))
     N348 --> N349
-    N350[addExp]
-    N349 --> N350
-    N351[mulExp]
+    N350[varDef]
+    N347 --> N350
+    N351(("ret"))
     N350 --> N351
-    N352[unaryExp]
-    N351 --> N352
-    N353(("test"))
-    N352 --> N353
-    N354(("("))
-    N352 --> N354
-    N355[funcRParams_opt]
-    N352 --> N355
-    N356((")"))
-    N352 --> N356
-    N357((";"))
-    N347 --> N357
-    N358[blockItem]
-    N90 --> N358
-    N359[stmt]
-    N358 --> N359
-    N360(("return"))
-    N359 --> N360
-    N361[exp_opt]
-    N359 --> N361
-    N362((";"))
-    N359 --> N362
-    N363(("}"))
-    N88 --> N363
-    N364(("}"))
-    N1 --> N364
+    N352(("="))
+    N350 --> N352
+    N353[initVal]
+    N350 --> N353
+    N354[exp]
+    N353 --> N354
+    N355[addExp]
+    N354 --> N355
+    N356[mulExp]
+    N355 --> N356
+    N357[unaryExp]
+    N356 --> N357
+    N358(("add"))
+    N357 --> N358
+    N359(("("))
+    N357 --> N359
+    N360[funcRParams_opt]
+    N357 --> N360
+    N361[funcRParams]
+    N360 --> N361
+    N362[funcRParam]
+    N361 --> N362
+    N363[exp]
+    N362 --> N363
+    N364[addExp]
+    N363 --> N364
+    N365[mulExp]
+    N364 --> N365
+    N366[unaryExp]
+    N365 --> N366
+    N367[primaryExp]
+    N366 --> N367
+    N368[lVal]
+    N367 --> N368
+    N369(("b"))
+    N368 --> N369
+    N370[funcRParam_list]
+    N361 --> N370
+    N371[funcRParam_list]
+    N370 --> N371
+    N372((","))
+    N370 --> N372
+    N373[funcRParam]
+    N370 --> N373
+    N374[exp]
+    N373 --> N374
+    N375[addExp]
+    N374 --> N375
+    N376[mulExp]
+    N375 --> N376
+    N377[unaryExp]
+    N376 --> N377
+    N378[primaryExp]
+    N377 --> N378
+    N379[lVal]
+    N378 --> N379
+    N380(("c"))
+    N379 --> N380
+    N381((")"))
+    N357 --> N381
+    N382[varDef_list]
+    N347 --> N382
+    N383((";"))
+    N347 --> N383
+    N384[blockItem]
+    N91 --> N384
+    N385[stmt]
+    N384 --> N385
+    N386[exp_opt]
+    N385 --> N386
+    N387[exp]
+    N386 --> N387
+    N388[addExp]
+    N387 --> N388
+    N389[mulExp]
+    N388 --> N389
+    N390[unaryExp]
+    N389 --> N390
+    N391(("test"))
+    N390 --> N391
+    N392(("("))
+    N390 --> N392
+    N393[funcRParams_opt]
+    N390 --> N393
+    N394((")"))
+    N390 --> N394
+    N395((";"))
+    N385 --> N395
+    N396[blockItem]
+    N90 --> N396
+    N397[stmt]
+    N396 --> N397
+    N398(("return"))
+    N397 --> N398
+    N399[exp_opt]
+    N397 --> N399
+    N400((";"))
+    N397 --> N400
+    N401(("}"))
+    N88 --> N401
+    N402(("}"))
+    N1 --> N402
 ```

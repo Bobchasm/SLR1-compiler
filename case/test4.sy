@@ -23,11 +23,12 @@ void main()
 
     b = a + 1;
 
-    int g = b + (a + c) *a;
+    const int g = -b + (a + c) *(-a);
 
-    if(!0)
+    if(!0 && 1)
     {
         a = 2;
+        g = 1;
     }
 
     int ret = add (b,c);

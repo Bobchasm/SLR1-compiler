@@ -1,6 +1,6 @@
 # Compiler configuration - allow override via environment variables
-CXX = G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe
-CXXFLAGS = -std=c++11 -Wall -Iinclude -Iir_lib/include
+CXX = g++
+CXXFLAGS = -std=c++11 -Wall -Iinclude
 
 # On Windows, try to find available compiler
 ifeq ($(OS),Windows_NT)
@@ -35,6 +35,9 @@ AST_OBJ = $(BUILD_DIR)/ast.o
 SYMBOL_TABLE_SRC = $(SRC_DIR)/symbol_table.cpp
 SYMBOL_TABLE_OBJ = $(BUILD_DIR)/symbol_table.o
 
+SEMANTIC_ANALYZER_SRC = $(SRC_DIR)/semantic_analyzer.cpp
+SEMANTIC_ANALYZER_OBJ = $(BUILD_DIR)/semantic_analyzer.o
+
 IR_GENERATOR_SRC = $(SRC_DIR)/ir_generator.cpp
 IR_GENERATOR_OBJ = $(BUILD_DIR)/ir_generator.o
 
@@ -47,7 +50,7 @@ IR_LIB = $(BUILD_DIR)/libir.a
 MAIN_SRC = $(SRC_DIR)/main.cpp
 MAIN_OBJ = $(BUILD_DIR)/main.o
 COMPILER_EXE = $(BUILD_DIR)/compiler.exe
-COMPILER_OBJS = $(LEXER_OBJ) $(PARSER_OBJ) $(AST_OBJ) $(SYMBOL_TABLE_OBJ) $(IR_GENERATOR_OBJ) $(MAIN_OBJ)
+COMPILER_OBJS = $(LEXER_OBJ) $(PARSER_OBJ) $(AST_OBJ) $(SYMBOL_TABLE_OBJ) $(SEMANTIC_ANALYZER_OBJ) $(IR_GENERATOR_OBJ) $(MAIN_OBJ)
 
 .PHONY: all
 all: compiler
@@ -66,7 +69,7 @@ $(IR_LIB): $(BUILD_DIR) $(IR_LIB_OBJS)
 	@echo IR library compiled successfully!
 
 $(BUILD_DIR)/ir_lib/%.o: $(IR_LIB_DIR)/src/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -Iir_lib/include -c -o $@ $<
 
 # ==================== 词法分析器 ====================
 lexer: $(BUILD_DIR) $(PROCESS_DIR) $(LEXER_EXE)
@@ -105,13 +108,16 @@ $(AST_OBJ): $(AST_SRC) $(INCLUDE_DIR)/ast.h
 	$(CXX) $(CXXFLAGS) -c -o $@ $(AST_SRC)
 
 $(SYMBOL_TABLE_OBJ): $(SYMBOL_TABLE_SRC) $(INCLUDE_DIR)/symbol_table.h
-	$(CXX) $(CXXFLAGS) -c -o $@ $(SYMBOL_TABLE_SRC)
+	$(CXX) $(CXXFLAGS) -Iir_lib/include -c -o $@ $(SYMBOL_TABLE_SRC)
+
+$(SEMANTIC_ANALYZER_OBJ): $(SEMANTIC_ANALYZER_SRC) $(INCLUDE_DIR)/semantic_analyzer.h $(INCLUDE_DIR)/parse.h
+	$(CXX) $(CXXFLAGS) -c -o $@ $(SEMANTIC_ANALYZER_SRC)
 
 $(IR_GENERATOR_OBJ): $(IR_GENERATOR_SRC) $(INCLUDE_DIR)/ir_generator.h $(INCLUDE_DIR)/ast.h
-	$(CXX) $(CXXFLAGS) -c -o $@ $(IR_GENERATOR_SRC)
+	$(CXX) $(CXXFLAGS) -Iir_lib/include -c -o $@ $(IR_GENERATOR_SRC)
 
 $(MAIN_OBJ): $(MAIN_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/ast.h $(INCLUDE_DIR)/ir_generator.h $(INCLUDE_DIR)/symbol_table.h
-	$(CXX) $(CXXFLAGS) -c -o $@ $(MAIN_SRC)
+	$(CXX) $(CXXFLAGS) -Iir_lib/include -c -o $@ $(MAIN_SRC)
 
 # ==================== 清理 ====================
 .PHONY: clean
