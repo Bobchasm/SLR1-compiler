@@ -19,7 +19,7 @@ declare void @starttime()
 declare void @stoptime()
 
 define i32 @main() {
-label_main_entry:
+label_main_ENTRY:
   store i32 10, i32* @a
   ret i32 0
 }

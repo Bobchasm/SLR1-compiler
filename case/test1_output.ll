@@ -17,7 +17,7 @@ declare void @starttime()
 declare void @stoptime()
 
 define i32 @main() {
-label_main_entry:
+label_main_ENTRY:
   %a = alloca i32
   store i32 1, i32* %a
   %b = alloca i32
@@ -29,12 +29,12 @@ label_main_entry:
   store i32 %op3, i32* %a
   %op4 = load i32, i32* %a
   %op5 = icmp eq i32 %op4, 2
-  br i1 %op5, label %label_op0_then, label %label_op2_else
-label_op0_then:                                                ; preds = %label_main_entry
+  br i1 %op5, label %label_if_then, label %label_if_else
+label_if_then:                                                ; preds = %label_main_ENTRY
   ret i32 0
-label_op1_merge:
+label_if_end:
   ret i32 0
-label_op2_else:                                                ; preds = %label_main_entry
+label_if_else:                                                ; preds = %label_main_ENTRY
   %op6 = load i32, i32* %b
   %op7 = mul i32 %op6, 2
   %op8 = sdiv i32 %op7, 1
