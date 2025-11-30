@@ -611,7 +611,8 @@ string escapeCSV(const string& field)
         return field;
     
     string result = "\"";
-    for (char c : field) {
+    for (char c : field) 
+    {
         if (c == '"')
             result += "\"\";";
         else
@@ -759,7 +760,7 @@ void exportAnalysisTable(vector<vector<vector<Action> > > tableWithConflicts)
     ofstream csvFile(PARSE_ANALYSIS_TABLE_PATH + "parse_analysis_table.csv");
     if (!csvFile.is_open())
     {
-        cerr << "[PARSER] Error: Cannot create parse_analysis_table.csv" << endl;
+        cout << "[PARSER] Error: Cannot create parse_analysis_table.csv" << endl;
         return;
     }
 
@@ -834,7 +835,7 @@ void exportFirstSets()
     ofstream outFile(PARSE_ANALYSIS_TABLE_PATH + "first_sets.txt");
     if (!outFile.is_open())
     {
-        cerr << "[PARSER] Error: Cannot create first_sets.txt" << endl;
+        cout << "[PARSER] Error: Cannot create first_sets.txt" << endl;
         return;
     }
     
@@ -873,7 +874,7 @@ void exportFollowSets()
     ofstream outFile(PARSE_ANALYSIS_TABLE_PATH + "follow_sets.txt");
     if (!outFile.is_open())
     {
-        cerr << "[PARSER] Error: Cannot create follow_sets.txt" << endl;
+        cout << "[PARSER] Error: Cannot create follow_sets.txt" << endl;
         return;
     }
     
@@ -1007,9 +1008,9 @@ private:
     string inputFilename;  // 输入文件名
 
 
-    
     bool isInGlobalScope;  // 当前是否在全局作用域
     
+
     // 从子节点中查找特定 symbol 的节点
     ParseTreeNode* findChild(const vector<ParseTreeNode*>& children, const string& symbol) 
     {
@@ -1814,7 +1815,7 @@ public:
             string logPath = CASEE_PATH + inputFilename + "_parse_analysis.txt";
             parseLog.open(logPath);
             if (!parseLog.is_open())
-                cerr << "[PARSER] Error: Cannot create parse analysis log: " << logPath << endl;
+                cout << "[PARSER] Error: Cannot create parse analysis log: " << logPath << endl;
             else 
             {
                 cout << "[PARSER] Parse analysis log: " << logPath << endl;
@@ -1871,7 +1872,8 @@ public:
             
             // 检查边界
             if (currentState < 0 || currentState >= (int)grammar.parseTable.size() || 
-                symbolIndex < 0 || symbolIndex >= (int)grammar.parseTable[currentState].size()) {
+                symbolIndex < 0 || symbolIndex >= (int)grammar.parseTable[currentState].size()) 
+                {
                 cout << "[PARSER] Error: Index out of bounds. currentState=" << currentState 
                      << ", symbolIndex=" << symbolIndex 
                      << ", parseTable.size()=" << grammar.parseTable.size()
@@ -2073,7 +2075,7 @@ ParseTreeNode* getParseTree(string inputFilename)
     FILE *fp = fopen(inputFilename.c_str(), "rb");
     if (!fp)
     {
-        cerr << "Cannot open file: " << inputFilename << endl;
+        cout << "Cannot open file: " << inputFilename << endl;
         return NULL;
     }
 
@@ -2084,7 +2086,7 @@ ParseTreeNode* getParseTree(string inputFilename)
     input = (char *)malloc(size + 1);
     if (input == nullptr) 
     {
-        cerr << "Error: Memory allocation failed" << endl;
+        cout << "Error: Memory allocation failed" << endl;
         fclose(fp);
         return NULL;
     }
@@ -2092,7 +2094,7 @@ ParseTreeNode* getParseTree(string inputFilename)
     size_t read_bytes = fread(input, 1, size, fp);
     if (read_bytes != (size_t)size) 
     {
-        cerr << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
+        cout << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
         free(input);
         fclose(fp);
         return NULL;
@@ -2204,7 +2206,7 @@ int main(int argc, char *argv[])
         FILE *fp = fopen(argv[1], "rb");
         if (!fp) 
         {
-            cerr << "Cannot open file: " << argv[1] << endl;
+            cout << "Cannot open file: " << argv[1] << endl;
             return 1;
         }
         
@@ -2215,7 +2217,7 @@ int main(int argc, char *argv[])
         input = (char*)malloc(size + 1);
         if (input == nullptr) 
         {
-            cerr << "Error: Memory allocation failed" << endl;
+            cout << "Error: Memory allocation failed" << endl;
             fclose(fp);
             return 1;
         }
@@ -2223,7 +2225,7 @@ int main(int argc, char *argv[])
         size_t read_bytes = fread(input, 1, size, fp);
         if (read_bytes != (size_t)size) 
         {
-            cerr << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
+            cout << "Error: Failed to read complete file, expected " << size << " bytes, got " << read_bytes << " bytes" << endl;
             free(input);
             fclose(fp);
             return 1;
@@ -2232,7 +2234,8 @@ int main(int argc, char *argv[])
         fclose(fp);
         cout << "[DEBUG] File read, size=" << size << endl;
     } 
-    else {
+    else 
+    {
         size_t buffer_size = 1024;
         size_t content_size = 0;
         input = (char*)malloc(buffer_size);
@@ -2252,7 +2255,8 @@ int main(int argc, char *argv[])
     
     cout << "[DEBUG] Calling initLexer()" << endl;
 
-    if (fileInput) {
+    if (fileInput) 
+    {
         size_t last_slash = inputFilename.find_last_of("/\\");
         string filename_only = (last_slash != string::npos) ? inputFilename.substr(last_slash + 1) : inputFilename;
         setTestCase("case/", filename_only);
@@ -2277,12 +2281,15 @@ int main(int argc, char *argv[])
     cout << "[DEBUG] SLR1Parser created, calling parse()" << endl;
     bool result = parser.parse();
     
-    if (result) {
+    if (result) 
+    {
         cout << "[DEBUG] Parsing succeeded" << endl;
         cleanupLexer();
         free(input);
         return 0;
-    } else {
+    } 
+    else 
+    {
         cout << "[DEBUG] Parsing failed" << endl;
         cleanupLexer();
         free(input);

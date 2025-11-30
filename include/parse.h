@@ -128,7 +128,6 @@ struct ParseTreeNode
             else if (semanticType == "IfStmt")
             {
                 result += ": ";
-                // If语句的子节点包括：条件 + then分支 + else分支
             }
             else if (semanticType == "Condition")
             {
@@ -144,7 +143,6 @@ struct ParseTreeNode
             }
             else if (semanticType == "BinaryExpr")
             {
-                // 显示运算符和操作数
                 result += ": " + operatorType;
             }
             else if (semanticType == "UnaryExpr")
@@ -158,13 +156,10 @@ struct ParseTreeNode
             
             result += "\n";
             
-            // 准备子节点的前缀
             string childPrefix = prefix;
             if (indent > 0)
                 childPrefix += (isLast ? "    " : "│   ");
             
-            // 递归输出语义子节点
-            // 优先使用显式设置的semanticChildren
             if (!semanticChildren.empty())
             {
                 for (size_t i = 0; i < semanticChildren.size(); i++) 
@@ -194,7 +189,6 @@ struct ParseTreeNode
         }
         else 
         {
-            // 如果没有语义类型，只递归处理子节点
             for (const ParseTreeNode* child : children) 
             {
                 if (child)
@@ -229,7 +223,7 @@ private:
             else if (c == ' ')
                 result += '_';
             else
-                result += c;  // 保留其他字符（如括号、运算符等）
+                result += c;
         }
         return result;
     }
