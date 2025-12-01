@@ -736,24 +736,28 @@ void IRGenerator::declare_builtin_functions() {
     FunctionType* getint_type = FunctionType::get(module_->get_int32_type(), {});
     Function::create(getint_type, "getint", module_);
 
+    // getch(): i32
+    FunctionType* getch_type = FunctionType::get(module_->get_int32_type(), {});
+    Function::create(getch_type, "getch", module_);
+
+    // getarray(i32*): i32
+    vector<Type*> getarray_params = {module_->get_int32_ptr_type()};
+    FunctionType* getarray_type = FunctionType::get(module_->get_int32_type(), getarray_params);
+    Function::create(getarray_type, "getarray", module_);
+
     // putint(i32): void
     vector<Type*> putint_params = {module_->get_int32_type()};
     FunctionType* putint_type = FunctionType::get(module_->get_void_type(), putint_params);
     Function::create(putint_type, "putint", module_);
 
-    // getch(): i32
-    FunctionType* getch_type = FunctionType::get(module_->get_int32_type(), {});
-    Function::create(getch_type, "getch", module_);
+    
 
     // putch(i32): void
     vector<Type*> putch_params = {module_->get_int32_type()};
     FunctionType* putch_type = FunctionType::get(module_->get_void_type(), putch_params);
     Function::create(putch_type, "putch", module_);
 
-    // getarray(i32*): i32
-    vector<Type*> getarray_params = {module_->get_int32_ptr_type()};
-    FunctionType* getarray_type = FunctionType::get(module_->get_int32_type(), getarray_params);
-    Function::create(getarray_type, "getarray", module_);
+    
 
     // putarray(i32, i32*): void
     vector<Type*> putarray_params = {module_->get_int32_type(), module_->get_int32_ptr_type()};
