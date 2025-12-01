@@ -135,6 +135,16 @@ clean-case:
 	@for %%f in (case\*) do @if not "%%~xf"==".sy" del /q "%%f"
 	@echo Non-.sy files in case directory cleaned.
 
+.PHONY: clean-output
+clean-output:
+	@echo Cleaning output directory...
+	@if exist "output" (\
+		del /q "output\*.*" 2>nul && \
+		echo Output directory cleaned. \
+	) else (\
+		echo Output directory does not exist. \
+	)
+
 # ==================== 运行目标 ====================
 .PHONY: run-lexer
 run-lexer: lexer
@@ -173,6 +183,38 @@ test-ir-clean: compiler
 	@if not exist "output" mkdir "output"
 	$(COMPILER_EXE) case/test.sy 2> output/test.ll
 	@echo Clean IR code saved to output/test.ll
+
+# 批量测试所有case下的.sy文件
+.PHONY: test-all-lexer
+test-all-lexer: lexer
+	@echo =========================================
+	@echo Testing Lexer on all .sy files in case/
+	@echo =========================================
+	@for %%f in (case\*.sy) do @(echo. & echo Testing %%~nxf... & "$(LEXER_EXE)" %%f & if errorlevel 1 echo [ERROR] %%~nxf failed)
+	@echo =========================================
+	@echo Lexer tests completed
+	@echo =========================================
+
+.PHONY: test-all-parser
+test-all-parser: parser
+	@echo =========================================
+	@echo Testing Parser on all .sy files in case/
+	@echo =========================================
+	@for %%f in (case\*.sy) do @(echo. & echo Testing %%~nxf... & "$(PARSER_EXE)" %%f & if errorlevel 1 echo [ERROR] %%~nxf failed)
+	@echo =========================================
+	@echo Parser tests completed
+	@echo =========================================
+
+.PHONY: test-all-compiler
+test-all-compiler: compiler
+	@echo =========================================
+	@echo Testing Compiler on all .sy files in case/
+	@echo =========================================
+	@if not exist "output" mkdir "output"
+	@for %%f in (case\*.sy) do @(echo. & echo Testing %%~nxf... & "$(COMPILER_EXE)" %%f 2> output/%%~nf.ll & if errorlevel 1 (echo [ERROR] %%~nxf failed) else (echo Generated output/%%~nf.ll))
+	@echo =========================================
+	@echo Compiler tests completed, check output/ directory
+	@echo =========================================
 
 # 测试IR生成器核心功能
 .PHONY: test-ir-generator
@@ -228,9 +270,15 @@ help:
 	@echo   test-parser    - Run parser with case/test.sy
 	@echo   test-ir        - Generate IR to output/test.ll
 	@echo   test-ir-generator - Test IR generator core functionality
+	@echo Batch test targets:
+	@echo   test-all-lexer    - Test lexer on all .sy files in case/
+	@echo   test-all-parser   - Test parser on all .sy files in case/
+	@echo   test-all-compiler - Test compiler on all .sy files (output to output/)
 	@echo Utility targets:
 	@echo   clean          - Remove build files
 	@echo   clean-all      - Remove build and output files
+	@echo   clean-case     - Remove non-.sy files in case/ directory
+	@echo   clean-output   - Remove all files in output/ directory
 	@echo   debug          - Build with debug symbols
 	@echo   info           - Show project information
 	@echo   help           - Show this help message

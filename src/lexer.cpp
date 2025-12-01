@@ -1127,7 +1127,7 @@ extern "C"
             if (dot_pos != string::npos)
                 base_name = base_name.substr(0, dot_pos);
             
-            string output_path = TEST_CASE_PATH +  base_name + S_LEXER_RESULT_EXT;
+            string output_path = "output/" +  base_name + S_LEXER_RESULT_EXT;
             token_output_file.open(output_path, ios::out | ios::trunc);
             if (!token_output_file.is_open())
                 cout << "Warning: Cannot create token output file: " << output_path << endl;
@@ -1223,7 +1223,7 @@ int main(int argc, char *argv[])
     string input;
     string input_filename = "";
 
-    cout<< "[LEXER] Lexer running...\n"<<endl;
+    cout<< "[LEXER] Lexer running..."<<endl;
 
     if (argc == 2)
     {
@@ -1246,7 +1246,7 @@ int main(int argc, char *argv[])
         initLexer(input.c_str());
         
         cout << "[LEXER] Tokenizing file: " << test_file_name << endl;
-        cout << endl;
+        // cout << endl;
         
         while (true)
         {
@@ -1256,9 +1256,9 @@ int main(int argc, char *argv[])
         }
 
         if(global_lexer->getHasErrorOption())
-            cout << "\n[ERROR] Some tokens error appealed!"<< endl;
+            cout << "\n[ERROR] Some tokens error appealed!\n"<< endl;
         else
-            cout<< "[LEXER] ACC"<<endl;
+            cout<< "[LEXER] ACC\n"<<endl;
         
         cleanupLexer();
     }
@@ -1294,9 +1294,9 @@ int main(int argc, char *argv[])
                 cout << tokenText << "\t<" << tokenType << "," << tokenValue << ">" << endl;
         }
         if(global_lexer->getHasErrorOption())
-            cout<< "[LEXER] Some tokens error appealed!"<<endl;
+            cout<< "[LEXER] Some tokens error appealed!\n"<<endl;
         else
-            cout<< "[LEXER] ACC"<<endl;
+            cout<< "[LEXER] ACC\n"<<endl;
     }
     else
     {

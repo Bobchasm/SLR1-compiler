@@ -170,7 +170,9 @@ int main(int argc, char* argv[])
         pureFilename = (slashPos != string::npos) ? baseFilename.substr(slashPos + 1) : baseFilename;
 
 
-    string output_file = "case/" + pureFilename + "_output.ll";
+    // string output_file = "case/" + pureFilename + "_output.ll";
+    string output_file = "output/" + pureFilename + "_output.ll";
+    printToConsole("[CONPLETES] Generated " + output_file + " successfully!\n\n");
     ofstream out(output_file);
     if (out.is_open()) {
         out << ir_code;

@@ -1926,7 +1926,7 @@ public:
         if (!inputFilename.empty()) 
         {
             string logPath = CASE_PATH + inputFilename + "_parse_analysis.txt";
-            string s_parsePath = CASE_PATH + inputFilename + S_PARSER_RESULT_EXT;
+            string s_parsePath = "output/" + inputFilename + S_PARSER_RESULT_EXT;
             parseLog.open(logPath);
             s_parseResult.open(s_parsePath);
             if (!s_parseResult.is_open())
@@ -2028,7 +2028,7 @@ public:
                     s_parseResult << step << "\t"
                             << topSymbol << "#"
                             << currentSymbol << "\t"
-                            << actionStr << endl;
+                            << (action.type == MOVE ? "move" : "reduction")<< endl;
                 }
             }
             
@@ -2176,7 +2176,7 @@ public:
                      << ", symbol '" << currentSymbol << "'" << endl;
                 // 输出到终端的错误信息
                 std::ostringstream errorMsg;
-                errorMsg << "[Line " << currentToken.lineNumber << "] Bad token " << currentSymbol;
+                errorMsg << "[Line " << currentToken.lineNumber << "] Syntactic error.";
                 printToConsoleParse(errorMsg.str());
                 
                 if (parseLog.is_open()) 
@@ -2493,7 +2493,7 @@ int main(int argc, char *argv[])
 
     cout << "[DEBUG] Parsing succeeded" << endl;
     cout << "Accept" << endl;
-    printToConsoleParse("\n[FRONTEND] Frontend passed!\n\n");
+    printToConsoleParse("\n[FRONTEND] Frontend passed!\n\n\n");
 
 
     cleanupLexer();

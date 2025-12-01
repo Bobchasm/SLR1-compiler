@@ -12,11 +12,14 @@
 compiler/
 ├── build/                  # 编译时产生的存放编译结果的目录
 ├── case/                  # 测试用例目录
-│   ├── test.sy           # 测试用例C--源码
-│   ├── test_token_result.txt     # 测试用例词法解析结果
-│   ├── test_parse_analysis.txt   # 测试用例语法分析过程
-│   ├── test.parse_tree.md        # 测试用例语法分析树
-│   └── test_semantic_tree.txt    # 语义分析结果
+│   ├── <用例文件>.sy           # 测试用例C--源码
+│   ├── <用例文件>_parse_analysis.txt   # 测试用例语法分析过程
+│   ├── <用例文件>.parse_tree.md        # 测试用例语法分析树
+│   └── <用例文件>_semantic_tree.txt    # 语义分析结果
+├── output
+│   ├── <用例文件>_lexer_s.txt     # 测试用例词法解析结果(老师要求格式)
+│   ├── <用例文件>_parser_s.txt     # 测试用例语法解析结果(老师要求格式)
+│   └── <用例文件>_output.ll    # 中间代码生成结果
 ├── documents/             # 文档目录
 |   ├── note.md            # 一些记录
 │   └── 2025秋季编译原理大作业.pdf
@@ -57,6 +60,7 @@ compiler/
 以下仅列出一些常用命令，具体直接看 `Makefile` 就行
 
 ```bash
+# 编译清理
 make clean
 
 # 编译到词法分析器 (lexer.exe)
@@ -71,8 +75,20 @@ make parser
 make compiler
 ./build/compiler.exe \<可选测试用例文件\>
 
-# 例如：
-./build/compiler.exe .\case\test1.sy
+# 清除测试结果：清除 /case 下所有非 .sy 文件
+make clean-case
+
+# 清除测试结果：清除 /output 下所有文件
+make clean-output
+
+# 测试 /case 下所有用例的词法分析部分
+make test-all-lexer
+
+# 测试 /case 下所有用例的前端部分
+make test-all-parser
+
+# 测试 /case 下所有用例
+make test-all-compiler
 ```
 
 每次分析会在用例路径也就是 `/case` 输出：
