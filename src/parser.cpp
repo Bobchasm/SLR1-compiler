@@ -775,7 +775,7 @@ void buildAnalysisTable()
         cout << "[PARSER] WARNING: Found " << conflictCount << " conflicts" << endl;
     
     // #EXPORT_DEBUG# 输出分析表
-    exportAnalysisTable(tableWithConflicts);
+    // exportAnalysisTable(tableWithConflicts);
    
 }
 

@@ -156,8 +156,33 @@ void SemanticAnalyzer::checkFunctionDef(ParseTreeNode* node)
             analyze(child, returnType);
     }
     
+    // 非void函数必须包含至少一个ReturnStmt
+    if (returnType != "void")
+    {
+        bool hasReturn = false;
+        for (auto* child : node->semanticChildren)
+        {
+            if (child && containsReturn(child)) 
+                hasReturn = true; break;
+        }
+        if (!hasReturn)
+            reportError("Non-void function '" + node->varName + "' missing return statement", node->lineNumber);
+    }
+    
     // 退出函数作用域
     exitScope();
+}
+
+bool SemanticAnalyzer::containsReturn(ParseTreeNode* node) 
+{
+    if (!node) return false;
+    if (node->semanticType == "ReturnStmt") return true;
+    for (auto* child : node->semanticChildren) 
+    {
+        if (containsReturn(child)) 
+            return true;
+    }
+    return false;
 }
 
 // 检查变量声明

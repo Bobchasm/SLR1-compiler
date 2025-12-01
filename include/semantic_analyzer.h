@@ -98,6 +98,7 @@ private:
     void checkFunctionCall(ParseTreeNode* node);
     void checkReturnStmt(ParseTreeNode* node, const string& expectedReturnType);
     void checkIfStmt(ParseTreeNode* node, const string& currentFunctionReturnType);
+    bool containsReturn(ParseTreeNode* node);
     
     string getExprType(ParseTreeNode* node);
     bool isTypeCompatible(const string& type1, const string& type2);
