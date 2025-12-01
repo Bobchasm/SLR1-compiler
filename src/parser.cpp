@@ -25,6 +25,12 @@
 
 using namespace std;
 
+// 全局变量：保存原始的cout buffer
+// 在main.cpp中初始化，在parser.cpp中使用
+// 当parser作为独立可执行文件时，这里需要定义它
+#ifndef NO_MAIN
+std::streambuf* g_originalCoutBuffer = nullptr;
+#endif
 
 // 输出到终端的辅助函数（绕过日志重定向）
 void printToConsoleParse(const string& message) 
@@ -2294,6 +2300,9 @@ int main(int argc, char *argv[])
     
     string logFilename = "logs/log_" + string(timestamp) + ".txt";
     
+    // 保存原始cout以便输出Accept信息到终端
+    g_originalCoutBuffer = std::cout.rdbuf();
+    
     // 调试信息重定向至时间戳日志文件
     std::ofstream debugLog(logFilename, ios::out | ios::trunc);
     if (debugLog.is_open()) 
@@ -2404,11 +2413,13 @@ int main(int argc, char *argv[])
     
     if (result) {
         cout << "[DEBUG] Parsing succeeded" << endl;
+        std::cerr << "Accept" << std::endl;
         cleanupLexer();
         free(input);
         return 0;
     } else {
         cout << "[DEBUG] Parsing failed" << endl;
+        std::cerr << "Error" << std::endl;
         cleanupLexer();
         free(input);
         return 1;

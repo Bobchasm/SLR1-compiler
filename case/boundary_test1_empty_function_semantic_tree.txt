@@ -1,0 +1,6 @@
+Program
+├── FunctionDef: void emptyFunc()
+└── FunctionDef: int main()
+    ├── FunctionCall: emptyFunc()
+    └── ReturnStmt: Number
+        └── Number: 0

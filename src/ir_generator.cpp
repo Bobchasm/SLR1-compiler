@@ -274,7 +274,6 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
             GlobalVariable* global_var = GlobalVariable::create(
                 node->varName, module_, var_type, false, init_value
             );
-            module_->add_global_variable(global_var);
             symbol_table_->put(node->varName, global_var);
             cout << indent << "[IRGEN] 鉁?Created global variable: " << node->varName << endl;
         } else {

@@ -1,0 +1,33 @@
+Program
+├── FunctionDef: int add()
+│   ├── FuncParam: int x
+│   ├── FuncParam: int y
+│   ├── VarDecl: local int result
+│   ├── Assignment: result = BinaryExpr
+│   │   └── BinaryExpr: +
+│   │       ├── Variable: x
+│   │       └── Variable: y
+│   └── ReturnStmt: Variable
+│       └── Variable: result
+├── FunctionDef: int multiply()
+│   ├── FuncParam: int a
+│   ├── FuncParam: int b
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: *
+│           ├── Variable: a
+│           └── Variable: b
+└── FunctionDef: int main()
+    ├── VarDecl: local int sum = 10
+    │   └── FunctionCall: add()
+    │       ├── Number: 10
+    │       └── Number: 20
+    ├── VarDecl: local int product = 5
+    │   └── FunctionCall: multiply()
+    │       ├── Number: 5
+    │       └── Number: 6
+    ├── VarDecl: local int total
+    │   └── BinaryExpr: +
+    │       ├── Variable: sum
+    │       └── Variable: product
+    └── ReturnStmt: Variable
+        └── Variable: total

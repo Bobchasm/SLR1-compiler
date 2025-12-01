@@ -1,0 +1,51 @@
+Program
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 10
+    │   └── Number: 10
+    ├── VarDecl: local int b = 20
+    │   └── Number: 20
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: <
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   ├── ThenBranch: 
+    │   │   └── Assignment: a = Variable
+    │   │       └── Variable: b
+    │   └── ElseBranch: 
+    │       └── Assignment: b = Variable
+    │           └── Variable: a
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: ==
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── ReturnStmt: Number
+    │           └── Number: 1
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: !=
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── ReturnStmt: Number
+    │           └── Number: 2
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: >=
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── ReturnStmt: Number
+    │           └── Number: 3
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: <=
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── ReturnStmt: Number
+    │           └── Number: 4
+    └── ReturnStmt: Number
+        └── Number: 0

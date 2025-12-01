@@ -1,6 +1,5 @@
 ; ModuleID = 'sysy2022_compiler'
-source_filename = "case\test.sy"
-@a = global i32 10
+source_filename = "case\boundary_test1_empty_function.sy"
 declare i32 @getint()
 
 declare void @putint(i32)
@@ -17,8 +16,11 @@ declare void @starttime()
 
 declare void @stoptime()
 
+define void @emptyFunc() {
+label_emptyFunc_ENTRY:
+  ret void
+}
 define i32 @main() {
 label_main_ENTRY:
-  store i32 10, i32* @a
   ret i32 0
 }

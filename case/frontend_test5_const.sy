@@ -1,0 +1,16 @@
+// 前端测试5: 常量测试
+// 测试局部常量和全局常量
+
+const int GLOBAL_CONST = 100;
+
+int main() {
+    const int LOCAL_CONST = 50;
+    int a = GLOBAL_CONST;
+    int b = LOCAL_CONST;
+    
+    const float PI = 3.14;
+    float r = 10.0;
+    float area = PI * r * r;
+    
+    return 0;
+}

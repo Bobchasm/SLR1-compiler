@@ -1,5 +1,5 @@
 ; ModuleID = 'sysy2022_compiler'
-source_filename = ".\case\test1.sy"
+source_filename = "case\test1.sy"
 declare i32 @getint()
 
 declare void @putint(i32)

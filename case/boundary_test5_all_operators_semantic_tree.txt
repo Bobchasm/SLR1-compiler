@@ -1,0 +1,77 @@
+Program
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 10
+    │   └── Number: 10
+    ├── VarDecl: local int b = 3
+    │   └── Number: 3
+    ├── VarDecl: local int result
+    ├── Assignment: result = BinaryExpr
+    │   └── BinaryExpr: +
+    │       ├── Variable: a
+    │       └── Variable: b
+    ├── Assignment: result = BinaryExpr
+    │   └── BinaryExpr: -
+    │       ├── Variable: a
+    │       └── Variable: b
+    ├── Assignment: result = BinaryExpr
+    │   └── BinaryExpr: *
+    │       ├── Variable: a
+    │       └── Variable: b
+    ├── Assignment: result = BinaryExpr
+    │   └── BinaryExpr: /
+    │       ├── Variable: a
+    │       └── Variable: b
+    ├── Assignment: result = BinaryExpr
+    │   └── BinaryExpr: %
+    │       ├── Variable: a
+    │       └── Variable: b
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: >
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── Assignment: result = Number
+    │           └── Number: 1
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: <
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── Assignment: result = Number
+    │           └── Number: 2
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: >=
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── Assignment: result = Number
+    │           └── Number: 3
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: <=
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── Assignment: result = Number
+    │           └── Number: 4
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: ==
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── Assignment: result = Number
+    │           └── Number: 5
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: !=
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── Assignment: result = Number
+    │           └── Number: 6
+    └── ReturnStmt: Variable
+        └── Variable: result

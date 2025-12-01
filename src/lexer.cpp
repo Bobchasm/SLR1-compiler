@@ -744,21 +744,79 @@ public:
 
     tuple<string, string, string, int, bool> nextToken()
     {
+        // 跳过空白字符和注释
         while (pos < input.length())
         {
+            // 跳过空白字符
             if (input[pos] == ' ' || input[pos] == '\t' || input[pos] == '\r')
             {
                 column++;
                 pos++;
+                continue;
             }
             else if (input[pos] == '\n')
             {
                 line++;
                 column = 1;
                 pos++;
+                continue;
             }
-            else
-                break;
+            
+            // 处理注释
+            if (input[pos] == '/' && pos + 1 < input.length())
+            {
+                // 单行注释 //
+                if (input[pos + 1] == '/')
+                {
+                    pos += 2;
+                    column += 2;
+                    // 跳过直到行尾
+                    while (pos < input.length() && input[pos] != '\n')
+                    {
+                        pos++;
+                        column++;
+                    }
+                    // 跳过换行符
+                    if (pos < input.length() && input[pos] == '\n')
+                    {
+                        pos++;
+                        line++;
+                        column = 1;
+                    }
+                    continue;
+                }
+                // 多行注释 /* */
+                else if (input[pos + 1] == '*')
+                {
+                    pos += 2;
+                    column += 2;
+                    // 寻找注释结束 */
+                    while (pos + 1 < input.length())
+                    {
+                        if (input[pos] == '*' && input[pos + 1] == '/')
+                        {
+                            pos += 2;
+                            column += 2;
+                            break;
+                        }
+                        else if (input[pos] == '\n')
+                        {
+                            pos++;
+                            line++;
+                            column = 1;
+                        }
+                        else
+                        {
+                            pos++;
+                            column++;
+                        }
+                    }
+                    continue;
+                }
+            }
+            
+            // 不是空白或注释，退出循环
+            break;
         }
 
         if (pos >= input.length())
