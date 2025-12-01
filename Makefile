@@ -47,10 +47,12 @@ MAIN_SRC = $(SRC_DIR)/main.cpp
 MAIN_OBJ = $(BUILD_DIR)/main.o
 COMPILER_EXE = $(BUILD_DIR)/compiler.exe
 COMPILER_OBJS = $(LEXER_OBJ) $(PARSER_OBJ) $(AST_OBJ) $(SYMBOL_TABLE_OBJ) $(SEMANTIC_ANALYZER_OBJ) $(IR_GENERATOR_OBJ) $(MAIN_OBJ)
+OUTPUT_DIR = output
 
 .PHONY: all
 all: compiler
 
+# 创建所有必要的目录
 $(BUILD_DIR):
 	@if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
 	@if not exist "$(BUILD_DIR)\ir_lib" mkdir "$(BUILD_DIR)\ir_lib"
@@ -61,6 +63,9 @@ $(PROCESS_DIR):
 $(LOGS_DIR):
 	@if not exist "$(LOGS_DIR)" mkdir "$(LOGS_DIR)"
 
+$(OUTPUT_DIR):
+	@if not exist "$(OUTPUT_DIR)" mkdir "$(OUTPUT_DIR)"
+
 # ====================== IR库 =======================
 $(IR_LIB): $(BUILD_DIR) $(IR_LIB_OBJS)
 	ar rcs $@ $(IR_LIB_OBJS)
@@ -70,14 +75,14 @@ $(BUILD_DIR)/ir_lib/%.o: $(IR_LIB_DIR)/src/%.cpp
 	$(CXX) $(CXXFLAGS) -Iir_lib/include -c -o $@ $<
 
 # ==================== 词法分析器 ====================
-lexer: $(BUILD_DIR) $(PROCESS_DIR) $(LEXER_EXE)
+lexer: $(BUILD_DIR) $(PROCESS_DIR) $(LOGS_DIR) $(OUTPUT_DIR) $(LEXER_EXE)
 
 $(LEXER_EXE): $(LEXER_SRC) $(INCLUDE_DIR)/lexer.h
 	$(CXX) $(CXXFLAGS) -o $@ $(LEXER_SRC)
 	@echo Lexer compiled successfully!
 
 # ==================== 语法分析器 ====================
-parser: $(BUILD_DIR) $(PROCESS_DIR) $(PARSER_EXE)
+parser: $(BUILD_DIR) $(PROCESS_DIR) $(LOGS_DIR) $(OUTPUT_DIR) $(PARSER_EXE)
 
 $(PARSER_EXE): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h $(LEXER_SRC) $(SEMANTIC_ANALYZER_OBJ)
 	$(CXX) $(CXXFLAGS) -DNO_MAIN -c -o $(LEXER_OBJ) $(LEXER_SRC)
@@ -85,7 +90,7 @@ $(PARSER_EXE): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h $(LEX
 	@echo Parser compiled successfully!
 
 # ==================== 完整编译器（词法+语法+IR生成） ====================
-compiler: $(BUILD_DIR) $(PROCESS_DIR) $(IR_LIB) $(COMPILER_EXE)
+compiler: $(BUILD_DIR) $(PROCESS_DIR) $(LOGS_DIR) $(OUTPUT_DIR) $(IR_LIB) $(COMPILER_EXE)
 
 $(COMPILER_EXE): $(COMPILER_OBJS) $(IR_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $(COMPILER_OBJS) $(IR_LIB)
