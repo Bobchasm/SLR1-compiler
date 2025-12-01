@@ -1,12 +1,8 @@
-# Compiler configuration - allow override via environment variables
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Iinclude
 
-# On Windows, try to find available compiler
 ifeq ($(OS),Windows_NT)
-    # Check if standard g++ exists
     ifeq ($(shell where g++ 2>nul),)
-        # Try MSYS g++
         ifneq ($(wildcard G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe),)
             CXX = G:/444SoftWare/MSYS-251020/ucrt64/bin/g++.exe
         endif
@@ -18,8 +14,8 @@ INCLUDE_DIR = include
 BUILD_DIR = build
 PROCESS_DIR = process
 IR_LIB_DIR = ir_lib
+LOGS_DIR = logs
 
-# 源文件定义
 LEXER_SRC = $(SRC_DIR)/lexer.cpp
 LEXER_OBJ = $(BUILD_DIR)/lexer.o
 LEXER_EXE = $(BUILD_DIR)/lexer
@@ -55,7 +51,6 @@ COMPILER_OBJS = $(LEXER_OBJ) $(PARSER_OBJ) $(AST_OBJ) $(SYMBOL_TABLE_OBJ) $(SEMA
 .PHONY: all
 all: compiler
 
-# 创建目录
 $(BUILD_DIR):
 	@if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
 	@if not exist "$(BUILD_DIR)\ir_lib" mkdir "$(BUILD_DIR)\ir_lib"
@@ -63,7 +58,10 @@ $(BUILD_DIR):
 $(PROCESS_DIR):
 	@if not exist "$(PROCESS_DIR)" mkdir "$(PROCESS_DIR)"
 
-# ==================== IR库编译 ====================
+$(LOGS_DIR):
+	@if not exist "$(LOGS_DIR)" mkdir "$(LOGS_DIR)"
+
+# ====================== IR库 =======================
 $(IR_LIB): $(BUILD_DIR) $(IR_LIB_OBJS)
 	ar rcs $@ $(IR_LIB_OBJS)
 	@echo IR library compiled successfully!
@@ -81,9 +79,9 @@ $(LEXER_EXE): $(LEXER_SRC) $(INCLUDE_DIR)/lexer.h
 # ==================== 语法分析器 ====================
 parser: $(BUILD_DIR) $(PROCESS_DIR) $(PARSER_EXE)
 
-$(PARSER_EXE): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h $(LEXER_SRC)
+$(PARSER_EXE): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h $(LEXER_SRC) $(SEMANTIC_ANALYZER_OBJ)
 	$(CXX) $(CXXFLAGS) -DNO_MAIN -c -o $(LEXER_OBJ) $(LEXER_SRC)
-	$(CXX) $(CXXFLAGS) -o $@ $(PARSER_SRC) $(LEXER_OBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $(PARSER_SRC) $(LEXER_OBJ) $(SEMANTIC_ANALYZER_OBJ)
 	@echo Parser compiled successfully!
 
 # ==================== 完整编译器（词法+语法+IR生成） ====================
@@ -97,7 +95,7 @@ $(COMPILER_EXE): $(COMPILER_OBJS) $(IR_LIB)
 	@echo Usage: $(COMPILER_EXE) source_file.sy
 	@echo =========================================
 
-# 编译各个组件
+# 组件
 $(LEXER_OBJ): $(LEXER_SRC) $(INCLUDE_DIR)/lexer.h
 	$(CXX) $(CXXFLAGS) -DNO_MAIN -c -o $@ $(LEXER_SRC)
 
@@ -130,6 +128,12 @@ clean-all:
 	@if exist "$(BUILD_DIR)" rmdir /s /q "$(BUILD_DIR)"
 	@if exist "output" rmdir /s /q "output"
 	@echo Cleaned build and output directories.
+
+.PHONY: clean-case
+clean-case:
+	@echo Cleaning non-.sy files in case directory...
+	@for %%f in (case\*) do @if not "%%~xf"==".sy" del /q "%%f"
+	@echo Non-.sy files in case directory cleaned.
 
 # ==================== 运行目标 ====================
 .PHONY: run-lexer

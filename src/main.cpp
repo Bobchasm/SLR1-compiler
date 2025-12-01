@@ -58,12 +58,11 @@ void printTreeDetailed(ParseTreeNode* node, int depth = 0) {
 int main(int argc, char* argv[])
 {
     // ===================== 一些准备 =============================
-    
     printToConsole("\n[STEP 1/4] Preparing...\n");
 
     if (argc != 2)
     {
-        printToConsole("Usage: " + string(argv[0]) + " <source_file>\n");
+        printToConsole("[PRE] Usage: " + string(argv[0]) + " <source_file>\n");
         return 1;
     }
 
@@ -94,8 +93,10 @@ int main(int argc, char* argv[])
         // 重定向 cout 到日志文件
         std::cout.rdbuf(logFile.rdbuf());
 
-        printToConsole("[DEBUG] Logs saved to " + logFilename + "\n\n");
+        printToConsole("[DEBUG] Logs saved to " + logFilename + "\n");
     }
+
+    printToConsole("\n[STEP 1/4] Prepared completed!\n");
 
 
     // ===================== 获取语法树 (语法分析) =============================
@@ -106,10 +107,10 @@ int main(int argc, char* argv[])
 
     if (!parseTree) 
     {
-        printToConsole("[ERROR] Failed to get parse tree!\n");
+        printToConsole("[ERROR] Parse Error\n");
         return 1;
     }
-    printToConsole("[STEP 2/4] Lexical and syntax analysis completed!\n\n");
+    printToConsole("[STEP 2/4] Lexical and syntax analysis passed!\n\n");
 
 
     
@@ -135,11 +136,11 @@ int main(int argc, char* argv[])
             semanticAnalyzer.printErrors();
         }
         
-        printToConsole("[SEMANTIC]  Compilation aborted due to semantic errors.\n\n");
+        printToConsole("[SEMANTIC] Compilation aborted due to semantic errors.\n\n");
         return 1;
     }
     
-    printToConsole("[STEP 3/4] Semantic analysis passed successfully\n\n");
+    printToConsole("[STEP 3/4] Semantic analysis passed!\n\n");
 
 
 
