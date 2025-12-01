@@ -2,13 +2,13 @@
 source_filename = "case\backend_test1_simple.sy"
 declare i32 @getint()
 
-declare void @putint(i32)
-
 declare i32 @getch()
 
-declare void @putch(i32)
-
 declare i32 @getarray(i32*)
+
+declare void @putint(i32)
+
+declare void @putch(i32)
 
 declare void @putarray(i32, i32*)
 
