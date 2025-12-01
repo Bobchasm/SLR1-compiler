@@ -162,8 +162,10 @@ void SemanticAnalyzer::checkFunctionDef(ParseTreeNode* node)
         bool hasReturn = false;
         for (auto* child : node->semanticChildren)
         {
-            if (child && containsReturn(child)) 
-                hasReturn = true; break;
+            if (child && containsReturn(child)) {
+                hasReturn = true;
+                break;
+            }
         }
         if (!hasReturn)
             reportError("Non-void function '" + node->varName + "' missing return statement", node->lineNumber);

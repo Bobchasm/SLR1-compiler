@@ -67,60 +67,34 @@ flowchart TD
     N30 --> N32
     N33[blockItem_list]
     N32 --> N33
-    N34[blockItem_list]
-    N33 --> N34
-    N35[blockItem]
-    N33 --> N35
-    N36[stmt]
+    N34[blockItem]
+    N32 --> N34
+    N35[stmt]
+    N34 --> N35
+    N36[lVal]
     N35 --> N36
-    N37[lVal]
+    N37(("a"))
     N36 --> N37
-    N38(("a"))
-    N37 --> N38
-    N39(("="))
-    N36 --> N39
-    N40[exp]
-    N36 --> N40
-    N41[addExp]
+    N38(("="))
+    N35 --> N38
+    N39[exp]
+    N35 --> N39
+    N40[addExp]
+    N39 --> N40
+    N41[mulExp]
     N40 --> N41
-    N42[mulExp]
+    N42[unaryExp]
     N41 --> N42
-    N43[unaryExp]
+    N43[primaryExp]
     N42 --> N43
-    N44[primaryExp]
+    N44[number]
     N43 --> N44
-    N45[number]
+    N45(("10"))
     N44 --> N45
-    N46(("10"))
-    N45 --> N46
-    N47((";"))
-    N36 --> N47
-    N48[blockItem]
-    N32 --> N48
-    N49[stmt]
-    N48 --> N49
-    N50(("return"))
-    N49 --> N50
-    N51[exp_opt]
-    N49 --> N51
-    N52[exp]
-    N51 --> N52
-    N53[addExp]
-    N52 --> N53
-    N54[mulExp]
-    N53 --> N54
-    N55[unaryExp]
-    N54 --> N55
-    N56[primaryExp]
-    N55 --> N56
-    N57[number]
-    N56 --> N57
-    N58(("0"))
-    N57 --> N58
-    N59((";"))
-    N49 --> N59
-    N60(("}"))
-    N30 --> N60
-    N61(("}"))
-    N1 --> N61
+    N46((";"))
+    N35 --> N46
+    N47(("}"))
+    N30 --> N47
+    N48(("}"))
+    N1 --> N48
 ```

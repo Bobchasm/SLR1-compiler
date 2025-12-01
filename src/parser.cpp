@@ -26,6 +26,16 @@
 
 using namespace std;
 
+
+
+const string PARSE_ANALYSIS_TABLE_PATH = "process/";
+const string CASE_PATH = "case/";
+
+const string S_PARSER_RESULT_EXT = "_parse_s.txt";
+
+
+
+
 // 全局变量：保存原始的cout buffer
 // 在main.cpp中初始化，在parser.cpp中使用
 // 当parser作为独立可执行文件时，这里需要定义它
@@ -219,8 +229,6 @@ vector<pair<int, pair<string, vector<string> > > > originalProductions = {
 };
 
 
-string PARSE_ANALYSIS_TABLE_PATH = "process/";
-string CASEE_PATH = "case/";
 
 // ==================== SLR(1) DFA构造 ====================
 
@@ -1883,7 +1891,7 @@ public:
         if (!inputFilename.empty()) 
         {
             // 输出Mermaid格式
-            string mdFilePath = CASEE_PATH + inputFilename + "_parse_tree.md";
+            string mdFilePath = CASE_PATH + inputFilename + "_parse_tree.md";
             ofstream mdFile(mdFilePath);
             if (mdFile.is_open()) 
             {
@@ -1893,7 +1901,7 @@ public:
             }
             
             // 输出语义树简化格式
-            string semanticFilePath = CASEE_PATH + inputFilename + "_semantic_tree.txt";
+            string semanticFilePath = CASE_PATH + inputFilename + "_semantic_tree.txt";
             ofstream semanticFile(semanticFilePath);
             if (semanticFile.is_open()) 
             {
@@ -1914,10 +1922,15 @@ public:
         cout << "[PARSER] Starting SLR(1) parsing..." << endl;
         
         ofstream parseLog;
+        ofstream s_parseResult;
         if (!inputFilename.empty()) 
         {
-            string logPath = CASEE_PATH + inputFilename + "_parse_analysis.txt";
+            string logPath = CASE_PATH + inputFilename + "_parse_analysis.txt";
+            string s_parsePath = CASE_PATH + inputFilename + S_PARSER_RESULT_EXT;
             parseLog.open(logPath);
+            s_parseResult.open(s_parsePath);
+            if (!s_parseResult.is_open())
+                cout << "[PARSER] Error: Cannot create parse analysis results: " << s_parsePath << endl;
             if (!parseLog.is_open())
                 cout << "[PARSER] Error: Cannot create parse analysis log: " << logPath << endl;
             else 
@@ -1963,6 +1976,11 @@ public:
             {
                 // 符号不在文法中，错误
                 cout << "[PARSER] Error: Unknown symbol '" << currentSymbol << "'" << endl;
+                // 输出到终端的错误信息
+                std::ostringstream errorMsg;
+                errorMsg << "[Line " << currentToken.lineNumber << "] Bad token " << currentSymbol;
+                printToConsoleParse(errorMsg.str());
+                
                 if (parseLog.is_open()) 
                 {
                     parseLog << left << setw(8) << step 
@@ -1971,6 +1989,16 @@ public:
                              << setw(20) << currentSymbol 
                              << setw(15) << "Error: Unknown symbol" << endl;
                 }
+
+
+                if (s_parseResult.is_open())
+                {
+                    s_parseResult << step << "\t"
+                            << topSymbol << "#"
+                            << currentSymbol << "\t"
+                            << "Error: Unknown symbol" << endl;
+                }
+
                 break;
             }
             
@@ -1994,6 +2022,14 @@ public:
                          << setw(20) << topSymbol 
                          << setw(20) << currentSymbol 
                          << setw(15) << actionStr << endl;
+
+                if (s_parseResult.is_open())
+                {
+                    s_parseResult << step << "\t"
+                            << topSymbol << "#"
+                            << currentSymbol << "\t"
+                            << actionStr << endl;
+                }
             }
             
             // 4.根据动作类型执行操作
@@ -2138,6 +2174,11 @@ public:
                 // 错误
                 cout << "[PARSER] Error: No valid action for state " << currentState 
                      << ", symbol '" << currentSymbol << "'" << endl;
+                // 输出到终端的错误信息
+                std::ostringstream errorMsg;
+                errorMsg << "[Line " << currentToken.lineNumber << "] Bad token " << currentSymbol;
+                printToConsoleParse(errorMsg.str());
+                
                 if (parseLog.is_open()) 
                 {
                     // TODO 为方便调试先输出的详细一点，而老师文档里给的不像是SLR(1)版本的输出格式，后续要交前再改一下就行
@@ -2145,44 +2186,54 @@ public:
                              << setw(12) << currentState 
                              << setw(20) << topSymbol 
                              << setw(20) << currentSymbol 
-                             << setw(15) << "Error: No action" << endl;
+                             << setw(15) << "Error: No action" << endl;                    
                 }
+
+                if (s_parseResult.is_open())
+                {
+                    s_parseResult << step << "\t"
+                            << topSymbol << "#"
+                            << currentSymbol << "\t"
+                            << "Error: No action" << endl;
+                }
+
                 break;
             }
         }
         
         if (parseLog.is_open())
             parseLog.close();
+
+        if (s_parseResult.is_open())
+            s_parseResult.close();
         
         cout << "[PARSER] Total steps: " << step << endl;
+
+        // if (success && parseTree) {
+        //     cout << "[DEBUG] Before outputParseTree - checking tree integrity..." << endl;
+        //     if (!parseTree->semanticChildren.empty()) {
+        //         auto* prog = parseTree;
+        //         for (size_t i = 0; i < prog->semanticChildren.size(); i++) {
+        //             auto* child = prog->semanticChildren[i];
+        //             cout << "[DEBUG] Program child[" << i << "]: ptr=" << (void*)child;
+        //             if (child) {
+        //                 cout << ", type=" << child->semanticType << ", varName=" << child->varName;
+        //                 if (child->semanticType == "FunctionDef" && !child->semanticChildren.empty()) {
+        //                     cout << "\n[DEBUG]   FunctionDef semanticChildren.size()=" << child->semanticChildren.size();
+        //                     for (size_t j = 0; j < child->semanticChildren.size(); j++) {
+        //                         auto* fchild = child->semanticChildren[j];
+        //                         cout << "\n[DEBUG]     [" << j << "]: ptr=" << (void*)fchild;
+        //                         if (fchild) {
+        //                             cout << ", type=" << fchild->semanticType << ", varName=" << fchild->varName;
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //             cout << endl;
+        //         }
+        //     }
+        // }
         
-        // DEBUG: Print FunctionDef semanticChildren addresses before returning
-        if (success && parseTree) {
-            cout << "[DEBUG] Before outputParseTree - checking tree integrity..." << endl;
-            if (!parseTree->semanticChildren.empty()) {
-                auto* prog = parseTree;
-                for (size_t i = 0; i < prog->semanticChildren.size(); i++) {
-                    auto* child = prog->semanticChildren[i];
-                    cout << "[DEBUG] Program child[" << i << "]: ptr=" << (void*)child;
-                    if (child) {
-                        cout << ", type=" << child->semanticType << ", varName=" << child->varName;
-                        if (child->semanticType == "FunctionDef" && !child->semanticChildren.empty()) {
-                            cout << "\n[DEBUG]   FunctionDef semanticChildren.size()=" << child->semanticChildren.size();
-                            for (size_t j = 0; j < child->semanticChildren.size(); j++) {
-                                auto* fchild = child->semanticChildren[j];
-                                cout << "\n[DEBUG]     [" << j << "]: ptr=" << (void*)fchild;
-                                if (fchild) {
-                                    cout << ", type=" << fchild->semanticType << ", varName=" << fchild->varName;
-                                }
-                            }
-                        }
-                    }
-                    cout << endl;
-                }
-            }
-        }
-        
-        // 输出语法分析树
         if (success && parseTree)
             outputParseTree();
         
@@ -2402,9 +2453,9 @@ int main(int argc, char *argv[])
     
     if (!result)
     {
-        printToConsoleParse("\n[ERROR] Parse Error\n");
+        printToConsoleParse("\n[ERROR] Parse Error\n\n");
         cout << "[DEBUG] Parsing failed" << endl;
-        cerr << "Error" << endl;
+        cout << "Error" << endl;
         cleanupLexer();
         free(input);
         return 1;
@@ -2433,11 +2484,11 @@ int main(int argc, char *argv[])
         else
             semanticAnalyzer.printErrors();
         
-        printToConsoleParse("[SEMANTIC] Compilation aborted due to semantic errors.\n\n");
+        printToConsoleParse("[ERROR] Compilation aborted due to semantic errors.\n\n");
         return 1;
     }
 
-    printToConsoleParse("\n[ERROR] Semantic analysis passed!\n\n");
+    printToConsoleParse("\n[SEMANTIC] Semantic analysis passed!\n");
 
 
     cout << "[DEBUG] Parsing succeeded" << endl;
