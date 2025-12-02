@@ -55,6 +55,36 @@ compiler/
 
 ## 3 运行启动
 
+
+### 3.1 环境准备
+
+1.操作系统
+
+推荐在 `Window 10/11` 下运行
+
+2.工具
+
+编译：
+
+- C++ 编译器: g++ (支持 C++11 标准)
+
+  推荐使用 MinGW-w64 或 MSYS2
+
+  确保 `g++` 在系统 PATH 中，若不配置环境变量，请将 `Makefile` 第6行的 `wildcard` 路径改为您电脑的 g++ 路径
+  
+- 构建工具: GNU Make
+  - Windows 可使用 MinGW Make 或 MSYS2 Make
+
+验证环境
+```powershell
+# 检查 g++ 是否安装
+g++ --version
+
+# 检查 make 是否安装
+make --version
+```
+### 3.2 运行
+
 所有编译产生的结果位于 `/build` 下
 
 以下仅列出一些常用命令，具体直接看 `Makefile` 就行
