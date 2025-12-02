@@ -32,6 +32,17 @@ void SemanticAnalyzer::reportError(const std::string& message, int line)
     hasErrors_ = true;
 }
 
+// 报告警告
+void SemanticAnalyzer::reportWarning(const std::string& message, int line) 
+{
+    std::ostringstream oss;
+    if (line > 0)
+        oss << "[Line " << line << "] ";
+
+    oss << "Warning: " << message;
+    std::cout << oss.str() << std::endl;  // 警告输出到 stdout，不阻止编译
+}
+
 // 执行语义分析
 bool SemanticAnalyzer::check(ParseTreeNode* root) 
 {
@@ -217,11 +228,29 @@ void SemanticAnalyzer::checkVarDecl(ParseTreeNode* node, const std::string& curr
         reportError("Variable '" + varSymbol.name + "' is already defined in this scope", node->lineNumber);
     
     // 初始化值的类型兼容性
-    if (!node->semanticChildren.empty()) {
+    if (!node->semanticChildren.empty()) 
+    {
         std::string initType = getExprType(node->semanticChildren[0]);
-        if (!isTypeCompatible(node->varType, initType)) {
-            reportError("Type mismatch in initialization of '" + node->varName 
-                       + "': expected " + node->varType + ", got " + initType, node->lineNumber);
+        // float 可以接受 int 字面量初始化（隐式提升）
+        // int 可以接受 float 初始化（截断小数部分）
+        bool compatible = isTypeCompatible(node->varType, initType);
+        if (!compatible) 
+        {
+            if (node->varType == "float" && initType == "int")
+            {
+                // int → float
+            }
+            else if (node->varType == "int" && initType == "float") 
+            {
+                // float → int: 截断
+                reportWarning("Implicit conversion from float to int in initialization of '" 
+                             + node->varName + "' will truncate decimal part", node->lineNumber);
+            }
+            else 
+            {
+                reportError("Type mismatch in initialization of '" + node->varName 
+                           + "': expected " + node->varType + ", got " + initType, node->lineNumber);
+            }
         }
     }
     
@@ -251,10 +280,26 @@ void SemanticAnalyzer::checkAssignment(ParseTreeNode* node, const std::string& c
     if (!node->semanticChildren.empty()) 
     {
         std::string exprType = getExprType(node->semanticChildren[0]);
-        if (!isTypeCompatible(symbol->type, exprType)) 
-    {
-            reportError("Type mismatch in assignment to '" + node->varName 
-                       + "': expected " + symbol->type + ", got " + exprType, node->lineNumber);
+        // float 可以接受 int 值赋值（隐式提升）
+        // int 可以接受 float 值赋值（截断小数部分，发出警告）
+        bool compatible = isTypeCompatible(symbol->type, exprType);
+        if (!compatible) 
+        {
+            if (symbol->type == "float" && exprType == "int") 
+            {
+                // int → float
+            }
+            else if (symbol->type == "int" && exprType == "float") 
+            {
+                // float → int
+                reportWarning("Implicit conversion from float to int in assignment to '" 
+                             + node->varName + "' will truncate decimal part", node->lineNumber);
+            }
+            else 
+            {
+                reportError("Type mismatch in assignment to '" + node->varName 
+                           + "': expected " + symbol->type + ", got " + exprType, node->lineNumber);
+            }
         }
         
         // 递归检查赋值表达式中的语义（如FunctionCall）
@@ -298,12 +343,29 @@ void SemanticAnalyzer::checkFunctionCall(ParseTreeNode* node)
         std::cout << "[SEMANTIC-CHECK] Function '" << funcName << "' param " << (i+1) 
                   << ": expected=" << expectedType << ", actual=" << actualType << std::endl;
         
-        if (!isTypeCompatible(expectedType, actualType)) 
+        // float 参数可以接受 int 实参（隐式提升）
+        // int 参数可以接受 float 实参（截断，警告）
+        bool compatible = isTypeCompatible(expectedType, actualType);
+        if (!compatible) 
         {
-            std::ostringstream oss;
-            oss << "Function '" << funcName << "' parameter " << (i + 1) 
-                << " type mismatch: expected " << expectedType << ", got " << actualType;
-            reportError(oss.str(), node->lineNumber);
+            if (expectedType == "float" && actualType == "int") 
+            {
+                // int → float
+            }
+            else if (expectedType == "int" && actualType == "float") 
+            {
+                // float → int
+                reportWarning("Implicit conversion from float to int in argument " 
+                             + std::to_string(i+1) + " of function '" + funcName 
+                             + "' will truncate decimal part", node->lineNumber);
+            }
+            else 
+            {
+                std::ostringstream oss;
+                oss << "Function '" << funcName << "' parameter " << (i + 1) 
+                    << " type mismatch: expected " << expectedType << ", got " << actualType;
+                reportError(oss.str(), node->lineNumber);
+            }
         }
     }
 }
@@ -333,10 +395,26 @@ void SemanticAnalyzer::checkReturnStmt(ParseTreeNode* node, const std::string& e
         else 
         {
             std::string actualType = getExprType(node->semanticChildren[0]);
-            if (!isTypeCompatible(expectedReturnType, actualType)) 
+            // float 返回值可以接受 int 表达式（隐式提升）
+            // int 返回值可以接受 float 表达式（截断，警告）
+            bool compatible = isTypeCompatible(expectedReturnType, actualType);
+            if (!compatible) 
             {
-                reportError("Return type mismatch: expected " + expectedReturnType 
-                           + ", got " + actualType, node->lineNumber);
+                if (expectedReturnType == "float" && actualType == "int") 
+                {
+                    // int → float
+                }
+                else if (expectedReturnType == "int" && actualType == "float") 
+                {
+                    // float → int
+                    reportWarning("Implicit conversion from float to int in return statement will truncate decimal part", 
+                                 node->lineNumber);
+                }
+                else 
+                {
+                    reportError("Return type mismatch: expected " + expectedReturnType 
+                               + ", got " + actualType, node->lineNumber);
+                }
             }
         }
     }
@@ -374,7 +452,30 @@ std::string SemanticAnalyzer::getExprType(ParseTreeNode* node)
             return symbol->type;
         return "unknown";
     }
-    else if (node->semanticType == "BinaryExpr" || node->semanticType == "UnaryExp") 
+    else if (node->semanticType == "BinaryExpr") 
+    {
+        // 二元表达式：检查两个操作数的类型
+        if (node->semanticChildren.size() >= 2)
+        {
+            std::string leftType = getExprType(node->semanticChildren[0]);
+            std::string rightType = getExprType(node->semanticChildren[1]);
+            
+            // 混合运算统一返回 int
+            if ((leftType == "float" && rightType == "int") || 
+                (leftType == "int" && rightType == "float"))
+                return "int";
+            
+            // 两个 float 返回 float
+            if (leftType == "float" && rightType == "float")
+                return "float";
+            
+            // 默认返回 int（包括 int + int）
+            return "int";
+        }
+        else if (!node->semanticChildren.empty())
+            return getExprType(node->semanticChildren[0]);
+    }
+    else if (node->semanticType == "UnaryExp") 
     {
         if (!node->semanticChildren.empty())
             return getExprType(node->semanticChildren[0]);

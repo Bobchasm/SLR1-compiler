@@ -1,0 +1,32 @@
+// 综合测试：多种类型转换场景
+int add_int(int x, int y) {
+    return x + y;
+}
+
+float add_float(float x, float y) {
+    return x + y;
+}
+
+int main() {
+    // 场景1：float 接受 int（无警告）
+    float f1 = 10;
+    float f2 = add_int(5, 3);     // int 函数返回值赋值给 float
+    
+    // 场景2：int 接受 float（警告：截断）
+    int i1 = 3.14;                // 警告：截断为 3
+    int i2 = add_float(2.5, 1.5); // 警告：float 函数返回值截断
+    
+    // 场景3：函数调用类型转换
+    int result1 = add_int(10, 20);         // 正常
+    float result2 = add_float(1.5, 2.5);   // 正常
+    int result3 = add_int(1.1, 2.2);       // 警告：两个参数都截断
+    float result4 = add_float(1, 2);       // 无警告：int 提升为 float
+    
+    // 场景4：混合表达式
+    float fa = 1.5;
+    int ia = 2;
+    float fb = fa + ia;            // 混合运算 = int，然后 int 提升为 float
+    int ib = fa + ia;              // 混合运算 = int
+    
+    return 0;
+}

@@ -1103,8 +1103,6 @@ extern "C"
             delete global_lexer;
 
         global_dfa = buildLexerDFA();
-        
-        createDirectoryIfNotExists("process");
 
         // #EXPORT_DEBUG# 输出词法分析状态转移矩阵
         // exportDFATransitionMatrix(global_dfa, TRANSITION_MATRIX_PATH + "lexer_state_transition_matrix.csv");

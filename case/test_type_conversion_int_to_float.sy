@@ -1,0 +1,27 @@
+// 测试 int 到 float 的隐式转换（无警告）
+int main() {
+    float a = 1;           // int 字面量初始化 float 变量
+    float b;
+    b = 2;                 // int 字面量赋值给 float 变量
+    
+    int x = 10;
+    float c = x;           // int 变量初始化 float 变量
+    
+    return 0;
+}
+
+float test_return() {
+    int x = 5;
+    return x;              // int 变量返回给 float 函数
+}
+
+void test_param(float y) {
+    return;
+}
+
+int test_call() {
+    int x = 3;
+    test_param(x);         // int 参数传递给 float 形参
+    test_param(42);        // int 字面量传递给 float 形参
+    return 0;
+}

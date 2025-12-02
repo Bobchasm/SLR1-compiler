@@ -90,6 +90,7 @@ private:
     void enterScope();
     void exitScope();
     void reportError(const string& message, int line = 0);
+    void reportWarning(const string& message, int line = 0);
     
     void checkProgram(ParseTreeNode* node);
     void checkFunctionDef(ParseTreeNode* node);
