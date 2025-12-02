@@ -245,6 +245,9 @@ void SemanticAnalyzer::checkVarDecl(ParseTreeNode* node, const std::string& curr
                 // float → int: 截断
                 reportWarning("Implicit conversion from float to int in initialization of '" 
                              + node->varName + "' will truncate decimal part", node->lineNumber);
+                // 截断初始化表达式中的 float 值
+                if (!node->semanticChildren.empty())
+                    truncateFloatToInt(node->semanticChildren[0]);
             }
             else 
             {
@@ -294,6 +297,9 @@ void SemanticAnalyzer::checkAssignment(ParseTreeNode* node, const std::string& c
                 // float → int
                 reportWarning("Implicit conversion from float to int in assignment to '" 
                              + node->varName + "' will truncate decimal part", node->lineNumber);
+                // 截断赋值表达式中的 float 值
+                if (!node->semanticChildren.empty())
+                    truncateFloatToInt(node->semanticChildren[0]);
             }
             else 
             {
@@ -358,6 +364,8 @@ void SemanticAnalyzer::checkFunctionCall(ParseTreeNode* node)
                 reportWarning("Implicit conversion from float to int in argument " 
                              + std::to_string(i+1) + " of function '" + funcName 
                              + "' will truncate decimal part", node->lineNumber);
+                // 截断函数参数中的 float 值
+                truncateFloatToInt(node->semanticChildren[i]);
             }
             else 
             {
@@ -409,6 +417,9 @@ void SemanticAnalyzer::checkReturnStmt(ParseTreeNode* node, const std::string& e
                     // float → int
                     reportWarning("Implicit conversion from float to int in return statement will truncate decimal part", 
                                  node->lineNumber);
+                    // 截断返回表达式中的 float 值
+                    if (!node->semanticChildren.empty())
+                        truncateFloatToInt(node->semanticChildren[0]);
                 }
                 else 
                 {
@@ -527,5 +538,31 @@ bool SemanticAnalyzer::checkIntOverflow(const std::string& value)
         return true;
     } catch (const std::exception& e) {
         return false;  // 转换失败，说明溢出
+    }
+}
+
+// 截断 float 节点为 int
+void SemanticAnalyzer::truncateFloatToInt(ParseTreeNode* node) 
+{
+    if (!node) return;
+    
+    // 如果是 Number 节点，直接截断 value
+    if (node->semanticType == "Number" && node->value.find('.') != std::string::npos) 
+    {
+        try {
+            float floatVal = std::stof(node->value);
+            int intVal = static_cast<int>(floatVal);  // 截断
+            node->value = std::to_string(intVal);
+            std::cout << "[SEMANTIC-TRUNCATE] Truncated float value to int: " 
+                     << floatVal << " -> " << intVal << std::endl;
+        } catch (...) {
+            // 转换失败，保持原值
+        }
+    }
+    
+    // 递归处理子节点（如 BinaryExpr 中的 Number）
+    for (auto* child : node->semanticChildren) 
+    {
+        truncateFloatToInt(child);
     }
 }
