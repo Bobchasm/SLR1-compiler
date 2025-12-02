@@ -136,6 +136,11 @@ public:
   FCmpInst* create_fcmp_one(Value* lhs, Value* rhs) {
       return FCmpInst::create_fcmp(FCmpInst::ONE, lhs, rhs, BB_, m_);
   }
+  
+  //-------------- 类型转换 --------------
+  SitofpInst* create_sitofp(Value* val, Type* ty) {
+      return SitofpInst::create_sitofp(val, ty, BB_);
+  }
   // ------------------------------------------------------------------
 
 

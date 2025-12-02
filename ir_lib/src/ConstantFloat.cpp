@@ -1,6 +1,8 @@
 #include "ConstantFloat.h"
 #include "Module.h"
 #include <sstream>
+#include <iomanip>
+#include <cstdint>
 
 ConstantFloat::ConstantFloat(Type *ty, float val)
     : Constant(ty, "", 0), value_(val) {}
@@ -14,7 +16,13 @@ float ConstantFloat::get_value() const {
 }
 
 std::string ConstantFloat::print() {
+  // 使用十六进制格式表示浮点数，符合LLVM IR标准
   std::ostringstream oss;
-  oss << value_;
+  union {
+    float f;
+    uint32_t i;
+  } converter;
+  converter.f = value_;
+  oss << "0x" << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << converter.i;
   return oss.str();
 }
