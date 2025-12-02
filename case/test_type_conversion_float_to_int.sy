@@ -1,0 +1,27 @@
+// 测试 float 到 int 的隐式转换（有警告：截断小数部分）
+int main() {
+    int a = 2.4;           // float 字面量初始化 int 变量（警告：截断为 2）
+    int b;
+    b = 3.8;               // float 字面量赋值给 int 变量（警告：截断为 3）
+    
+    float x = 10.5;
+    int c = x;             // float 变量初始化 int 变量（警告：截断为 10）
+    
+    return 0;
+}
+
+int test_return() {
+    float x = 5.7;
+    return x;              // float 变量返回给 int 函数（警告：截断为 5）
+}
+
+void test_param(int y) {
+    return;
+}
+
+int test_call() {
+    float x = 3.3;
+    test_param(x);         // float 参数传递给 int 形参（警告：截断为 3）
+    test_param(42.9);      // float 字面量传递给 int 形参（警告：截断为 42）
+    return 0;
+}
