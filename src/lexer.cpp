@@ -24,6 +24,7 @@ const char EPSILON = '\0';
 
 const string TRANSITION_MATRIX_PATH = "process/";
 const char* TEST_CASE_PATH = "case/";
+const string S_LEXER_RESULT_EXT = "_lexer_s.txt";
 
 map<string, pair<string, int>> keywords = {
     {"int", {"KW", 1}}, {"void", {"KW", 2}}, {"return", {"KW", 3}}, {"const", {"KW", 4}}, {"float", {"KW", 6}}, {"if", {"KW", 7}}, {"else", {"KW", 8}}};
@@ -723,6 +724,7 @@ private:
     size_t pos;
     int line;
     int column;
+    bool hasError;
 
     map<int, map<char, int>> transitionTable;
 
@@ -732,6 +734,7 @@ public:
     {
         for (const auto &trans : dfa.transitions)
             transitionTable[trans.from][trans.symbol] = trans.to;
+        hasError = false;
     }
     
     ~Lexer() 
@@ -740,6 +743,16 @@ public:
         line = 1;
         column = 1;
         transitionTable.clear();
+    }
+
+    void setHasErrorOption()
+    {
+        hasError = true;
+    }
+
+    bool getHasErrorOption()
+    {
+        return hasError;
     }
 
     tuple<string, string, string, int, bool> nextToken()
@@ -1005,7 +1018,7 @@ void exportDFATransitionMatrix(const DFA &dfa, const string &filename)
     ofstream csvFile(filename);
     if (!csvFile.is_open())
     {
-        cerr << "Error: Cannot create file '" << filename << "'" << endl;
+        cout << "Error: Cannot create file '" << filename << "'" << endl;
         return;
     }
 
@@ -1114,10 +1127,10 @@ extern "C"
             if (dot_pos != string::npos)
                 base_name = base_name.substr(0, dot_pos);
             
-            string output_path = TEST_CASE_PATH +  base_name + "_token_result.txt";
+            string output_path = "output/" +  base_name + S_LEXER_RESULT_EXT;
             token_output_file.open(output_path, ios::out | ios::trunc);
             if (!token_output_file.is_open())
-                cerr << "Warning: Cannot create token output file: " << output_path << endl;
+                cout << "Warning: Cannot create token output file: " << output_path << endl;
             else
                 cout << "[LEXER] Token output file: " << output_path << endl;
         }
@@ -1140,8 +1153,8 @@ extern "C"
 
         if (!success)
         {
-            cout<< "ACC" << endl;
-            token_output_file << "ACC" <<endl;
+            // cout<< "[LEXER] " << endl;
+            //token_output_file << "ACC" <<endl;
             if (token_output_file.is_open())
                 token_output_file.close();
             return token;
@@ -1162,7 +1175,11 @@ extern "C"
         if (token_output_file.is_open())
         {
             if (tokenType == "ERROR")
+            {
                 token_output_file << tokenText << "\t<ERROR," << tokenValue << ">" << endl;
+                global_lexer->setHasErrorOption();
+                cout << "[Line " << token.lineNumber << "] Bad token " << tokenText << endl;
+            }
             else
                 token_output_file << tokenText << "\t<" << (isMain ? "KW" : tokenType) << "," << (isMain ? "5" : tokenValue) << ">" << endl;
         }
@@ -1206,13 +1223,15 @@ int main(int argc, char *argv[])
     string input;
     string input_filename = "";
 
+    cout<< "[LEXER] Lexer running..."<<endl;
+
     if (argc == 2)
     {
         input_filename = string(argv[1]);
         ifstream file(input_filename);
         if (!file.is_open())
         {
-            cerr << "Error: Cannot open file '" << input_filename << "'" << endl;
+            cout << "Error: Cannot open file '" << input_filename << "'" << endl;
             return 1;
         }
         string line;
@@ -1227,19 +1246,19 @@ int main(int argc, char *argv[])
         initLexer(input.c_str());
         
         cout << "[LEXER] Tokenizing file: " << test_file_name << endl;
-        cout << endl;
+        // cout << endl;
         
         while (true)
         {
             Token token = getNextToken();
             if (!token.valid)
                 break;
-            
-            // if (string(token.type) == "ERROR")
-            //     cout << token.text << "\t<ERROR," << token.value << ">" << endl;
-            // else
-            //     cout << token.text << "\t<" << token.type << "," << token.value << ">" << endl;
         }
+
+        if(global_lexer->getHasErrorOption())
+            cout << "\n[ERROR] Some tokens error appealed!\n"<< endl;
+        else
+            cout<< "[LEXER] ACC\n"<<endl;
         
         cleanupLexer();
     }
@@ -1274,10 +1293,14 @@ int main(int argc, char *argv[])
             else
                 cout << tokenText << "\t<" << tokenType << "," << tokenValue << ">" << endl;
         }
+        if(global_lexer->getHasErrorOption())
+            cout<< "[LEXER] Some tokens error appealed!\n"<<endl;
+        else
+            cout<< "[LEXER] ACC\n"<<endl;
     }
     else
     {
-        cerr << "Usage: " << argv[0] << " [filename]" << endl;
+        cout << "Usage: " << argv[0] << " [filename]" << endl;
         return 1;
     }
 

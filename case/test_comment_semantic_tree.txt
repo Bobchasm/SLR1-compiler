@@ -1,6 +1,0 @@
-Program
-└── FunctionDef: int main()
-    ├── VarDecl: local int a = 10
-    │   └── Number: 10
-    └── ReturnStmt: Variable
-        └── Variable: a
