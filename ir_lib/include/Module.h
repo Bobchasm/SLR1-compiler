@@ -62,8 +62,8 @@ public:
    * @brief Destroy the Module object
    *
    */
-  ~Module();
-
+  // ~Module();
+  virtual ~Module();
   /**
    * @brief Get the void type object，获取一个构建好的void类型指针
    *

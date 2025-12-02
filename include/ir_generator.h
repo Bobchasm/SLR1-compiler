@@ -7,6 +7,12 @@
 #include "../ir_lib/include/IRbuilder.h"
 #include "../ir_lib/include/IRprinter.h"
 #include "../ir_lib/include/Constant.h"
+#include "../ir_lib/include/ConstantFloat.h"   
+#include "../ir_lib/include/GlobalVariable.h"
+#include "../ir_lib/include/Instruction.h"
+#include "../ir_lib/include/Type.h"
+#include "../ir_lib/include/User.h"
+#include "../ir_lib/include/Value.h"
 #include "symbol_table.h"
 
 // 前向声明ParseTreeNode，避免包含parse.h导致全局变量重复定义

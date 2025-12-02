@@ -124,6 +124,18 @@ public:
   FCmpInst *create_fcmp_olt(Value *lhs, Value *rhs) {
     return FCmpInst::create_fcmp(FCmpInst::OLT, lhs, rhs, BB_, m_);
   }
+  FCmpInst* create_fcmp_ogt(Value* lhs, Value* rhs) {
+      return FCmpInst::create_fcmp(FCmpInst::OGT, lhs, rhs, BB_, m_);
+  }
+  FCmpInst* create_fcmp_oge(Value* lhs, Value* rhs) {
+      return FCmpInst::create_fcmp(FCmpInst::OGE, lhs, rhs, BB_, m_);
+  }
+  FCmpInst* create_fcmp_ole(Value* lhs, Value* rhs) {
+      return FCmpInst::create_fcmp(FCmpInst::OLE, lhs, rhs, BB_, m_);
+  }
+  FCmpInst* create_fcmp_one(Value* lhs, Value* rhs) {
+      return FCmpInst::create_fcmp(FCmpInst::ONE, lhs, rhs, BB_, m_);
+  }
   // ------------------------------------------------------------------
 
 

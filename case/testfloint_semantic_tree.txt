@@ -1,0 +1,4 @@
+Program
+└── FunctionDef: void main()
+    └── VarDecl: local int a = 1.2
+        └── Number: 1.2
