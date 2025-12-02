@@ -101,6 +101,33 @@ public:
   BinaryInst *create_irem(Value *lhs, Value *rhs) {
     return BinaryInst::create_mod(lhs, rhs, this->BB_, m_);
   }
+
+  // ----------------- 浮点 -----------------------
+  //-------------- 浮点算术 --------------
+  FBinaryInst *create_fadd(Value *lhs, Value *rhs) {
+    return FBinaryInst::create_fadd(lhs, rhs, BB_, m_);
+  }
+  FBinaryInst *create_fsub(Value *lhs, Value *rhs) {
+    return FBinaryInst::create_fsub(lhs, rhs, BB_, m_);
+  }
+  FBinaryInst *create_fmul(Value *lhs, Value *rhs) {
+    return FBinaryInst::create_fmul(lhs, rhs, BB_, m_);
+  }
+  FBinaryInst *create_fdiv(Value *lhs, Value *rhs) {
+    return FBinaryInst::create_fdiv(lhs, rhs, BB_, m_);
+  }
+
+  //-------------- 浮点比较 --------------
+  FCmpInst *create_fcmp_oeq(Value *lhs, Value *rhs) {
+    return FCmpInst::create_fcmp(FCmpInst::OEQ, lhs, rhs, BB_, m_);
+  }
+  FCmpInst *create_fcmp_olt(Value *lhs, Value *rhs) {
+    return FCmpInst::create_fcmp(FCmpInst::OLT, lhs, rhs, BB_, m_);
+  }
+  // ------------------------------------------------------------------
+
+
+
   /*!
    *@brief 创建与运算指令
    *@param lhs 左值指针

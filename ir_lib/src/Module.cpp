@@ -27,6 +27,14 @@ Module::Module(std::string name) : module_name_(std::move(name)) {
   instr_id2string_.insert({Instruction::sdiv, "sdiv"});
   instr_id2string_.insert({Instruction::mod, "srem"});
 
+  // -------------  浮点增加的---------------------
+  instr_id2string_.insert({Instruction::fadd, "fadd"});
+  instr_id2string_.insert({Instruction::fsub, "fsub"});
+  instr_id2string_.insert({Instruction::fmul, "fmul"});
+  instr_id2string_.insert({Instruction::fdiv, "fdiv"});
+  instr_id2string_.insert({Instruction::fcmp, "fcmp"});
+  // ------------------------------------------------
+
   instr_id2string_.insert({Instruction::cmp, "icmp"});
 
   instr_id2string_.insert({Instruction::alloca, "alloca"});

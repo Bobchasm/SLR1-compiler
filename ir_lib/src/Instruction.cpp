@@ -16,6 +16,8 @@
 #include <vector>
 #include <algorithm>
 
+//------------------------------------ 新增的浮点数部分---------------------------------
+
 Instruction::Instruction(Type *ty, OpID id, unsigned num_ops,
                         BasicBlock *parent)
     : User(ty, "", num_ops),parent_(parent), op_id_(id), num_ops_(num_ops)
@@ -648,3 +650,103 @@ BasicBlock *BranchInst::getFalseBB() const {
 };
 ReturnInst::ReturnInst(BasicBlock *bb, size_t num_op): Instruction(Type::get_void_type(bb->get_module()), Instruction::ret, num_op, bb){};
 StoreInst::StoreInst(BasicBlock *bb): Instruction(Type::get_void_type(bb->get_module()), Instruction::store, 2, bb){};
+
+// ---------------------------------------------------------
+//================ FBinaryInst 实现 ================//
+
+/* 字符串表：fadd/fsub/fmul/fdiv -> "fadd"/... */
+static const char *fbin_names[] = {"fadd", "fsub", "fmul", "fdiv"};
+
+/* 带操作数的构造 */
+FBinaryInst::FBinaryInst(Type *ty, OpID id, Value *v1, Value *v2,
+                         BasicBlock *bb)
+    : Instruction(ty, id, 2, bb) {
+  set_operand(0, v1);
+  set_operand(1, v2);
+}
+
+/* 0-operand 构造，仅供 deepcopy 使用 */
+FBinaryInst::FBinaryInst(Type *ty, OpID id, BasicBlock *bb)
+    : Instruction(ty, id, 2, bb) {}
+
+/* 工厂函数 */
+FBinaryInst *FBinaryInst::create_fadd(Value *v1, Value *v2,
+                                      BasicBlock *bb, Module *m) {
+  return new FBinaryInst(Type::get_float_type(m), Instruction::fadd,
+                         v1, v2, bb);
+}
+FBinaryInst *FBinaryInst::create_fsub(Value *v1, Value *v2,
+                                      BasicBlock *bb, Module *m) {
+  return new FBinaryInst(Type::get_float_type(m), Instruction::fsub,
+                         v1, v2, bb);
+}
+FBinaryInst *FBinaryInst::create_fmul(Value *v1, Value *v2,
+                                      BasicBlock *bb, Module *m) {
+  return new FBinaryInst(Type::get_float_type(m), Instruction::fmul,
+                         v1, v2, bb);
+}
+FBinaryInst *FBinaryInst::create_fdiv(Value *v1, Value *v2,
+                                      BasicBlock *bb, Module *m) {
+  return new FBinaryInst(Type::get_float_type(m), Instruction::fdiv,
+                         v1, v2, bb);
+}
+
+/* print */
+std::string FBinaryInst::print() {
+  std::string s;
+  s += "%" + get_name() + " = "
+    + fbin_names[op_id_ - Instruction::fadd]
+    + " float " + print_as_op(get_operand(0), false)
+    + ", " + print_as_op(get_operand(1), false);
+  return s;
+}
+
+/* deepcopy */
+Instruction *FBinaryInst::deepcopy(BasicBlock *parent) {
+  auto *n = new FBinaryInst(type_, op_id_, parent);
+  for (unsigned i = 0; i < get_num_operand(); ++i)
+    n->set_operand(i, get_operand(i));
+  return n;
+}
+
+//================ FCmpInst 实现 ================//
+
+/* 字符串表 */
+static const char *fcmp_names[] = {"oeq", "one", "olt", "ole", "ogt", "oge"};
+
+/* 带操作数的构造 */
+FCmpInst::FCmpInst(Type *ty, FCmpOp op, Value *lhs, Value *rhs,
+                   BasicBlock *bb)
+    : Instruction(ty, Instruction::fcmp, 2, bb), cmp_op_(op) {
+  set_operand(0, lhs);
+  set_operand(1, rhs);
+}
+
+/* 0-operand 构造，仅供 deepcopy 使用 */
+FCmpInst::FCmpInst(Type *ty, FCmpOp op, BasicBlock *bb)
+    : Instruction(ty, Instruction::fcmp, 2, bb), cmp_op_(op) {}
+
+/* 工厂函数 */
+FCmpInst *FCmpInst::create_fcmp(FCmpOp op, Value *lhs, Value *rhs,
+                                BasicBlock *bb, Module *m) {
+  return new FCmpInst(m->get_int1_type(), op, lhs, rhs, bb);
+}
+
+/* print */
+std::string FCmpInst::print() {
+  std::string s;
+  s += "%" + get_name() + " = fcmp "
+    + fcmp_names[cmp_op_] + " float "
+    + print_as_op(get_operand(0), false) + ", "
+    + print_as_op(get_operand(1), false);
+  return s;
+}
+
+/* deepcopy */
+Instruction *FCmpInst::deepcopy(BasicBlock *parent) {
+  auto *n = new FCmpInst(type_, cmp_op_, parent);
+  for (unsigned i = 0; i < get_num_operand(); ++i)
+    n->set_operand(i, get_operand(i));
+  return n;
+}
+// ----------------------------------------

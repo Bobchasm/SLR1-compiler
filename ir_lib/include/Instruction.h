@@ -39,7 +39,13 @@ public:
     call,
     getelementptr,
     zext, // zero extend
-          // float binary operators Logical operators
+    // float binary operators
+    fadd,
+    fsub,
+    fmul,
+    fdiv,
+    fcmp,
+    // Logical operators
   };
   // create instruction, auto insert to bb
   // ty here is result type
@@ -164,6 +170,14 @@ public:
   bool is_mul() { return op_id_ == mul; }
   bool is_div() { return op_id_ == sdiv; }
   bool is_rem() { return op_id_ == mod; }
+
+  //--------------- 浮点-----------啦----------
+  bool is_fadd() { return op_id_ == fadd; }
+  bool is_fsub() { return op_id_ == fsub; }
+  bool is_fmul() { return op_id_ == fmul; }
+  bool is_fdiv() { return op_id_ == fdiv; }
+  bool is_fcmp() { return op_id_ == fcmp; }
+  //---------------------------------------------
 
   bool is_cmp() { return op_id_ == cmp; }
 
@@ -646,6 +660,43 @@ public:
     if (ptMap.find(l_val_) != ptMap.end())
       l_val_ = ptMap[l_val_];
   };
+};
+
+
+// 
+//-------------- 浮点算术指令 --------------add啦----------------
+class FBinaryInst : public Instruction {
+private:
+  FBinaryInst(Type *ty, OpID id, Value *v1, Value *v2, BasicBlock *bb);
+  FBinaryInst(Type *ty, OpID id, BasicBlock *bb);
+
+public:
+  static FBinaryInst *create_fadd(Value *v1, Value *v2, BasicBlock *bb, Module *m);
+  static FBinaryInst *create_fsub(Value *v1, Value *v2, BasicBlock *bb, Module *m);
+  static FBinaryInst *create_fmul(Value *v1, Value *v2, BasicBlock *bb, Module *m);
+  static FBinaryInst *create_fdiv(Value *v1, Value *v2, BasicBlock *bb, Module *m);
+
+  virtual std::string print() override;
+  virtual Instruction *deepcopy(BasicBlock *parent) override;
+};
+
+//-------------- 浮点比较指令 --------------add啦--------
+class FCmpInst : public Instruction {
+public:
+  enum FCmpOp { OEQ, ONE, OLT, OLE, OGT, OGE };
+
+private:
+  FCmpOp cmp_op_;
+  FCmpInst(Type *ty, FCmpOp op, Value *lhs, Value *rhs, BasicBlock *bb);
+  FCmpInst(Type *ty, FCmpOp op, BasicBlock *bb);
+
+public:
+  static FCmpInst *create_fcmp(FCmpOp op, Value *lhs, Value *rhs,
+                               BasicBlock *bb, Module *m);
+  FCmpOp get_fcmp_op() { return cmp_op_; }
+
+  virtual std::string print() override;
+  virtual Instruction *deepcopy(BasicBlock *parent) override;
 };
 
 #endif // SYSYC_INSTRUCTION_H

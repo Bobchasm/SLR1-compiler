@@ -1,0 +1,19 @@
+Program
+├── FunctionDef: float add()
+│   ├── FuncParam: float a
+│   ├── FuncParam: float b
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: a
+│           └── Variable: b
+└── FunctionDef: float main()
+    ├── VarDecl: local float a = 1.0
+    │   └── Number: 1.0
+    ├── VarDecl: local float b = 2.0
+    │   └── Number: 2.0
+    ├── VarDecl: local float x
+    │   └── FunctionCall: add()
+    │       ├── Variable: a
+    │       └── Variable: b
+    └── ReturnStmt: Variable
+        └── Variable: x
