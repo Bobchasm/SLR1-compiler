@@ -12,12 +12,12 @@
 #include <cstring>
 #include <ctime>
 
-#ifdef _WIN32
-    #include <direct.h>
-    #include <sys/stat.h>
-#else
-    #include <sys/stat.h>
-#endif
+// #ifdef _WIN32
+//     #include <direct.h>
+//     #include <sys/stat.h>
+// #else
+//     #include <sys/stat.h>
+// #endif
 
 #include "parse.h"
 #include "lexer.h"
@@ -636,9 +636,7 @@ void computeFollowSets()
  */
 string escapeCSV(const string& field) 
 {
-    bool needsQuote = (field.find(',') != string::npos || 
-                       field.find('"') != string::npos || 
-                       field.find('\n') != string::npos);
+    bool needsQuote = (field.find(',') != string::npos || field.find('"') != string::npos || field.find('\n') != string::npos);
     
     if (!needsQuote)
         return field;
@@ -659,7 +657,7 @@ void buildAnalysisTable()
 {
     cout << "[PARSER] Building SLR(1) analysis table..." << endl;
     
-    // 先计算FIRST和FOLLOW集
+    // 预先计算好FIRST和FOLLOW集
     computeFirstSets();
     computeFollowSets();
     
@@ -1539,7 +1537,6 @@ private:
             // 36-38.stmt -> exp_opt ';' | block | if
             case 36:  // stmt -> exp_opt ';'
             case 37:  // stmt -> block
-                // 这些类型暂不处理或直接传递
                 break;
             
             // 38.stmt -> 'if' '(' cond ')' stmt else_opt
@@ -1665,10 +1662,7 @@ private:
             case 79:
             // 81.lOrExp -> lAndExp
             case 81:
-            {
-                // 不设置semanticType，保持节点透明，让collectSemanticChildren穿透
                 break;
-            }
             
             // 53.unaryExp -> Ident '(' funcRParams_opt ')' - 函数调用
             case 53:
@@ -1860,10 +1854,6 @@ public:
     }
     
     ~SLR1Parser() {
-        // BUGFIX: Do not delete parseTree or treeStack nodes
-        // These nodes are still referenced via semanticChildren pointers
-        // Deleting them causes dangling pointers
-        
         // if (parseTree)
         //     delete parseTree;
 
@@ -1887,9 +1877,10 @@ public:
             cout << "[PARSER] No parse tree available." << endl;
             return;
         }
-        
+
         if (!inputFilename.empty()) 
         {
+
             // 输出Mermaid格式
             string mdFilePath = CASE_PATH + inputFilename + "_parse_tree.md";
             ofstream mdFile(mdFilePath);
@@ -1897,7 +1888,7 @@ public:
             {
                 mdFile << parseTree->toMermaidMarkdown();
                 mdFile.close();
-                cout << "[PARSER] Parse tree (Mermaid) saved to: " << mdFilePath << endl;
+                printToConsoleParse("[PARSER] Parse tree (Mermaid) saved to: " + mdFilePath + "\n");
             }
             
             // 输出语义树简化格式
@@ -1908,7 +1899,7 @@ public:
                 semanticFile << parseTree->toSemanticString();
                 semanticFile.close();
 
-                printToConsoleParse("[PARSER] Semantic tree saved to: " + semanticFilePath + "\n");
+                printToConsoleParse("[SEMANTIC] Semantic tree saved to: " + semanticFilePath + "\n");
                 // cout << "[PARSER] Semantic tree saved to: " << semanticFilePath << endl;
             }
             
@@ -2176,7 +2167,7 @@ public:
                      << ", symbol '" << currentSymbol << "'" << endl;
                 // 输出到终端的错误信息
                 std::ostringstream errorMsg;
-                errorMsg << "[Line " << currentToken.lineNumber << "] Syntactic error.";
+                errorMsg << "[Line " << currentToken.lineNumber << "] Syntactic error.\n\n";
                 printToConsoleParse(errorMsg.str());
                 
                 if (parseLog.is_open()) 
@@ -2233,6 +2224,10 @@ public:
         //         }
         //     }
         // }
+
+        printToConsoleParse("[LEXER] Token output file saved to: /output/"  + inputFilename + "_lexer_s.txt\n");
+        printToConsoleParse("[PARSER] Parse process file saved to: /output/"  + inputFilename + "_parse_s.txt\n\n");
+        printToConsoleParse("[PARSER] Parse process detailed file saved to: " + inputFilename + "_parse_analysis.txt\n");
         
         if (success && parseTree)
             outputParseTree();

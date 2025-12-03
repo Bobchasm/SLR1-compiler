@@ -6,80 +6,82 @@
 #include <memory>
 #include <fstream>
 
+using namespace std;
+
 // AST节点基类
 class ASTNode {
 public:
     virtual ~ASTNode() = default;
-    virtual void print(int indent, std::ofstream& out) const = 0;
+    virtual void print(int indent, ofstream& out) const = 0;
 };
 
 // 具体AST节点类型
 class ProgramNode : public ASTNode {
 public:
-    std::vector<std::unique_ptr<ASTNode>> declarations;
-    void print(int indent, std::ofstream& out) const override;
+    vector<unique_ptr<ASTNode>> declarations;
+    void print(int indent, ofstream& out) const override;
 };
 
 class FunctionDefNode : public ASTNode {
 public:
-    std::string return_type;
-    std::string name;
-    std::vector<std::pair<std::string, std::string>> params; // (type, name)
-    std::vector<std::unique_ptr<ASTNode>> body;
-    void print(int indent, std::ofstream& out) const override;
+    string return_type;
+    string name;
+    vector<pair<string, string>> params; // (type, name)
+    vector<unique_ptr<ASTNode>> body;
+    void print(int indent, ofstream& out) const override;
 };
 
 class VarDeclNode : public ASTNode {
 public:
-    std::string type;
-    std::string name;
-    std::unique_ptr<ASTNode> init_value;
+    string type;
+    string name;
+    unique_ptr<ASTNode> init_value;
     bool is_global = false;
-    void print(int indent, std::ofstream& out) const override;
+    void print(int indent, ofstream& out) const override;
 };
 
 class AssignmentNode : public ASTNode {
 public:
-    std::string var_name;
-    std::unique_ptr<ASTNode> value;
-    void print(int indent, std::ofstream& out) const override;
+    string var_name;
+    unique_ptr<ASTNode> value;
+    void print(int indent, ofstream& out) const override;
 };
 
 class BinaryExprNode : public ASTNode {
 public:
-    std::string op;
-    std::unique_ptr<ASTNode> left;
-    std::unique_ptr<ASTNode> right;
-    void print(int indent, std::ofstream& out) const override;
+    string op;
+    unique_ptr<ASTNode> left;
+    unique_ptr<ASTNode> right;
+    void print(int indent, ofstream& out) const override;
 };
 
 class IfStmtNode : public ASTNode {
 public:
-    std::unique_ptr<ASTNode> condition;
-    std::unique_ptr<ASTNode> then_branch;
-    std::unique_ptr<ASTNode> else_branch;
-    void print(int indent, std::ofstream& out) const override;
+    unique_ptr<ASTNode> condition;
+    unique_ptr<ASTNode> then_branch;
+    unique_ptr<ASTNode> else_branch;
+    void print(int indent, ofstream& out) const override;
 };
 
 class WhileStmtNode : public ASTNode {
 public:
-    std::unique_ptr<ASTNode> condition;
-    std::unique_ptr<ASTNode> body;
-    void print(int indent, std::ofstream& out) const override;
+    unique_ptr<ASTNode> condition;
+    unique_ptr<ASTNode> body;
+    void print(int indent, ofstream& out) const override;
 };
 
 class ReturnStmtNode : public ASTNode {
 public:
-    std::unique_ptr<ASTNode> value;
-    void print(int indent, std::ofstream& out) const override;
+    unique_ptr<ASTNode> value;
+    void print(int indent, ofstream& out) const override;
 };
 
 class VariableRefNode : public ASTNode {
 public:
-    std::string name;
+    string name;
     VariableRefNode() = default;
-    VariableRefNode(const std::string& n) : name(n) {}
-    void print(int indent, std::ofstream& out) const override;
+    VariableRefNode(const string& n) : name(n) {}
+    void print(int indent, ofstream& out) const override;
 };
 
 class NumberNode : public ASTNode {
@@ -87,22 +89,22 @@ public:
     int value;
     NumberNode() : value(0) {}
     NumberNode(int v) : value(v) {}
-    void print(int indent, std::ofstream& out) const override;
+    void print(int indent, ofstream& out) const override;
 };
 
 class FunctionCallNode : public ASTNode {
 public:
-    std::string func_name;
-    std::vector<std::unique_ptr<ASTNode>> arguments;
-    void print(int indent, std::ofstream& out) const override;
+    string func_name;
+    vector<unique_ptr<ASTNode>> arguments;
+    void print(int indent, ofstream& out) const override;
 };
 
 // 单目表达式节点
 class UnaryExprNode : public ASTNode {
 public:
-    std::string op;  // 运算符: +, -, !
-    std::unique_ptr<ASTNode> operand;  // 操作数
-    void print(int indent, std::ofstream& out) const override;
+    string op;  // 运算符: +, -, !
+    unique_ptr<ASTNode> operand;  // 操作数
+    void print(int indent, ofstream& out) const override;
 };
 
 #endif

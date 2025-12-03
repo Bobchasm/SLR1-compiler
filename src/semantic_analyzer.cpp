@@ -21,9 +21,9 @@ void SemanticAnalyzer::exitScope()
 }
 
 // 报告错误
-void SemanticAnalyzer::reportError(const std::string& message, int line) 
+void SemanticAnalyzer::reportError(const string& message, int line) 
 {
-    std::ostringstream oss;
+    ostringstream oss;
     if (line > 0)
         oss << "[Line " << line << "] ";
 
@@ -33,17 +33,16 @@ void SemanticAnalyzer::reportError(const std::string& message, int line)
 }
 
 // 报告警告
-void SemanticAnalyzer::reportWarning(const std::string& message, int line) 
+void SemanticAnalyzer::reportWarning(const string& message, int line) 
 {
-    std::ostringstream oss;
+    ostringstream oss;
     if (line > 0)
         oss << "[Line " << line << "] ";
 
     oss << "Warning: " << message;
-    std::cout << oss.str() << std::endl;  // 警告输出到 stdout，不阻止编译
+    cout << oss.str() << endl;  // 警告输出到log，不阻止编译
 }
 
-// 执行语义分析
 bool SemanticAnalyzer::check(ParseTreeNode* root) 
 {
     if (!root) 
@@ -52,22 +51,21 @@ bool SemanticAnalyzer::check(ParseTreeNode* root)
         return false;
     }
     
-    std::cout << "[SEMANTIC] Starting semantic analysis..." << std::endl;
+    cout << "[SEMANTIC] Starting semantic analysis..." << endl;
     errors_.clear();
     hasErrors_ = false;
     
-    // 分析整个程序
     analyze(root);
     
     return !hasErrors_;
 }
 
-void SemanticAnalyzer::analyze(ParseTreeNode* node, const std::string& currentFunctionReturnType) 
+void SemanticAnalyzer::analyze(ParseTreeNode* node, const string& currentFunctionReturnType) 
 {
     if (!node) return;
     
-    std::cout << "[SEMANTIC-CHECK] Analyzing node: " << node->semanticType 
-              << " (varName: " << node->varName << ")" << std::endl;
+    cout << "[SEMANTIC-CHECK] Analyzing node: " << node->semanticType 
+              << " (varName: " << node->varName << ")" << endl;
     
     if (node->semanticType == "Program") 
         checkProgram(node);
@@ -100,8 +98,8 @@ void SemanticAnalyzer::analyze(ParseTreeNode* node, const std::string& currentFu
 // 检查程序
 void SemanticAnalyzer::checkProgram(ParseTreeNode* node) 
 {
-    std::cout << "[SEMANTIC-CHECK] Checking Program with " 
-              << node->semanticChildren.size() << " children" << std::endl;
+    cout << "[SEMANTIC-CHECK] Checking Program with " 
+              << node->semanticChildren.size() << " children" << endl;
     
     // 第一遍：收集所有函数定义（用于前向引用）
     for (auto* child : node->semanticChildren) 
@@ -125,8 +123,8 @@ void SemanticAnalyzer::checkProgram(ParseTreeNode* node)
             if (!currentScope_->add(funcSymbol))
                 reportError("Function '" + funcSymbol.name + "' is already defined", child->lineNumber);
 
-            std::cout << "[SEMANTIC-CHECK] Registered function: " << funcSymbol.name 
-                      << " with " << funcSymbol.paramTypes.size() << " parameters" << std::endl;
+            cout << "[SEMANTIC-CHECK] Registered function: " << funcSymbol.name 
+                      << " with " << funcSymbol.paramTypes.size() << " parameters" << endl;
         }
     }
     
@@ -138,7 +136,7 @@ void SemanticAnalyzer::checkProgram(ParseTreeNode* node)
 // 检查函数定义
 void SemanticAnalyzer::checkFunctionDef(ParseTreeNode* node) 
 {
-    std::cout << "[SEMANTIC-CHECK] Checking FunctionDef: " << node->varName << std::endl;
+    cout << "[SEMANTIC-CHECK] Checking FunctionDef: " << node->varName << endl;
     
     // 进入函数作用域
     enterScope();
@@ -160,7 +158,7 @@ void SemanticAnalyzer::checkFunctionDef(ParseTreeNode* node)
     }
     
     // 检查函数体
-    std::string returnType = node->varType;
+    string returnType = node->varType;
     for (auto* child : node->semanticChildren) 
     {
         if (child && child->semanticType != "FuncParam")
@@ -199,10 +197,10 @@ bool SemanticAnalyzer::containsReturn(ParseTreeNode* node)
 }
 
 // 检查变量声明
-void SemanticAnalyzer::checkVarDecl(ParseTreeNode* node, const std::string& currentFunctionReturnType) 
+void SemanticAnalyzer::checkVarDecl(ParseTreeNode* node, const string& currentFunctionReturnType) 
 {
-    std::cout << "[SEMANTIC-CHECK] Checking VarDecl: " << node->varName 
-              << " (isConst: " << node->isConst << ")" << std::endl;
+    cout << "[SEMANTIC-CHECK] Checking VarDecl: " << node->varName 
+              << " (isConst: " << node->isConst << ")" << endl;
     
     Symbol varSymbol;
     varSymbol.name = node->varName;
@@ -230,7 +228,7 @@ void SemanticAnalyzer::checkVarDecl(ParseTreeNode* node, const std::string& curr
     // 初始化值的类型兼容性
     if (!node->semanticChildren.empty()) 
     {
-        std::string initType = getExprType(node->semanticChildren[0]);
+        string initType = getExprType(node->semanticChildren[0]);
         // float 可以接受 int 字面量初始化（隐式提升）
         // int 可以接受 float 初始化（截断小数部分）
         bool compatible = isTypeCompatible(node->varType, initType);
@@ -263,9 +261,9 @@ void SemanticAnalyzer::checkVarDecl(ParseTreeNode* node, const std::string& curr
 }
 
 // 检查赋值语句
-void SemanticAnalyzer::checkAssignment(ParseTreeNode* node, const std::string& currentFunctionReturnType) 
+void SemanticAnalyzer::checkAssignment(ParseTreeNode* node, const string& currentFunctionReturnType) 
 {
-    std::cout << "[SEMANTIC-CHECK] Checking Assignment to: " << node->varName << std::endl;
+    cout << "[SEMANTIC-CHECK] Checking Assignment to: " << node->varName << endl;
     
     // 变量是否已定义
     Symbol* symbol = currentScope_->lookup(node->varName);
@@ -282,7 +280,7 @@ void SemanticAnalyzer::checkAssignment(ParseTreeNode* node, const std::string& c
     // 类型兼容性
     if (!node->semanticChildren.empty()) 
     {
-        std::string exprType = getExprType(node->semanticChildren[0]);
+        string exprType = getExprType(node->semanticChildren[0]);
         // float 可以接受 int 值赋值（隐式提升）
         // int 可以接受 float 值赋值（截断小数部分，发出警告）
         bool compatible = isTypeCompatible(symbol->type, exprType);
@@ -317,8 +315,8 @@ void SemanticAnalyzer::checkAssignment(ParseTreeNode* node, const std::string& c
 // 检查函数调用
 void SemanticAnalyzer::checkFunctionCall(ParseTreeNode* node) 
 {
-    std::string funcName = node->varName;
-    std::cout << "[SEMANTIC-CHECK] Checking FunctionCall: " << funcName << std::endl;
+    string funcName = node->varName;
+    cout << "[SEMANTIC-CHECK] Checking FunctionCall: " << funcName << endl;
     
     // 函数是否已定义
     Symbol* funcSymbol = currentScope_->lookup(funcName);
@@ -333,7 +331,7 @@ void SemanticAnalyzer::checkFunctionCall(ParseTreeNode* node)
     size_t actualParams = node->semanticChildren.size();
     if (expectedParams != actualParams) 
     {
-        std::ostringstream oss;
+        ostringstream oss;
         oss << "Function '" << funcName << "' expects " << expectedParams 
             << " argument(s), but " << actualParams << " provided";
         reportError(oss.str(), node->lineNumber);
@@ -343,11 +341,11 @@ void SemanticAnalyzer::checkFunctionCall(ParseTreeNode* node)
     // 参数类型
     for (size_t i = 0; i < actualParams; i++) 
     {
-        std::string actualType = getExprType(node->semanticChildren[i]);
-        std::string expectedType = funcSymbol->paramTypes[i];
+        string actualType = getExprType(node->semanticChildren[i]);
+        string expectedType = funcSymbol->paramTypes[i];
         
-        std::cout << "[SEMANTIC-CHECK] Function '" << funcName << "' param " << (i+1) 
-                  << ": expected=" << expectedType << ", actual=" << actualType << std::endl;
+        cout << "[SEMANTIC-CHECK] Function '" << funcName << "' param " << (i+1) 
+                  << ": expected=" << expectedType << ", actual=" << actualType << endl;
         
         // float 参数可以接受 int 实参（隐式提升）
         // int 参数可以接受 float 实参（截断，警告）
@@ -362,14 +360,14 @@ void SemanticAnalyzer::checkFunctionCall(ParseTreeNode* node)
             {
                 // float → int
                 reportWarning("Implicit conversion from float to int in argument " 
-                             + std::to_string(i+1) + " of function '" + funcName 
+                             + to_string(i+1) + " of function '" + funcName 
                              + "' will truncate decimal part", node->lineNumber);
                 // 截断函数参数中的 float 值
                 truncateFloatToInt(node->semanticChildren[i]);
             }
             else 
             {
-                std::ostringstream oss;
+                ostringstream oss;
                 oss << "Function '" << funcName << "' parameter " << (i + 1) 
                     << " type mismatch: expected " << expectedType << ", got " << actualType;
                 reportError(oss.str(), node->lineNumber);
@@ -379,10 +377,10 @@ void SemanticAnalyzer::checkFunctionCall(ParseTreeNode* node)
 }
 
 // 检查返回语句
-void SemanticAnalyzer::checkReturnStmt(ParseTreeNode* node, const std::string& expectedReturnType) 
+void SemanticAnalyzer::checkReturnStmt(ParseTreeNode* node, const string& expectedReturnType) 
 {
-    std::cout << "[SEMANTIC-CHECK] Checking ReturnStmt (expected: " 
-              << expectedReturnType << ")" << std::endl;
+    cout << "[SEMANTIC-CHECK] Checking ReturnStmt (expected: " 
+              << expectedReturnType << ")" << endl;
     
     if (expectedReturnType.empty()) 
     {
@@ -402,7 +400,7 @@ void SemanticAnalyzer::checkReturnStmt(ParseTreeNode* node, const std::string& e
             reportError("Non-void function must return a value", node->lineNumber);
         else 
         {
-            std::string actualType = getExprType(node->semanticChildren[0]);
+            string actualType = getExprType(node->semanticChildren[0]);
             // float 返回值可以接受 int 表达式（隐式提升）
             // int 返回值可以接受 float 表达式（截断，警告）
             bool compatible = isTypeCompatible(expectedReturnType, actualType);
@@ -436,9 +434,9 @@ void SemanticAnalyzer::checkReturnStmt(ParseTreeNode* node, const std::string& e
 }
 
 // 检查if语句
-void SemanticAnalyzer::checkIfStmt(ParseTreeNode* node, const std::string& currentFunctionReturnType) 
+void SemanticAnalyzer::checkIfStmt(ParseTreeNode* node, const string& currentFunctionReturnType) 
 {
-    std::cout << "[SEMANTIC-CHECK] Checking IfStmt" << std::endl;
+    cout << "[SEMANTIC-CHECK] Checking IfStmt" << endl;
     
     // 递归检查if语句的子节点，传递函数返回类型
     for (auto* child : node->semanticChildren)
@@ -446,13 +444,13 @@ void SemanticAnalyzer::checkIfStmt(ParseTreeNode* node, const std::string& curre
 }
 
 // 获取表达式类型
-std::string SemanticAnalyzer::getExprType(ParseTreeNode* node) 
+string SemanticAnalyzer::getExprType(ParseTreeNode* node) 
 {
     if (!node) return "unknown";
     
     if (node->semanticType == "Number") 
     {
-        if (node->value.find('.') != std::string::npos)
+        if (node->value.find('.') != string::npos)
             return "float";
         return "int";
     }
@@ -468,8 +466,8 @@ std::string SemanticAnalyzer::getExprType(ParseTreeNode* node)
         // 二元表达式：检查两个操作数的类型
         if (node->semanticChildren.size() >= 2)
         {
-            std::string leftType = getExprType(node->semanticChildren[0]);
-            std::string rightType = getExprType(node->semanticChildren[1]);
+            string leftType = getExprType(node->semanticChildren[0]);
+            string rightType = getExprType(node->semanticChildren[1]);
             
             // 混合运算统一返回 int
             if ((leftType == "float" && rightType == "int") || 
@@ -502,7 +500,7 @@ std::string SemanticAnalyzer::getExprType(ParseTreeNode* node)
 }
 
 // 类型兼容性检查
-bool SemanticAnalyzer::isTypeCompatible(const std::string& type1, const std::string& type2) 
+bool SemanticAnalyzer::isTypeCompatible(const string& type1, const string& type2) 
 {
     if (type1 == type2) return true;
     
@@ -513,12 +511,12 @@ bool SemanticAnalyzer::isTypeCompatible(const std::string& type1, const std::str
 }
 
 // 检查整数溢出
-bool SemanticAnalyzer::checkIntOverflow(const std::string& value) 
+bool SemanticAnalyzer::checkIntOverflow(const string& value) 
 {
     if (value.empty()) return true;
     
     try {
-        std::string absValue = value;
+        string absValue = value;
         bool isNegative = false;
         if (absValue[0] == '-') 
         {
@@ -528,7 +526,7 @@ bool SemanticAnalyzer::checkIntOverflow(const std::string& value)
         else if (absValue[0] == '+')
             absValue = absValue.substr(1);
         
-        long long num = std::stoll(absValue);
+        long long num = stoll(absValue);
         if (isNegative)
             num = -num;
         
@@ -536,7 +534,7 @@ bool SemanticAnalyzer::checkIntOverflow(const std::string& value)
             return false;
         
         return true;
-    } catch (const std::exception& e) {
+    } catch (const exception& e) {
         return false;  // 转换失败，说明溢出
     }
 }
@@ -547,14 +545,14 @@ void SemanticAnalyzer::truncateFloatToInt(ParseTreeNode* node)
     if (!node) return;
     
     // 如果是 Number 节点，直接截断 value
-    if (node->semanticType == "Number" && node->value.find('.') != std::string::npos) 
+    if (node->semanticType == "Number" && node->value.find('.') != string::npos) 
     {
         try {
-            float floatVal = std::stof(node->value);
+            float floatVal = stof(node->value);
             int intVal = static_cast<int>(floatVal);  // 截断
-            node->value = std::to_string(intVal);
-            std::cout << "[SEMANTIC-TRUNCATE] Truncated float value to int: " 
-                     << floatVal << " -> " << intVal << std::endl;
+            node->value = to_string(intVal);
+            cout << "[SEMANTIC-TRUNCATE] Truncated float value to int: " 
+                     << floatVal << " -> " << intVal << endl;
         } catch (...) {
             // 转换失败，保持原值
         }

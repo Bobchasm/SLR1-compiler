@@ -15,7 +15,7 @@
 using namespace std;
 
 // 全局原始cout buffer，由main.cpp初始化，parser.cpp使用
-extern std::streambuf* g_originalCoutBuffer;
+extern streambuf* g_originalCoutBuffer;
 
 const string EPSILON = "$";
 const string END_MARKER = "EOF";

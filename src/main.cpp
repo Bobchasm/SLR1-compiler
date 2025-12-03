@@ -13,17 +13,17 @@
 using namespace std;
 
 // 全局变量：保存原始的cout buffer（去除static，在parse.h中声明为extern）
-std::streambuf* g_originalCoutBuffer = nullptr;
+streambuf* g_originalCoutBuffer = nullptr;
 
-// 输出到终端的辅助函数（绕过日志重定向）
+// 输出到终端的辅助函数（绕过日志重定向，与语法分析那里一样的，只是懒得把它变成公共的，直接搬了一遍）
 void printToConsole(const string& message) 
 {
     if (g_originalCoutBuffer) 
     {
-        std::streambuf* currentBuffer = std::cout.rdbuf();
-        std::cout.rdbuf(g_originalCoutBuffer);  // 临时恢复到终端
+        streambuf* currentBuffer = cout.rdbuf();
+        cout.rdbuf(g_originalCoutBuffer);  // 临时恢复到终端
         cout << message;
-        std::cout.rdbuf(currentBuffer);  // 恢复日志重定向
+        cout.rdbuf(currentBuffer);  // 恢复日志重定向
     } 
     else
         cout << message;  // 如果还没重定向，直接输出
@@ -74,10 +74,10 @@ int main(int argc, char* argv[])
     string logFilename = "logs/log_" + string(timestamp) + ".txt";
     
     // 保存原始cout buffer
-    g_originalCoutBuffer = std::cout.rdbuf();
+    g_originalCoutBuffer = cout.rdbuf();
     
     // 打开日志文件
-    std::ofstream logFile(logFilename, ios::out | ios::trunc);
+    ofstream logFile(logFilename, ios::out | ios::trunc);
     
     if (logFile.is_open()) 
     {
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
         logFile << endl;
         
         // 重定向 cout 到日志文件
-        std::cout.rdbuf(logFile.rdbuf());
+        cout.rdbuf(logFile.rdbuf());
 
         printToConsole("[DEBUG] Logs saved to " + logFilename + "\n");
     }
@@ -128,10 +128,10 @@ int main(int argc, char* argv[])
         
         // 输出错误列表到终端
         if (g_originalCoutBuffer) {
-            std::streambuf* currentBuffer = std::cout.rdbuf();
-            std::cout.rdbuf(g_originalCoutBuffer);
+            streambuf* currentBuffer = cout.rdbuf();
+            cout.rdbuf(g_originalCoutBuffer);
             semanticAnalyzer.printErrors();
-            std::cout.rdbuf(currentBuffer);
+            cout.rdbuf(currentBuffer);
         } else {
             semanticAnalyzer.printErrors();
         }

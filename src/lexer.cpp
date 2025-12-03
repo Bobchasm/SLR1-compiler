@@ -1013,7 +1013,7 @@ void createDirectoryIfNotExists(const string &path)
  */
 void exportDFATransitionMatrix(const DFA &dfa, const string &filename)
 {
-    createDirectoryIfNotExists(TRANSITION_MATRIX_PATH);
+    // createDirectoryIfNotExists(TRANSITION_MATRIX_PATH);
 
     ofstream csvFile(filename);
     if (!csvFile.is_open())
@@ -1118,7 +1118,7 @@ extern "C"
         
         if (!test_case_path.empty() && !test_file_name.empty())
         {
-            createDirectoryIfNotExists(test_case_path);
+            // createDirectoryIfNotExists(test_case_path);
             
             string base_name = test_file_name;
             size_t dot_pos = base_name.find_last_of('.');
@@ -1130,7 +1130,7 @@ extern "C"
             if (!token_output_file.is_open())
                 cout << "Warning: Cannot create token output file: " << output_path << endl;
             else
-                cout << "[LEXER] Token output file: " << output_path << endl;
+                cout << "[LEXER] Token output file saved to: " << output_path << endl;
         }
     }
 

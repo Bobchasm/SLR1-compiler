@@ -15,6 +15,7 @@ BUILD_DIR = build
 PROCESS_DIR = process
 IR_LIB_DIR = ir_lib
 LOGS_DIR = logs
+CASE_DIR = case
 
 LEXER_SRC = $(SRC_DIR)/lexer.cpp
 LEXER_OBJ = $(BUILD_DIR)/lexer.o
@@ -65,6 +66,9 @@ $(LOGS_DIR):
 
 $(OUTPUT_DIR):
 	@if not exist "$(OUTPUT_DIR)" mkdir "$(OUTPUT_DIR)"
+
+$(CASE_DIR):
+	@if not exist "$(CASE_DIR)" mkdir "$(CASE_DIR)"
 
 # ====================== IR库 =======================
 $(IR_LIB): $(BUILD_DIR) $(IR_LIB_OBJS)

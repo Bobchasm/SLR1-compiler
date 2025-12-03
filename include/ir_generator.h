@@ -15,6 +15,8 @@
 #include "../ir_lib/include/Value.h"
 #include "symbol_table.h"
 
+using namespace std;
+
 // 前向声明ParseTreeNode，避免包含parse.h导致全局变量重复定义
 struct ParseTreeNode;
 
@@ -41,12 +43,12 @@ public:
     ~IRGenerator();
 
     // 直接从ParseTreeNode生成IR
-    std::string generateFromParseTree(ParseTreeNode* parseTree, const std::string& source_file = "");
+    string generateFromParseTree(ParseTreeNode* parseTree, const string& source_file = "");
 
 private:
-    std::string new_temp();
+    string new_temp();
     void set_current_block(BasicBlock* bb);
-    Type* convert_type(const std::string& type_name);
+    Type* convert_type(const string& type_name);
     void declare_builtin_functions();
 
     // ParseTreeNode访问方法
@@ -57,8 +59,8 @@ private:
     void handleAssignment(ParseTreeNode* node);
     void handleIfStatement(ParseTreeNode* node);
     Value* handleLVal(ParseTreeNode* node);
-    void collectFunctionParams(ParseTreeNode* node, std::vector<Type*>& param_types, std::vector<std::string>& param_names);
-    void collectFuncFParamList(ParseTreeNode* node, std::vector<Type*>& param_types, std::vector<std::string>& param_names);
+    void collectFunctionParams(ParseTreeNode* node, vector<Type*>& param_types, vector<string>& param_names);
+    void collectFuncFParamList(ParseTreeNode* node, vector<Type*>& param_types, vector<string>& param_names);
     Value* handleBinaryExpr(ParseTreeNode* node);
     Value* handleRelExpr(ParseTreeNode* node);
     Value* handleEqExpr(ParseTreeNode* node);

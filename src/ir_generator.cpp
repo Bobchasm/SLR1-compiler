@@ -185,7 +185,7 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
     
     // 【修改点1：修复全局变量重复生成问题】
     // 使用集合记录已处理的全局变量，避免重复
-    std::set<std::string> processed_globals;
+    set<string> processed_globals;
     int globalVarCount = 0;
     for (auto* child : node->semanticChildren) {
         if (child) {
@@ -267,7 +267,7 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
 
             /* ===== 浮点支持 ===== */
             if (node->varType == "float") {
-                float val = node->initValue.empty() ? 0.0f : std::stof(node->initValue);
+                float val = node->initValue.empty() ? 0.0f : stof(node->initValue);
                 init_value = ConstantFloat::get(val, module_);
             } else {   // int
                 int val = node->initValue.empty() ? 0 : stoi(node->initValue);
@@ -306,7 +306,7 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
                     /* ===== 浮点支持 ===== */
                     Constant* init_val = nullptr;
                     if (node->varType == "float") {
-                        init_val = ConstantFloat::get(std::stof(node->initValue), module_);
+                        init_val = ConstantFloat::get(stof(node->initValue), module_);
                     } else {
                         init_val = ConstantInt::get(stoi(node->initValue), module_);
                     }
@@ -411,19 +411,19 @@ Value* IRGenerator::visitParseTreeExpr(ParseTreeNode* node) {
         /* ===== 浮点支持 ===== */
         // 首先检查varType字段
         if (node->varType == "float") {          // 根据语义分析后的类型
-            float val = std::stof(node->value);
+            float val = stof(node->value);
             return ConstantFloat::get(val, module_);
         } 
         // 如果varType不是float，尝试通过值的内容判断类型
-        else if (node->value.find('.') != std::string::npos || 
-                 node->value.find('e') != std::string::npos || 
-                 node->value.find('E') != std::string::npos) {  // 包含小数点或科学计数法
-            float val = std::stof(node->value);
+        else if (node->value.find('.') != string::npos || 
+                 node->value.find('e') != string::npos || 
+                 node->value.find('E') != string::npos) {  // 包含小数点或科学计数法
+            float val = stof(node->value);
             return ConstantFloat::get(val, module_);
         } 
         // 默认为整数
         else {
-            int val = std::stoi(node->value);
+            int val = stoi(node->value);
             return ConstantInt::get(val, module_);
         }
     }
