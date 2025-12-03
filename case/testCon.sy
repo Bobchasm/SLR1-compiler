@@ -1,0 +1,8 @@
+void main(){
+ float a = 0.1;
+float b = 0.2;
+float c = 0.3;
+if (a + b == c) {     // 可能为false: 0.1+0.2≠0.3
+    // ...
+}
+}

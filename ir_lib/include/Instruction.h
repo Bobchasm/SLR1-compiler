@@ -39,6 +39,7 @@ public:
     call,
     getelementptr,
     zext, // zero extend
+    sitofp, // signed integer to float
     // float binary operators
     fadd,
     fsub,
@@ -697,6 +698,23 @@ public:
 
   virtual std::string print() override;
   virtual Instruction *deepcopy(BasicBlock *parent) override;
+};
+
+//-------------- 整数到浮点数转换指令 --------------
+class SitofpInst : public Instruction {
+private:
+  SitofpInst(OpID op, Value *val, Type *ty, BasicBlock *bb);
+  SitofpInst(Type *ty, BasicBlock *bb);
+
+public:
+  static SitofpInst *create_sitofp(Value *val, Type *ty, BasicBlock *bb);
+  Type *get_dest_type() const;
+
+  virtual std::string print() override;
+  virtual Instruction *deepcopy(BasicBlock *parent) override;
+
+private:
+  Type *dest_ty_;
 };
 
 #endif // SYSYC_INSTRUCTION_H

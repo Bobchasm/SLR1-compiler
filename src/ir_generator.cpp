@@ -343,15 +343,18 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
             if (i < param_names.size()) {
                 arg->set_name(param_names[i]);
                 AllocaInst* alloca = builder_->create_alloca(param_types[i]);
-                alloca->set_name(param_names[i]);
+                // 为alloca变量添加前缀以避免与参数名冲突
+                alloca->set_name("_" + param_names[i]);
                 builder_->create_store(arg, alloca);
                 symbol_table_->put(param_names[i], alloca);
                 ++i;
             }
         }
         for (auto* child : node->semanticChildren) {
-            if (child && child->semanticType != "FuncParam")
+            if (child && child->semanticType != "FuncParam") {
+                cout << "[IRGEN] Function body processing child with type: " << child->semanticType << endl;
                 visitParseTreeNode(child);
+            }
         }
         if (current_block_ && !current_block_->get_terminator()) {
             if (return_type->is_void_type()) {
@@ -394,9 +397,39 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
     else if (node->semanticType == "IfStmt") {
         handleIfStatement(node);
     }
+    else if (node->semanticType == "FunctionCall") {
+        // 处理函数调用语句
+        cout << "[IRGEN] Processing FunctionCall: " << node->varName << endl;
+        Value* callValue = visitParseTreeExpr(node);
+        if (callValue) {
+            cout << "[IRGEN] FunctionCall generated value of type: " << callValue->get_type()->print() << endl;
+        } else {
+            cout << "[IRGEN] FunctionCall returned nullptr" << endl;
+        }
+        // 对于void返回类型的函数调用，不需要做任何额外处理
+        // 对于有返回值的函数调用，返回值会被忽略（作为表达式语句）
+    }
     else {
-        for (auto* child : node->semanticChildren)
+        // 检查是否是表达式语句（如函数调用）
+        if (!node->semanticType.empty()) {
+            cout << "[IRGEN] Processing unknown node type: " << node->semanticType << endl;
+            // 尝试作为表达式处理
+            Value* exprValue = visitParseTreeExpr(node);
+            if (exprValue) {
+                cout << "[IRGEN] Expression returned value of type: " << exprValue->get_type()->print() << endl;
+            } else {
+                cout << "[IRGEN] Expression returned nullptr" << endl;
+            }
+            // 如果是函数调用且有返回值，可能需要处理返回值
+            // 但如果函数返回void，则不需要做任何事情
+        } else {
+            cout << "[IRGEN] Processing node with empty semanticType" << endl;
+        }
+        
+        // 递归处理子节点
+        for (auto* child : node->semanticChildren) {
             visitParseTreeNode(child);
+        }
     }
     } catch (...) {
         // 异常处理逻辑
@@ -517,17 +550,49 @@ Value* IRGenerator::visitParseTreeExpr(ParseTreeNode* node) {
         
     }
     if (node->semanticType == "FunctionCall") {
+        cout << "[IRGEN] visitParseTreeExpr processing FunctionCall: " << node->varName << endl;
         /* 原函数调用逻辑无改动 */
         string funcName = node->varName;
-        vector<Value*> args;
-        for (auto* arg : node->semanticChildren) {
-            Value* v = visitParseTreeExpr(arg);
-            if (v) args.push_back(v);
-        }
         Function* func = nullptr;
         for (auto* f : module_->get_functions())
             if (f->get_name() == funcName) { func = f; break; }
-        if (!func) return nullptr;
+        if (!func) {
+            cout << "[IRGEN] Function not found: " << funcName << endl;
+            return nullptr;
+        }
+        
+        // 获取函数参数类型
+        auto funcType = func->get_function_type();
+        unsigned numParams = funcType->get_num_of_args();
+        
+        cout << "[IRGEN] Function " << funcName << " has " << numParams << " parameters" << endl;
+        
+        vector<Value*> args;
+        for (size_t i = 0; i < node->semanticChildren.size() && i < numParams; i++) {
+            cout << "[IRGEN] Processing argument " << i << endl;
+            Value* v = visitParseTreeExpr(node->semanticChildren[i]);
+            if (v) {
+                cout << "[IRGEN] Argument " << i << " has type: " << v->get_type()->print() << endl;
+                // 检查是否需要类型转换
+                Type* paramType = funcType->get_param_type(i);
+                Type* argType = v->get_type();
+                
+                cout << "[IRGEN] Parameter " << i << " expected type: " << paramType->print() << endl;
+                
+                // 整数到浮点数的转换
+                if (argType->is_int32_type() && paramType->is_float_type()) {
+                    // 创建sitofp指令进行类型转换
+                    cout << "[IRGEN] Converting int to float" << endl;
+                    Value* converted = builder_->create_sitofp(v, paramType);
+                    args.push_back(converted);
+                } else {
+                    args.push_back(v);
+                }
+            } else {
+                cout << "[IRGEN] Argument " << i << " is null" << endl;
+            }
+        }
+        cout << "[IRGEN] Creating call to " << funcName << " with " << args.size() << " arguments" << endl;
         return builder_->create_call(func, args);
     }
     /* 其余表达式节点按原逻辑处理 */

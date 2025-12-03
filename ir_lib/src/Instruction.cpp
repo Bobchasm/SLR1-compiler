@@ -750,3 +750,43 @@ Instruction *FCmpInst::deepcopy(BasicBlock *parent) {
   return n;
 }
 // ----------------------------------------
+
+//================ SitofpInst 实现 ================//
+
+/* 带操作数的构造 */
+SitofpInst::SitofpInst(OpID op, Value *val, Type *ty, BasicBlock *bb)
+    : Instruction(ty, op, 1, bb), dest_ty_(ty) {
+  set_operand(0, val);
+}
+
+/* 0-operand 构造，仅供 deepcopy 使用 */
+SitofpInst::SitofpInst(Type *ty, BasicBlock *bb)
+    : Instruction(ty, Instruction::sitofp, 1, bb), dest_ty_(ty) {}
+
+/* 工厂函数 */
+SitofpInst *SitofpInst::create_sitofp(Value *val, Type *ty, BasicBlock *bb) {
+  return new SitofpInst(Instruction::sitofp, val, ty, bb);
+}
+
+Type *SitofpInst::get_dest_type() const {
+  return dest_ty_;
+}
+
+/* print */
+std::string SitofpInst::print() {
+  std::string s;
+  s += "%" + get_name() + " = sitofp " 
+    + get_operand(0)->get_type()->print() + " "
+    + print_as_op(get_operand(0), false) + " to "
+    + get_dest_type()->print();
+  return s;
+}
+
+/* deepcopy */
+Instruction *SitofpInst::deepcopy(BasicBlock *parent) {
+  auto *n = new SitofpInst(dest_ty_, parent);
+  for (unsigned i = 0; i < get_num_operand(); ++i)
+    n->set_operand(i, get_operand(i));
+  return n;
+}
+// ----------------------------------------
