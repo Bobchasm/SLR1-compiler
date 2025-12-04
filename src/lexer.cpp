@@ -1082,6 +1082,14 @@ void exportDFATransitionMatrix(const DFA &dfa, const string &filename)
     cout << "[LEXER] DFA state transition matrix has exported to " << filename << endl;
 }
 
+string toLowerCase(const std::string& str) 
+{
+    string result = str;
+    for (char& c : result)
+        c = tolower(static_cast<unsigned char>(c));
+    return result;
+}
+
 
 // ==================== 封装接口 ====================
 #include "lexer.h"
@@ -1159,7 +1167,8 @@ extern "C"
         }
 
         // 词法分析输出要求main被当成关键字，但是语法分析器还是当成表示符好一点，只能这样了哈哈哈
-        bool isMain = tokenText == "main";
+        
+        bool isMain = toLowerCase(tokenText) == "main";
 
         strncpy(token.text, tokenText.c_str(), 255);
         token.text[255] = '\0';

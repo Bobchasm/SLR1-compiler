@@ -15,13 +15,13 @@ void main() {
     // 正确调用
     int result1 = addInt(5, 10);
     
-    // 错误：传递float给int参数
+    // 警告：传递float给int参数
     int result2 = addInt(y, 10);
     
-    // 错误：传递int给float参数
+    // 警告：传递int给float参数
     float result3 = addFloat(x, 3.14);
     
-    // 错误：混合类型
+    // 警告：混合类型
     int result4 = addInt(x, y);
     
     return;
