@@ -408,8 +408,8 @@ void buildParseDFA()
         
         vector<Item> currentItems = dfa.states[currentStateNum].items;
         
-        cout << "[DEBUG] Processing state I" << currentStateNum 
-             << " (" << currentItems.size() << " items)" << endl;
+        //cout << "[DEBUG] Processing state I" << currentStateNum 
+        //     << " (" << currentItems.size() << " items)" << endl;
         
         // 对每个符号计算 GOTO
         int transitionsFromThisState = 0;
@@ -444,8 +444,8 @@ void buildParseDFA()
                 stateMap[gotoItems] = targetStateNum;
                 workQueue.push(targetStateNum);
                 
-                cout << "[PARSER] Created new state I" << targetStateNum 
-                     << " with " << gotoItems.size() << " items via symbol '" << symbol << "'" << endl;
+                //cout << "[PARSER] Created new state I" << targetStateNum 
+                //     << " with " << gotoItems.size() << " items via symbol '" << symbol << "'" << endl;
             }
             
             // 添加转换：currentState --[symbol]--> targetState
@@ -453,7 +453,7 @@ void buildParseDFA()
         }
         
         if (transitionsFromThisState == 0) {
-            cout << "[DEBUG] State I" << currentStateNum << " has no outgoing transitions!" << endl;
+            //cout << "[DEBUG] State I" << currentStateNum << " has no outgoing transitions!" << endl;
         }
     }
     
@@ -1002,12 +1002,12 @@ void initGrammar()
 
     cout << "[DEBUG] Productions: " << grammar.productions.size() << ", Nonterminals: " << grammar.nonterminals.size() << endl;
     
-    cout << "[DEBUG] Nonterminals:" << endl;
-    int count = 0;
-    for (const auto& nt : grammar.nonterminals) {
-        cout << nt.second << "  " << nt.first << endl;
-        ++count;
-    }
+    // cout << "[DEBUG] Nonterminals:" << endl;
+    // int count = 0;
+    // for (const auto& nt : grammar.nonterminals) {
+    //     cout << nt.second << "  " << nt.first << endl;
+    //     ++count;
+    // }
 
     buildParseDFA();
     buildAnalysisTable();
@@ -1079,8 +1079,8 @@ private:
     {
         if (!node) return;
         
-        cout << "[COLLECT] Node: " << node->symbol << ", semanticType: '" 
-             << node->semanticType << "', children: " << node->children.size() << endl;
+        //cout << "[COLLECT] Node: " << node->symbol << ", semanticType: '" 
+        //     << node->semanticType << "', children: " << node->children.size() << endl;
         
         // 如果当前节点有语义类型，检查是否可以优化
         if (!node->semanticType.empty())
@@ -1103,14 +1103,14 @@ private:
                 }
                 foldedNode->semanticChildren.clear();
                 
-                cout << "[COLLECT] Folded UnaryExp " << node->operatorType 
-                     << " into Number: " << foldedNode->value << endl;
+                //cout << "[COLLECT] Folded UnaryExp " << node->operatorType 
+                //     << " into Number: " << foldedNode->value << endl;
                 result.push_back(foldedNode);
             }
             else
             {
-                cout << "[COLLECT] Adding node with semanticType: " << node->semanticType 
-                     << ", varName: " << node->varName << ", ptr: " << (void*)node << endl;
+                //cout << "[COLLECT] Adding node with semanticType: " << node->semanticType 
+                //     << ", varName: " << node->varName << ", ptr: " << (void*)node << endl;
                 result.push_back(node);
             }
         }
@@ -1142,8 +1142,8 @@ private:
         if (!children.empty() && children[0])
             node->lineNumber = children[0]->lineNumber;
         
-        cout << "[SEMANTIC] Filling attributes for production " << originalIndex 
-             << " (" << node->symbol << ")" << endl;
+        //cout << "[SEMANTIC] Filling attributes for production " << originalIndex 
+        //     << " (" << node->symbol << ")" << endl;
         
         switch (originalIndex) 
         {
@@ -1151,7 +1151,7 @@ private:
             case 1:
             {
                 node->semanticType = "Program";
-                cout << "[SEMANTIC] Set Program semanticType" << endl;
+                //cout << "[SEMANTIC] Set Program semanticType" << endl;
                 
                 // 从compUnit中收集所有语义子节点
                 vector<ParseTreeNode*> semanticChildren;
@@ -1161,27 +1161,27 @@ private:
                         collectSemanticChildren(child, semanticChildren);
                 }
                 node->semanticChildren = semanticChildren;
-                cout << "[SEMANTIC] Program collected " << semanticChildren.size() << " semantic children" << endl;
+                //cout << "[SEMANTIC] Program collected " << semanticChildren.size() << " semantic children" << endl;
                 break;
             }
             
             // 2-6.compUnit 相关：收集所有声明和函数定义
             case 2:
             {
-                cout << "[SEMANTIC] Processing compUnit, children count: " << children.size() << endl;
+                //cout << "[SEMANTIC] Processing compUnit, children count: " << children.size() << endl;
                 // compUnit_list
                 ParseTreeNode* listNode = findChild(children, "compUnit_list");
                 if (listNode)
                 {
-                    cout << "[SEMANTIC] Found compUnit_list, collecting semantic children" << endl;
+                    //cout << "[SEMANTIC] Found compUnit_list, collecting semantic children" << endl;
                     // 递归收集 compUnit_list 中所有有语义的节点
                     vector<ParseTreeNode*> semanticChildren;
                     collectSemanticChildren(listNode, semanticChildren);
-                    cout << "[SEMANTIC] Collected " << semanticChildren.size() << " semantic children" << endl;
+                    //cout << "[SEMANTIC] Collected " << semanticChildren.size() << " semantic children" << endl;
                     node->semanticChildren = semanticChildren;  // 使用semanticChildren，不修改children
                 }
                 else
-                    cout << "[SEMANTIC] WARNING: compUnit_list not found!" << endl;
+                    //cout << "[SEMANTIC] WARNING: compUnit_list not found!" << endl;
                 break;
             }
             case 3:  // compUnit_list -> compUnit_list compUnit_item
@@ -1304,7 +1304,7 @@ private:
             // 17.varDecl -> bType varDef (',' varDef)* ';'
             case 17:
             {
-                cout << "[SEMANTIC] Processing varDecl" << endl;
+                //cout << "[SEMANTIC] Processing varDecl" << endl;
                 ParseTreeNode* bTypeNode = findChild(children, "bType");
                 
                 if (bTypeNode)
@@ -1317,7 +1317,7 @@ private:
                             varDefNodes.push_back(child);
                     }
                     
-                    cout << "[SEMANTIC] Found " << varDefNodes.size() << " varDef nodes" << endl;
+                    //cout << "[SEMANTIC] Found " << varDefNodes.size() << " varDef nodes" << endl;
                     
                     if (!varDefNodes.empty())
                     {
@@ -1341,10 +1341,10 @@ private:
                                 node->semanticChildren.clear();
                             }
                             
-                            cout << "[SEMANTIC] Created VarDecl: " << node->varType << " " 
-                                 << node->varName << " = " << node->initValue 
-                                 << " (isGlobal=" << node->isGlobal 
-                                 << ", semanticChildren.size()=" << node->semanticChildren.size() << ")" << endl;
+                            //cout << "[SEMANTIC] Created VarDecl: " << node->varType << " " 
+                            //     << node->varName << " = " << node->initValue 
+                            //     << " (isGlobal=" << node->isGlobal 
+                            //     << ", semanticChildren.size()=" << node->semanticChildren.size() << ")" << endl;
                         }
                         else
                         {
@@ -1365,9 +1365,9 @@ private:
                                 
                                 node->semanticChildren.push_back(varDeclNode);
                                 
-                                cout << "[SEMANTIC] Created VarDecl: " << varDeclNode->varType << " " 
-                                     << varDeclNode->varName << " = " << varDeclNode->initValue 
-                                     << " (isGlobal=" << varDeclNode->isGlobal << ")" << endl;
+                                //cout << "[SEMANTIC] Created VarDecl: " << varDeclNode->varType << " " 
+                                //     << varDeclNode->varName << " = " << varDeclNode->initValue 
+                                //     << " (isGlobal=" << varDeclNode->isGlobal << ")" << endl;
                             }
                         }
                     }
@@ -1402,9 +1402,9 @@ private:
                     // 收集语义子节点（用于复杂表达式）
                     collectSemanticChildren(initValNode, node->semanticChildren);
                     
-                    cout << "[SEMANTIC] varDef (case 21): varName='" << node->varName 
-                         << "', initValue='" << node->initValue 
-                         << "', semanticChildren.size()=" << node->semanticChildren.size() << endl;
+                    //cout << "[SEMANTIC] varDef (case 21): varName='" << node->varName 
+                    //     << "', initValue='" << node->initValue 
+                    //     << "', semanticChildren.size()=" << node->semanticChildren.size() << endl;
                 }
                 break;
             }
@@ -1430,7 +1430,7 @@ private:
                         collectSemanticChildren(funcFParamsOpt, paramNodes);
                         node->semanticChildren.insert(node->semanticChildren.end(), 
                                                       paramNodes.begin(), paramNodes.end());
-                        cout << "[SEMANTIC] FunctionDef collected " << paramNodes.size() << " parameters" << endl;
+                        //cout << "[SEMANTIC] FunctionDef collected " << paramNodes.size() << " parameters" << endl;
                     }
                     
                     // 将 block 的语义子节点添加为当前节点的语义子节点
@@ -1440,7 +1440,7 @@ private:
                         collectSemanticChildren(blockNode, semanticChildren);
                         node->semanticChildren.insert(node->semanticChildren.end(), 
                                                       semanticChildren.begin(), semanticChildren.end());
-                        cout << "[SEMANTIC] FunctionDef collected " << semanticChildren.size() << " semantic children from block" << endl;
+                        //cout << "[SEMANTIC] FunctionDef collected " << semanticChildren.size() << " semantic children from block" << endl;
                     }
                     
                     // 将所有从block收集的VarDecl设置为局部变量
@@ -1449,7 +1449,7 @@ private:
                         if (child && child->semanticType == "VarDecl")
                         {
                             child->isGlobal = false;
-                            cout << "[SEMANTIC] Set VarDecl '" << child->varName << "' to local" << endl;
+                            //cout << "[SEMANTIC] Set VarDecl '" << child->varName << "' to local" << endl;
                         }
                     }
                     
@@ -1472,7 +1472,7 @@ private:
                     node->varName = identNode->value;
                     node->semanticChildren.clear();
                     
-                    cout << "[SEMANTIC] Created FuncParam: " << node->varType << " " << node->varName << endl;
+                    //cout << "[SEMANTIC] Created FuncParam: " << node->varType << " " << node->varName << endl;
                 }
                 break;
             }
@@ -1585,7 +1585,7 @@ private:
                     }
                 }
                 
-                cout << "[SEMANTIC] Created IfStmt with " << node->semanticChildren.size() << " branches" << endl;
+                //cout << "[SEMANTIC] Created IfStmt with " << node->semanticChildren.size() << " branches" << endl;
                 break;
             }
             
@@ -1679,8 +1679,8 @@ private:
                     collectSemanticChildren(funcRParamsOpt, node->semanticChildren);
                 }
                 
-                cout << "[SEMANTIC] Created FunctionCall: " << node->varName 
-                     << " with " << node->semanticChildren.size() << " arguments" << endl;
+                //cout << "[SEMANTIC] Created FunctionCall: " << node->varName 
+                //     << " with " << node->semanticChildren.size() << " arguments" << endl;
                 break;
             }
             
@@ -1716,14 +1716,14 @@ private:
                             node->value = operands[0]->value;
                         }
                         node->semanticChildren.clear();
-                        cout << "[SEMANTIC] Folded UnaryExp " << op << " into Number: " << node->value << endl;
+                        //cout << "[SEMANTIC] Folded UnaryExp " << op << " into Number: " << node->value << endl;
                     }
                     else
                     {
                         node->semanticType = "UnaryExp";
                         node->operatorType = op;
                         node->semanticChildren = operands;
-                        cout << "[SEMANTIC] Created UnaryExp: " << node->operatorType << endl;
+                        //cout << "[SEMANTIC] Created UnaryExp: " << node->operatorType << endl;
                     }
                 }
                 break;
@@ -1779,8 +1779,8 @@ private:
                         collectSemanticChildren(children[2], node->semanticChildren);
                 }
                 
-                cout << "[SEMANTIC] Created BinaryExpr: " << op << " with " 
-                     << node->semanticChildren.size() << " operands" << endl;
+                //cout << "[SEMANTIC] Created BinaryExpr: " << op << " with " 
+                //     << node->semanticChildren.size() << " operands" << endl;
                 break;
             }
             
@@ -1965,8 +1965,8 @@ public:
                 // 符号不在文法中，错误
                 cout << "[PARSER] Error: Unknown symbol '" << currentSymbol << "'" << endl;
                 // 输出到终端的错误信息
-                std::ostringstream errorMsg;
-                errorMsg << "[Line " << currentToken.lineNumber << "] Bad token " << currentSymbol << endl;
+                ostringstream errorMsg;
+                errorMsg << "[Line " << currentToken.lineNumber << "] Syntax Error: Unexpected token '" << currentSymbol << "'" << endl;
                 printToConsoleParse(errorMsg.str());
                 
                 if (parseLog.is_open()) 
@@ -2163,8 +2163,8 @@ public:
                 cout << "[PARSER] Error: No valid action for state " << currentState 
                      << ", symbol '" << currentSymbol << "'" << endl;
                 // 输出到终端的错误信息
-                std::ostringstream errorMsg;
-                errorMsg << "[Line " << currentToken.lineNumber << "] Syntactic error.\n\n";
+                ostringstream errorMsg;
+                errorMsg << "[Line " << currentToken.lineNumber << "] Syntax Error: Unexpected '" << currentSymbol << "' (expecting valid expression or statement)\n\n";
                 printToConsoleParse(errorMsg.str());
                 
                 if (parseLog.is_open()) 
