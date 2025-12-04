@@ -1702,13 +1702,10 @@ private:
                     vector<ParseTreeNode*> operands;
                     collectSemanticChildren(unaryExpNode, operands);
                     
-                    // Optimization: if operand is a single Number constant and operator is + or -,
-                    // fold the sign into the number value directly
                     if (!operands.empty() && operands.size() == 1 && 
                         operands[0]->semanticType == "Number" && 
                         (op == "+" || op == "-"))
                     {
-                        // Fold constant: create a Number node with signed value
                         node->semanticType = "Number";
                         if (op == "-")
                         {
@@ -1723,7 +1720,6 @@ private:
                     }
                     else
                     {
-                        // General case: create UnaryExp node
                         node->semanticType = "UnaryExp";
                         node->operatorType = op;
                         node->semanticChildren = operands;

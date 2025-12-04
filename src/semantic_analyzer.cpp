@@ -256,8 +256,11 @@ void SemanticAnalyzer::checkVarDecl(ParseTreeNode* node, const string& currentFu
     }
     
     // 递归检查初始化表达式中的语义（如FunctionCall）
-    for (auto* child : node->semanticChildren)
+    for (auto* child : node->semanticChildren) {
+        // 在分析子节点之前，确保Number节点的类型与变量声明一致
+        setNumberNodeType(child, node->varType);
         analyze(child, currentFunctionReturnType);
+    }
 }
 
 // 检查赋值语句
@@ -307,8 +310,11 @@ void SemanticAnalyzer::checkAssignment(ParseTreeNode* node, const string& curren
         }
         
         // 递归检查赋值表达式中的语义（如FunctionCall）
-        for (auto* child : node->semanticChildren)
+        for (auto* child : node->semanticChildren) {
+            // 在分析子节点之前，确保Number节点的类型与变量声明一致
+            setNumberNodeType(child, symbol->type);
             analyze(child, currentFunctionReturnType);
+        }
     }
 }
 
@@ -341,6 +347,8 @@ void SemanticAnalyzer::checkFunctionCall(ParseTreeNode* node)
     // 参数类型
     for (size_t i = 0; i < actualParams; i++) 
     {
+        // 在检查参数类型之前，确保Number节点的类型与参数类型一致
+        setNumberNodeType(node->semanticChildren[i], funcSymbol->paramTypes[i]);
         string actualType = getExprType(node->semanticChildren[i]);
         string expectedType = funcSymbol->paramTypes[i];
         
@@ -429,8 +437,11 @@ void SemanticAnalyzer::checkReturnStmt(ParseTreeNode* node, const string& expect
     }
     
     // 递归检查返回表达式中的语义（如FunctionCall）
-    for (auto* child : node->semanticChildren)
+    for (auto* child : node->semanticChildren) {
+        // 在分析子节点之前，确保Number节点的类型与返回类型一致
+        setNumberNodeType(child, expectedReturnType);
         analyze(child, expectedReturnType);
+    }
 }
 
 // 检查if语句
@@ -562,5 +573,24 @@ void SemanticAnalyzer::truncateFloatToInt(ParseTreeNode* node)
     for (auto* child : node->semanticChildren) 
     {
         truncateFloatToInt(child);
+    }
+}
+
+// 设置 Number 节点的类型
+void SemanticAnalyzer::setNumberNodeType(ParseTreeNode* node, const std::string& targetType) 
+{
+    if (!node) return;
+    
+    // 如果是 Number 节点，设置其 varType 与目标类型一致
+    if (node->semanticType == "Number") 
+    {
+        node->varType = targetType;
+        std::cout << "[SEMANTIC-TYPE] Set Number node type to: " << targetType << std::endl;
+    }
+    
+    // 递归处理子节点
+    for (auto* child : node->semanticChildren) 
+    {
+        setNumberNodeType(child, targetType);
     }
 }

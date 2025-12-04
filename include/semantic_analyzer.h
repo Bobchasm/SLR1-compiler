@@ -105,6 +105,7 @@ private:
     bool isTypeCompatible(const string& type1, const string& type2);
     bool checkIntOverflow(const string& value);
     void truncateFloatToInt(ParseTreeNode* node);
+    void setNumberNodeType(ParseTreeNode* node, const string& targetType);
     void analyze(ParseTreeNode* node, const string& currentFunctionReturnType = "");
     
 public:
