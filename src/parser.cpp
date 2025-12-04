@@ -2370,7 +2370,8 @@ int main(int argc, char *argv[])
         FILE *fp = fopen(argv[1], "rb");
         if (!fp) 
         {
-            cout << "Cannot open file: " << argv[1] << endl;
+            string file = argv[1] != nullptr ?  argv[1] : "";
+            printToConsoleParse("Cannot open file: " + file + ", it may not exists.\n");
             return 1;
         }
         
