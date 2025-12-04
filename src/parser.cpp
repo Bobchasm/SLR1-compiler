@@ -370,14 +370,12 @@ void buildParseDFA()
     cout << "[DEBUG] I0 items:" << endl;
     for (const Item& item : I0.items) 
     {
-        // cout << "  " << item.toString();
-        if (!item.isComplete()) {
-            // cout << " [next: \"" << item.getNextSymbol() << "\"]";      
-        }
-        else {
-            // cout << " [COMPLETE]";
-        }
-        // cout << endl;
+        cout << "  " << item.toString();
+        if (!item.isComplete())
+            cout << " [next: \"" << item.getNextSymbol() << "\"]";      
+        else
+            cout << " [COMPLETE]";
+        cout << endl;
     }
     
     // 用于判断项目集是否已经存在
@@ -393,13 +391,12 @@ void buildParseDFA()
     set<string> allSymbols = getAllSymbols();
     
     cout << "[DEBUG] Total symbols: " << allSymbols.size() 
-          << " (Terminals: " << grammar.terminals.size() 
-          << ", Nonterminals: " << grammar.nonterminals.size() << ")" << endl;
+         << " (Terminals: " << grammar.terminals.size() 
+         << ", Nonterminals: " << grammar.nonterminals.size() << ")" << endl;
     
     // 检查是否有 EPSILON
-    if (allSymbols.find(EPSILON) != allSymbols.end()) {
+    if (allSymbols.find(EPSILON) != allSymbols.end())
         cout << "[WARNING] EPSILON \"" << EPSILON << "\" found in allSymbols" << endl;
-    }
     
     // 2&3.迭代构建状态集
     int processedStates = 0;
@@ -411,8 +408,8 @@ void buildParseDFA()
         
         vector<Item> currentItems = dfa.states[currentStateNum].items;
         
-        // cout << "[DEBUG] Processing state I" << currentStateNum 
-        //     << " (" << currentItems.size() << " items)" << endl;
+        cout << "[DEBUG] Processing state I" << currentStateNum 
+             << " (" << currentItems.size() << " items)" << endl;
         
         // 对每个符号计算 GOTO
         int transitionsFromThisState = 0;
@@ -447,8 +444,8 @@ void buildParseDFA()
                 stateMap[gotoItems] = targetStateNum;
                 workQueue.push(targetStateNum);
                 
-                // cout << "[PARSER] Created new state I" << targetStateNum 
-                //     << " with " << gotoItems.size() << " items via symbol '" << symbol << "'" << endl;
+                cout << "[PARSER] Created new state I" << targetStateNum 
+                     << " with " << gotoItems.size() << " items via symbol '" << symbol << "'" << endl;
             }
             
             // 添加转换：currentState --[symbol]--> targetState
@@ -456,7 +453,7 @@ void buildParseDFA()
         }
         
         if (transitionsFromThisState == 0) {
-            // cout << "[DEBUG] State I" << currentStateNum << " has no outgoing transitions!" << endl;
+            cout << "[DEBUG] State I" << currentStateNum << " has no outgoing transitions!" << endl;
         }
     }
     
@@ -781,9 +778,8 @@ void buildAnalysisTable()
     
     cout << "[PARSER] Analysis table built: " << stateCount << " states, "
          << symbolCount << " symbols" << endl;
-    if (conflictCount > 0) {
+    if (conflictCount > 0)
         cout << "[PARSER] WARNING: Found " << conflictCount << " conflicts" << endl;
-    }
     
     // #EXPORT_DEBUG# 输出分析表
     // exportAnalysisTable(tableWithConflicts);
@@ -903,7 +899,7 @@ void exportFirstSets()
     outFile.close();
 
     printToConsoleParse("[PARSER] FIRST sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "first_sets.txt\n");
-    cout << "[PARSER] FIRST sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "first_sets.txt" << endl;
+    // cout << "[PARSER] FIRST sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "first_sets.txt" << endl;
 }
 
 void exportFollowSets()
@@ -944,7 +940,7 @@ void exportFollowSets()
     outFile.close();
 
     printToConsoleParse("[PARSER] FOLLOW sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "follow_sets.txt\n");
-    cout << "[PARSER] FOLLOW sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "follow_sets.txt" << endl;
+    // cout << "[PARSER] FOLLOW sets exported to " + PARSE_ANALYSIS_TABLE_PATH + "follow_sets.txt" << endl;
 }
 
 void initGrammar() 
@@ -1083,19 +1079,17 @@ private:
     {
         if (!node) return;
         
-        // cout << "[COLLECT] Node: " << node->symbol << ", semanticType: '" 
-        //     << node->semanticType << "', children: " << node->children.size() << endl;
+        cout << "[COLLECT] Node: " << node->symbol << ", semanticType: '" 
+             << node->semanticType << "', children: " << node->children.size() << endl;
         
         // 如果当前节点有语义类型，检查是否可以优化
         if (!node->semanticType.empty())
         {
-            // Constant folding: UnaryExp with +/- and single Number operand
             if (node->semanticType == "UnaryExp" && 
                 (node->operatorType == "+" || node->operatorType == "-") &&
                 node->semanticChildren.size() == 1 &&
                 node->semanticChildren[0]->semanticType == "Number")
             {
-                // Create a new Number node with folded value
                 ParseTreeNode* foldedNode = new ParseTreeNode(NODE_NONTERMINAL, "Number", "", -1);
                 foldedNode->semanticType = "Number";
                 foldedNode->lineNumber = node->lineNumber;  // 继承行号
@@ -1109,15 +1103,14 @@ private:
                 }
                 foldedNode->semanticChildren.clear();
                 
-                // cout << "[COLLECT] Folded UnaryExp " << node->operatorType 
-                //     << " into Number: " << foldedNode->value << endl;
+                cout << "[COLLECT] Folded UnaryExp " << node->operatorType 
+                     << " into Number: " << foldedNode->value << endl;
                 result.push_back(foldedNode);
             }
             else
             {
-                // Normal case: add node as-is
-                // cout << "[COLLECT] Adding node with semanticType: " << node->semanticType 
-                //     << ", varName: " << node->varName << ", ptr: " << (void*)node << endl;
+                cout << "[COLLECT] Adding node with semanticType: " << node->semanticType 
+                     << ", varName: " << node->varName << ", ptr: " << (void*)node << endl;
                 result.push_back(node);
             }
         }
@@ -1149,8 +1142,8 @@ private:
         if (!children.empty() && children[0])
             node->lineNumber = children[0]->lineNumber;
         
-        // cout << "[SEMANTIC] Filling attributes for production " << originalIndex 
-        //     << " (" << node->symbol << ")" << endl;
+        cout << "[SEMANTIC] Filling attributes for production " << originalIndex 
+             << " (" << node->symbol << ")" << endl;
         
         switch (originalIndex) 
         {
@@ -1158,7 +1151,7 @@ private:
             case 1:
             {
                 node->semanticType = "Program";
-                // cout << "[SEMANTIC] Set Program semanticType" << endl;
+                cout << "[SEMANTIC] Set Program semanticType" << endl;
                 
                 // 从compUnit中收集所有语义子节点
                 vector<ParseTreeNode*> semanticChildren;
@@ -1168,27 +1161,27 @@ private:
                         collectSemanticChildren(child, semanticChildren);
                 }
                 node->semanticChildren = semanticChildren;
-                // cout << "[SEMANTIC] Program collected " << semanticChildren.size() << " semantic children" << endl;
+                cout << "[SEMANTIC] Program collected " << semanticChildren.size() << " semantic children" << endl;
                 break;
             }
             
             // 2-6.compUnit 相关：收集所有声明和函数定义
             case 2:
             {
-                // cout << "[SEMANTIC] Processing compUnit, children count: " << children.size() << endl;
+                cout << "[SEMANTIC] Processing compUnit, children count: " << children.size() << endl;
                 // compUnit_list
                 ParseTreeNode* listNode = findChild(children, "compUnit_list");
                 if (listNode)
                 {
-                    // cout << "[SEMANTIC] Found compUnit_list, collecting semantic children" << endl;
+                    cout << "[SEMANTIC] Found compUnit_list, collecting semantic children" << endl;
                     // 递归收集 compUnit_list 中所有有语义的节点
                     vector<ParseTreeNode*> semanticChildren;
                     collectSemanticChildren(listNode, semanticChildren);
-                    // cout << "[SEMANTIC] Collected " << semanticChildren.size() << " semantic children" << endl;
+                    cout << "[SEMANTIC] Collected " << semanticChildren.size() << " semantic children" << endl;
                     node->semanticChildren = semanticChildren;  // 使用semanticChildren，不修改children
                 }
                 else
-                    // cout << "[SEMANTIC] WARNING: compUnit_list not found!" << endl;
+                    cout << "[SEMANTIC] WARNING: compUnit_list not found!" << endl;
                 break;
             }
             case 3:  // compUnit_list -> compUnit_list compUnit_item
@@ -1311,7 +1304,7 @@ private:
             // 17.varDecl -> bType varDef (',' varDef)* ';'
             case 17:
             {
-                // cout << "[SEMANTIC] Processing varDecl" << endl;
+                cout << "[SEMANTIC] Processing varDecl" << endl;
                 ParseTreeNode* bTypeNode = findChild(children, "bType");
                 
                 if (bTypeNode)
@@ -1324,7 +1317,7 @@ private:
                             varDefNodes.push_back(child);
                     }
                     
-                    // cout << "[SEMANTIC] Found " << varDefNodes.size() << " varDef nodes" << endl;
+                    cout << "[SEMANTIC] Found " << varDefNodes.size() << " varDef nodes" << endl;
                     
                     if (!varDefNodes.empty())
                     {
@@ -1348,10 +1341,10 @@ private:
                                 node->semanticChildren.clear();
                             }
                             
-                            // cout << "[SEMANTIC] Created VarDecl: " << node->varType << " " 
-                            //     << node->varName << " = " << node->initValue 
-                            //     << " (isGlobal=" << node->isGlobal 
-                            //     << ", semanticChildren.size()=" << node->semanticChildren.size() << ")" << endl;
+                            cout << "[SEMANTIC] Created VarDecl: " << node->varType << " " 
+                                 << node->varName << " = " << node->initValue 
+                                 << " (isGlobal=" << node->isGlobal 
+                                 << ", semanticChildren.size()=" << node->semanticChildren.size() << ")" << endl;
                         }
                         else
                         {
@@ -1372,9 +1365,9 @@ private:
                                 
                                 node->semanticChildren.push_back(varDeclNode);
                                 
-                                // cout << "[SEMANTIC] Created VarDecl: " << varDeclNode->varType << " " 
-                                //     << varDeclNode->varName << " = " << varDeclNode->initValue 
-                                //     << " (isGlobal=" << varDeclNode->isGlobal << ")" << endl;
+                                cout << "[SEMANTIC] Created VarDecl: " << varDeclNode->varType << " " 
+                                     << varDeclNode->varName << " = " << varDeclNode->initValue 
+                                     << " (isGlobal=" << varDeclNode->isGlobal << ")" << endl;
                             }
                         }
                     }
@@ -1409,9 +1402,9 @@ private:
                     // 收集语义子节点（用于复杂表达式）
                     collectSemanticChildren(initValNode, node->semanticChildren);
                     
-                    // cout << "[SEMANTIC] varDef (case 21): varName='" << node->varName 
-                    //     << "', initValue='" << node->initValue 
-                    //     << "', semanticChildren.size()=" << node->semanticChildren.size() << endl;
+                    cout << "[SEMANTIC] varDef (case 21): varName='" << node->varName 
+                         << "', initValue='" << node->initValue 
+                         << "', semanticChildren.size()=" << node->semanticChildren.size() << endl;
                 }
                 break;
             }
@@ -1437,7 +1430,7 @@ private:
                         collectSemanticChildren(funcFParamsOpt, paramNodes);
                         node->semanticChildren.insert(node->semanticChildren.end(), 
                                                       paramNodes.begin(), paramNodes.end());
-                        // cout << "[SEMANTIC] FunctionDef collected " << paramNodes.size() << " parameters" << endl;
+                        cout << "[SEMANTIC] FunctionDef collected " << paramNodes.size() << " parameters" << endl;
                     }
                     
                     // 将 block 的语义子节点添加为当前节点的语义子节点
@@ -1447,7 +1440,7 @@ private:
                         collectSemanticChildren(blockNode, semanticChildren);
                         node->semanticChildren.insert(node->semanticChildren.end(), 
                                                       semanticChildren.begin(), semanticChildren.end());
-                        // cout << "[SEMANTIC] FunctionDef collected " << semanticChildren.size() << " semantic children from block" << endl;
+                        cout << "[SEMANTIC] FunctionDef collected " << semanticChildren.size() << " semantic children from block" << endl;
                     }
                     
                     // 将所有从block收集的VarDecl设置为局部变量
@@ -1456,7 +1449,7 @@ private:
                         if (child && child->semanticType == "VarDecl")
                         {
                             child->isGlobal = false;
-                            // cout << "[SEMANTIC] Set VarDecl '" << child->varName << "' to local" << endl;
+                            cout << "[SEMANTIC] Set VarDecl '" << child->varName << "' to local" << endl;
                         }
                     }
                     
@@ -1479,7 +1472,7 @@ private:
                     node->varName = identNode->value;
                     node->semanticChildren.clear();
                     
-                    // cout << "[SEMANTIC] Created FuncParam: " << node->varType << " " << node->varName << endl;
+                    cout << "[SEMANTIC] Created FuncParam: " << node->varType << " " << node->varName << endl;
                 }
                 break;
             }
@@ -1592,7 +1585,7 @@ private:
                     }
                 }
                 
-                // cout << "[SEMANTIC] Created IfStmt with " << node->semanticChildren.size() << " branches" << endl;
+                cout << "[SEMANTIC] Created IfStmt with " << node->semanticChildren.size() << " branches" << endl;
                 break;
             }
             
@@ -1686,8 +1679,8 @@ private:
                     collectSemanticChildren(funcRParamsOpt, node->semanticChildren);
                 }
                 
-                // cout << "[SEMANTIC] Created FunctionCall: " << node->varName 
-                //     << " with " << node->semanticChildren.size() << " arguments" << endl;
+                cout << "[SEMANTIC] Created FunctionCall: " << node->varName 
+                     << " with " << node->semanticChildren.size() << " arguments" << endl;
                 break;
             }
             
@@ -1726,7 +1719,7 @@ private:
                             node->value = operands[0]->value;
                         }
                         node->semanticChildren.clear();
-                        // cout << "[SEMANTIC] Folded UnaryExp " << op << " into Number: " << node->value << endl;
+                        cout << "[SEMANTIC] Folded UnaryExp " << op << " into Number: " << node->value << endl;
                     }
                     else
                     {
@@ -1734,7 +1727,7 @@ private:
                         node->semanticType = "UnaryExp";
                         node->operatorType = op;
                         node->semanticChildren = operands;
-                        // cout << "[SEMANTIC] Created UnaryExp: " << node->operatorType << endl;
+                        cout << "[SEMANTIC] Created UnaryExp: " << node->operatorType << endl;
                     }
                 }
                 break;
@@ -1790,8 +1783,8 @@ private:
                         collectSemanticChildren(children[2], node->semanticChildren);
                 }
                 
-                // cout << "[SEMANTIC] Created BinaryExpr: " << op << " with " 
-                //     << node->semanticChildren.size() << " operands" << endl;
+                cout << "[SEMANTIC] Created BinaryExpr: " << op << " with " 
+                     << node->semanticChildren.size() << " operands" << endl;
                 break;
             }
             
@@ -1904,10 +1897,10 @@ public:
                 semanticFile.close();
 
                 printToConsoleParse("[SEMANTIC] Semantic tree saved to: " + semanticFilePath + "\n");
-                cout << "[PARSER] Semantic tree saved to: " << semanticFilePath << endl;
+                // cout << "[PARSER] Semantic tree saved to: " << semanticFilePath << endl;
             }
             
-            cout << "\n[PARSER] Semantic Tree:\n" << endl;
+            // cout << "\n[PARSER] Semantic Tree:\n" << endl;
         }
     }
     
@@ -1924,12 +1917,10 @@ public:
             string s_parsePath = "output/" + inputFilename + S_PARSER_RESULT_EXT;
             parseLog.open(logPath);
             s_parseResult.open(s_parsePath);
-            if (!s_parseResult.is_open()) {
+            if (!s_parseResult.is_open())
                 cout << "[PARSER] Error: Cannot create parse analysis results: " << s_parsePath << endl;
-            }
-            if (!parseLog.is_open()) {
+            if (!parseLog.is_open())
                 cout << "[PARSER] Error: Cannot create parse analysis log: " << logPath << endl;
-            }
             else 
             {
                 cout << "[PARSER] Parse analysis log: " << logPath << endl;
@@ -2147,8 +2138,8 @@ public:
                 
                 if (gotoAction.type != MOVE) 
                 {
-                    // cout << "[PARSER] Error: GOTO[" << topState << ", " << A 
-                    //     << "] is not defined (expected shift action)" << endl;
+                    cout << "[PARSER] Error: GOTO[" << topState << ", " << A 
+                         << "] is not defined (expected shift action)" << endl;
                     delete nonterminalNode;
                     break;
                 }
@@ -2314,12 +2305,10 @@ ParseTreeNode* getParseTree(string inputFilename)
     cout << "[DEBUG] SLR1Parser created, calling parse()" << endl;
     bool result = parser.parse();
     
-    if (result) {
+    if (result)
         cout << "[DEBUG] Parsing succeeded" << endl;
-    }
-    else {
+    else
         cout << "[DEBUG] Parsing failed" << endl;
-    }
     
     cleanupLexer();
     free(input);
