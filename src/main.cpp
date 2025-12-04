@@ -55,6 +55,32 @@ void printTreeDetailed(ParseTreeNode* node, int depth = 0) {
     // }
 }
 
+
+void outputSemanticParseTree(string inputFilename)
+    {
+        string pureFilename = "";
+        string baseFilename = inputFilename;
+        size_t dotPos = baseFilename.find_last_of('.');
+        if (dotPos != string::npos)
+            baseFilename = baseFilename.substr(0, dotPos);
+
+        size_t slashPos = baseFilename.find_last_of("\\/");
+        pureFilename = (slashPos != string::npos) ? baseFilename.substr(slashPos + 1) : baseFilename;
+
+        
+        // 输出语义树简化格式
+        string semanticFilePath = "case/" + pureFilename + "_semantic_tree.txt";
+        ofstream semanticFile(semanticFilePath);
+        if (semanticFile.is_open())
+        {
+            semanticFile << parseTree->toSemanticString();
+            semanticFile.close();
+
+            printToConsole("[SEMANTIC] Semantic tree saved to: " + semanticFilePath + "\n");
+            // cout << "[PARSER] Semantic tree saved to: " << semanticFilePath << endl;
+        }
+    }
+
 int main(int argc, char* argv[])
 {
     // ===================== 一些准备 =============================
@@ -120,6 +146,9 @@ int main(int argc, char* argv[])
     
     SemanticAnalyzer semanticAnalyzer;
     bool semanticCheckPassed = semanticAnalyzer.check(parseTree);
+
+    outputSemanticParseTree(argv[1]);
+
     
     if (!semanticCheckPassed) 
     {

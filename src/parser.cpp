@@ -1884,22 +1884,26 @@ public:
                 printToConsoleParse("[PARSER] Parse tree (Mermaid) saved to: " + mdFilePath + "\n");
             }
             
-            // 输出语义树简化格式
-            string semanticFilePath = CASE_PATH + inputFilename + "_semantic_tree.txt";
-            ofstream semanticFile(semanticFilePath);
-            if (semanticFile.is_open()) 
-            {
-                semanticFile << parseTree->toSemanticString();
-                semanticFile.close();
-
-                printToConsoleParse("[SEMANTIC] Semantic tree saved to: " + semanticFilePath + "\n");
-                // cout << "[PARSER] Semantic tree saved to: " << semanticFilePath << endl;
-            }
             
             // cout << "\n[PARSER] Semantic Tree:\n" << endl;
         }
     }
-    
+
+    void outputSemanticParseTree()
+    {
+        // 输出语义树简化格式
+        string semanticFilePath = CASE_PATH + inputFilename + "_semantic_tree.txt";
+        ofstream semanticFile(semanticFilePath);
+        if (semanticFile.is_open())
+        {
+            semanticFile << parseTree->toSemanticString();
+            semanticFile.close();
+
+            printToConsoleParse("[SEMANTIC] Semantic tree saved to: " + semanticFilePath + "\n");
+            // cout << "[PARSER] Semantic tree saved to: " << semanticFilePath << endl;
+        }
+    }
+
     bool parse() 
     {
         cout << "\n\n ==============================================\n\n";
@@ -2455,6 +2459,8 @@ int main(int argc, char *argv[])
 
     SemanticAnalyzer semanticAnalyzer;
     bool semanticCheckPassed = semanticAnalyzer.check(parseTree);
+
+    parser.outputSemanticParseTree();
     
     if (!semanticCheckPassed) 
     {

@@ -88,6 +88,27 @@ void SemanticAnalyzer::analyze(ParseTreeNode* node, const string& currentFunctio
     else if (node->semanticType == "IfStmt")
         checkIfStmt(node, currentFunctionReturnType);
 
+    else if (node->semanticType == "Variable" || node->semanticType == "LVal")
+    {
+        // 检查变量是否已定义
+        if (!node->varName.empty())
+        {
+            Symbol* symbol = currentScope_->lookup(node->varName);
+            if (!symbol)
+                reportError("Variable '" + node->varName + "' is not defined", node->lineNumber);
+        }
+        // Variable节点通常没有子节点，但为了保险还是递归检查
+        for (auto* child : node->semanticChildren)
+            analyze(child, currentFunctionReturnType);
+    }
+
+    else if (node->semanticType == "BinaryExpr" || node->semanticType == "UnaryExpr")
+    {
+        // 递归检查表达式的子节点（可能包含未定义的变量）
+        for (auto* child : node->semanticChildren)
+            analyze(child, currentFunctionReturnType);
+    }
+
     else 
     {
         for (auto* child : node->semanticChildren)
