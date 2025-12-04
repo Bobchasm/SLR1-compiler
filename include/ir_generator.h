@@ -28,6 +28,9 @@ private:
     IRBuilder* builder_;
     SymbolTable* symbol_table_;
     int temp_counter_;
+    
+    // 添加合并点栈，用于处理嵌套if语句
+    vector<BasicBlock*> merge_block_stack_;
 
     // RAII深度管理类
     class DepthGuard {

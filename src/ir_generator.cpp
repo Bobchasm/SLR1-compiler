@@ -261,7 +261,7 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
         Type* var_type = convert_type(node->varType);
 
         if (node->isGlobal) {
-            cout << indent << "[IRGEN] 🟢 Creating global variable: " << node->varName << endl;
+            cout << indent << "[IRGEN]  Creating global variable: " << node->varName << endl;
             // 全局变量
             Constant* init_value = nullptr;
 
@@ -278,7 +278,7 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
                 node->varName, module_, var_type, false, init_value
             );
             symbol_table_->put(node->varName, global_var);
-            cout << indent << "[IRGEN] ✅ Created global variable: " << node->varName << endl;
+            cout << indent << "[IRGEN]  Created global variable: " << node->varName << endl;
         } else {
             // cout << indent << "[IRGEN] Creating local variable" << endl;
             // 局部变量 - 需要在函数上下文中创建
@@ -356,12 +356,23 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
                 visitParseTreeNode(child);
             }
         }
+
+        // 确保只有在当前块还没有终止指令时才添加默认返回语句
         if (current_block_ && !current_block_->get_terminator()) {
             if (return_type->is_void_type()) {
                 builder_->create_void_ret();
             } else {
-                ConstantInt* zero = ConstantInt::get(0, module_);
-                builder_->create_ret(zero);
+                // 对于非void函数，我们应该返回result变量的值，而不是硬编码的0
+                // 查找result变量并返回它
+                Value* result_var = symbol_table_->get("result");
+                if (result_var) {
+                    Value* result_value = builder_->create_load(result_var);
+                    builder_->create_ret(result_value);
+                } else {
+                    // 如果找不到result变量，则回退到默认返回0
+                    ConstantInt* zero = ConstantInt::get(0, module_);
+                    builder_->create_ret(zero);
+                }
             }
         }
         delete symbol_table_;
@@ -411,20 +422,20 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
     }
     else {
         // 检查是否是表达式语句（如函数调用）
-        if (!node->semanticType.empty()) {
-            cout << "[IRGEN] Processing unknown node type: " << node->semanticType << endl;
-            // 尝试作为表达式处理
-            Value* exprValue = visitParseTreeExpr(node);
-            if (exprValue) {
-                cout << "[IRGEN] Expression returned value of type: " << exprValue->get_type()->print() << endl;
-            } else {
-                cout << "[IRGEN] Expression returned nullptr" << endl;
-            }
-            // 如果是函数调用且有返回值，可能需要处理返回值
-            // 但如果函数返回void，则不需要做任何事情
-        } else {
-            cout << "[IRGEN] Processing node with empty semanticType" << endl;
-        }
+        // if (!node->semanticType.empty()) {
+        //     cout << "[IRGEN] Processing unknown node type: " << node->semanticType << endl;
+        //     // 尝试作为表达式处理
+        //     Value* exprValue = visitParseTreeExpr(node);
+        //     if (exprValue) {
+        //         cout << "[IRGEN] Expression returned value of type: " << exprValue->get_type()->print() << endl;
+        //     } else {
+        //         cout << "[IRGEN] Expression returned nullptr" << endl;
+        //     }
+        //     // 如果是函数调用且有返回值，可能需要处理返回值
+        //     // 但如果函数返回void，则不需要做任何事情
+        // } else {
+        //     cout << "[IRGEN] Processing node with empty semanticType" << endl;
+        // }
         
         // 递归处理子节点
         for (auto* child : node->semanticChildren) {
@@ -622,16 +633,30 @@ void IRGenerator::handleIfStatement(ParseTreeNode* node) {
         bool_condition = builder_->create_icmp_ne(condition, zero);
     }
 
-    // 创建基本块 - 使用更清晰的命名
-    BasicBlock* then_block = BasicBlock::create(module_, "if_then", current_function_);
+    // 【修改点5：解决嵌套if语句标签重复问题】
+    // 使用唯一标识符确保基本块名称唯一
+    static int if_stmt_counter = 0;
+    int current_if_id = ++if_stmt_counter;
+    
+    // 创建基本块 - 使用唯一标识符避免命名冲突
+    BasicBlock* then_block = BasicBlock::create(module_, "if_then_" + to_string(current_if_id), current_function_);
     BasicBlock* else_block = nullptr;
-    BasicBlock* merge_block = BasicBlock::create(module_, "if_end", current_function_);
+    BasicBlock* merge_block = BasicBlock::create(module_, "if_end_" + to_string(current_if_id), current_function_);
+
+    // 检查是否有外层合并点需要跳转
+    BasicBlock* outer_merge_block = nullptr;
+    if (!merge_block_stack_.empty()) {
+        outer_merge_block = merge_block_stack_.back();
+    }
+
+    // 将当前合并点压入栈
+    merge_block_stack_.push_back(merge_block);
 
     // 检查是否有else分支
     bool has_else = (node->semanticChildren.size() >= 3);
 
     if (has_else) {
-        else_block = BasicBlock::create(module_, "if_else", current_function_);
+        else_block = BasicBlock::create(module_, "if_else_" + to_string(current_if_id), current_function_);
     } else {
         else_block = merge_block;
     }
@@ -646,6 +671,7 @@ void IRGenerator::handleIfStatement(ParseTreeNode* node) {
         visitParseTreeNode(stmt);
     }
 
+    // 只有在当前块还没有终止指令时才添加跳转到merge块的指令
     if (!then_block->get_terminator()) {
         builder_->create_br(merge_block);
     }
@@ -658,12 +684,24 @@ void IRGenerator::handleIfStatement(ParseTreeNode* node) {
             visitParseTreeNode(stmt);
         }
 
+        // 只有在当前块还没有终止指令时才添加跳转到merge块的指令
         if (!else_block->get_terminator()) {
             builder_->create_br(merge_block);
         }
     }
 
-    // 设置插入点到merge块
+    // 从栈中弹出合并点
+    merge_block_stack_.pop_back();
+
+    // 如果存在外层合并点，则在当前合并点添加跳转到外层合并点的指令
+    if (outer_merge_block) {
+        set_current_block(merge_block);
+        if (!merge_block->get_terminator()) {
+            builder_->create_br(outer_merge_block);
+        }
+    }
+
+    // 设置插入点到merge块，确保后续指令在此处继续执行
     set_current_block(merge_block);
 }
 
