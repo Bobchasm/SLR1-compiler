@@ -1,0 +1,33 @@
+// 测试二元表达式的类型推断
+float test_float_add() {
+    float a = 1.2;
+    float b = 2.1;
+    return a + b;          // float + float = float，返回给 float 函数
+}
+
+int test_int_add() {
+    int a = 10;
+    int b = 20;
+    return a + b;          // int + int = int，返回给 int 函数
+}
+
+int test_mixed_expr() {
+    float a = 1.5;
+    int b = 2;
+    return a + b;          // float + int = int（混合运算统一为 int）
+}
+
+float test_mixed_to_float() {
+    float a = 1.5;
+    int b = 2;
+    float c = a + b;       // float + int = int，然后 int 提升为 float（无警告）
+    return c;
+}
+
+int main() {
+    test_float_add();
+    test_int_add();
+    test_mixed_expr();
+    test_mixed_to_float();
+    return 0;
+}

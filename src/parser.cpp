@@ -1962,7 +1962,7 @@ public:
                 cout << "[PARSER] Error: Unknown symbol '" << currentSymbol << "'" << endl;
                 // 输出到终端的错误信息
                 std::ostringstream errorMsg;
-                errorMsg << "[Line " << currentToken.lineNumber << "] Bad token " << currentSymbol;
+                errorMsg << "[Line " << currentToken.lineNumber << "] Bad token " << currentSymbol << endl;
                 printToConsoleParse(errorMsg.str());
                 
                 if (parseLog.is_open()) 

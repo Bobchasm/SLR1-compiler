@@ -1,0 +1,16 @@
+// 测试简单的逻辑表达式
+int main() {
+    int a = 1;
+    int b = 0;
+    
+    // 简单逻辑运算
+    int result1 = a && b;  // 1 && 0 = 0
+    int result2 = a || b;  // 1 || 0 = 1
+    
+    // 使用逻辑表达式作为条件
+    if (a && b) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
