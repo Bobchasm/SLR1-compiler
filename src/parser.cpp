@@ -155,8 +155,8 @@ vector<pair<int, pair<string, vector<string> > > > originalProductions = {
     {42, {"else_opt", {"else", "stmt"}}},
     {43, {"else_opt", {EPSILON}}},
     
-    // 17. exp -> addExp
-    {44, {"exp", {"addExp"}}},
+    // 17. exp -> lOrExp (修改：支持括号内的逻辑表达式)
+    {44, {"exp", {"lOrExp"}}},
     
     // 18. cond -> lOrExp
     {45, {"cond", {"lOrExp"}}},
@@ -1637,7 +1637,7 @@ private:
             }
             
             // 表达式传递：不设置semanticType，让语义信息穿透
-            // 44.exp -> addExp
+            // 44.exp -> lOrExp
             case 44:
             // 45.cond -> lOrExp
             case 45:

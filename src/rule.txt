@@ -15,7 +15,7 @@
 15. block -> '{' (blockItem)* '}';
 16. blockItem -> decl | stmt;
 17. stmt -> lVal '=' exp ';' | (exp)? ';' | block | 'if' '(' cond ')' stmt ('else' stmt)? | 'return' (exp)? ';';
-18. exp -> addExp;
+18. exp -> lOrExp;
 19. cond -> lOrExp;
 20. lVal -> Ident;
 21. primaryExp -> '(' exp ')' | lVal | number;

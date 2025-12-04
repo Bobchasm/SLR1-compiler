@@ -21,16 +21,16 @@ Symbol           FIRST Set
 EOF              { EOF }
 Ident            { Ident }
 IntConst         { IntConst }
-Program          { EOF, const, float, int, void }
-Start            { EOF, const, float, int, void }
+Program          { const, float, int, void }
+Start            { const, float, int, void }
 addExp           { !, (, +, -, Ident, IntConst, floatConst }
 bType            { float, int, void }
 block            { { }
 blockItem        { !, (, +, -, ;, Ident, IntConst, const, float, floatConst, if, int, return, void, { }
 blockItem_list   { !, $, (, +, -, ;, Ident, IntConst, const, float, floatConst, if, int, return, void, { }
-compUnit         { EOF, const, float, int, void }
+compUnit         { const, float, int, void }
 compUnit_item    { const, float, int, void }
-compUnit_list    { $, const, float, int, void }
+compUnit_list    { const, float, int, void }
 cond             { !, (, +, -, Ident, IntConst, floatConst }
 const            { const }
 constDecl        { const }

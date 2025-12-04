@@ -13,37 +13,37 @@ compUnit_list    { EOF, const, float, int, void }
 cond             { ) }
 constDecl        { !, (, +, -, ;, EOF, Ident, IntConst, const, float, floatConst, if, int, return, void, {, } }
 constDef         { ,, ; }
-constDef_list    { ; }
+constDef_list    { ,, ; }
 constExp         { ,, ; }
 constInitVal     { ,, ; }
 decl             { !, (, +, -, ;, EOF, Ident, IntConst, const, float, floatConst, if, int, return, void, {, } }
 else_opt         { !, (, +, -, ;, Ident, IntConst, const, else, float, floatConst, if, int, return, void, {, } }
-eqExp            { !=, &&, ), ==, || }
+eqExp            { !=, &&, ), ,, ;, ==, || }
 exp              { ), ,, ; }
 exp_opt          { ; }
 funcDef          { EOF, const, float, int, void }
 funcFParam       { ), , }
-funcFParam_list  { ) }
+funcFParam_list  { ), , }
 funcFParams      { ) }
 funcFParams_opt  { ) }
 funcRParam       { ), , }
-funcRParam_list  { ) }
+funcRParam_list  { ), , }
 funcRParams      { ) }
 funcRParams_opt  { ) }
 initVal          { ,, ; }
-lAndExp          { &&, ), || }
-lOrExp           { ), || }
+lAndExp          { &&, ), ,, ;, || }
+lOrExp           { ), ,, ;, || }
 lVal             { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, =, ==, >, >=, || }
 mulExp           { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, ==, >, >=, || }
 number           { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, ==, >, >=, || }
 primaryExp       { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, ==, >, >=, || }
-relExp           { !=, &&, ), <, <=, ==, >, >=, || }
+relExp           { !=, &&, ), ,, ;, <, <=, ==, >, >=, || }
 stmt             { !, (, +, -, ;, Ident, IntConst, const, else, float, floatConst, if, int, return, void, {, } }
 unaryExp         { !=, %, &&, ), *, +, ,, -, /, ;, <, <=, ==, >, >=, || }
 unaryOp          { !, (, +, -, Ident, IntConst, floatConst }
 varDecl          { !, (, +, -, ;, EOF, Ident, IntConst, const, float, floatConst, if, int, return, void, {, } }
 varDef           { ,, ; }
-varDef_list      { ; }
+varDef_list      { ,, ; }
 
 =======================================================================
 Total: 44 symbols
