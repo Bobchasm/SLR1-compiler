@@ -1,8 +1,0 @@
-Program
-├── FunctionDef: void foo()
-│   ├── FuncParam: float f
-│   └── VarDecl: local int a = 1
-│       └── Number: 1
-└── FunctionDef: void main()
-    └── FunctionCall: foo()
-        └── Number: 1
