@@ -16,6 +16,7 @@ compiler/
 │   ├── <用例文件>_parse_analysis.txt   # 测试用例语法分析过程
 │   ├── <用例文件>.parse_tree.md        # 测试用例语法分析树
 │   └── <用例文件>_semantic_tree.txt    # 语义分析结果
+├── example/               # 自己构建的所有测试sy用例
 ├── output
 │   ├── <用例文件>_lexer_s.txt     # 测试用例词法解析结果(老师要求格式)
 │   ├── <用例文件>_parser_s.txt     # 测试用例语法解析结果(老师要求格式)

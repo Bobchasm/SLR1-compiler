@@ -79,14 +79,14 @@ $(BUILD_DIR)/ir_lib/%.o: $(IR_LIB_DIR)/src/%.cpp
 	$(CXX) $(CXXFLAGS) -Iir_lib/include -c -o $@ $<
 
 # ==================== 词法分析器 ====================
-lexer: $(BUILD_DIR) $(PROCESS_DIR) $(LOGS_DIR) $(OUTPUT_DIR) $(LEXER_EXE)
+lexer: $(BUILD_DIR) $(PROCESS_DIR) $(LOGS_DIR) $(OUTPUT_DIR) $(LEXER_EXE) $(CASE_DIR)
 
 $(LEXER_EXE): $(LEXER_SRC) $(INCLUDE_DIR)/lexer.h
 	$(CXX) $(CXXFLAGS) -o $@ $(LEXER_SRC)
 	@echo Lexer compiled successfully!
 
 # ==================== 语法分析器 ====================
-parser: $(BUILD_DIR) $(PROCESS_DIR) $(LOGS_DIR) $(OUTPUT_DIR) $(PARSER_EXE)
+parser: $(BUILD_DIR) $(PROCESS_DIR) $(LOGS_DIR) $(OUTPUT_DIR) $(PARSER_EXE) $(CASE_DIR)
 
 $(PARSER_EXE): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h $(LEXER_SRC) $(SEMANTIC_ANALYZER_OBJ)
 	$(CXX) $(CXXFLAGS) -DNO_MAIN -c -o $(LEXER_OBJ) $(LEXER_SRC)
@@ -94,7 +94,7 @@ $(PARSER_EXE): $(PARSER_SRC) $(INCLUDE_DIR)/parse.h $(INCLUDE_DIR)/lexer.h $(LEX
 	@echo Parser compiled successfully!
 
 # ==================== 完整编译器（词法+语法+IR生成） ====================
-compiler: $(BUILD_DIR) $(PROCESS_DIR) $(LOGS_DIR) $(OUTPUT_DIR) $(IR_LIB) $(COMPILER_EXE)
+compiler: $(BUILD_DIR) $(PROCESS_DIR) $(LOGS_DIR) $(OUTPUT_DIR) $(IR_LIB) $(COMPILER_EXE) $(CASE_DIR)
 
 $(COMPILER_EXE): $(COMPILER_OBJS) $(IR_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $(COMPILER_OBJS) $(IR_LIB)
@@ -220,7 +220,7 @@ test-all-compiler: compiler
 	@echo Testing Compiler on all .sy files in case/
 	@echo =========================================
 	@if not exist "output" mkdir "output"
-	@for %%f in (case\*.sy) do @(echo. & echo Testing %%~nxf... & "$(COMPILER_EXE)" %%f 2> output/%%~nf.ll & if errorlevel 1 (echo [ERROR] %%~nxf failed) else (echo Generated output/%%~nf.ll))
+	@for %%f in (case\*.sy) do @(echo. & echo Testing %%~nxf... & "$(COMPILER_EXE)" %%f & if errorlevel 1 echo [ERROR] %%~nxf failed)
 	@echo =========================================
 	@echo Compiler tests completed, check output/ directory
 	@echo =========================================
