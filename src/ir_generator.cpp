@@ -84,28 +84,28 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
     try {
 
         string indent(depth * 2, ' ');
-        cout << indent << "[IRGEN] visitParseTreeNode: " << (node ? node->semanticType : "null") << " (depth=" << depth << ")" << endl;
+        //cout << indent << "[IRGEN] visitParseTreeNode: " << (node ? node->semanticType : "null") << " (depth=" << depth << ")" << endl;
 
         if (depth > MAX_DEPTH) {
-            cout << indent << "[IRGEN] Error: Maximum recursion depth exceeded (" << depth << ")" << endl;
+            //cout << indent << "[IRGEN] Error: Maximum recursion depth exceeded (" << depth << ")" << endl;
             return;
         }
 
     if (!node) {
-        cout << indent << "[IRGEN] Node is null, returning" << endl;
+        //cout << indent << "[IRGEN] Node is null, returning" << endl;
         return;
     }
 
     // 边界检查
     if (node->semanticChildren.empty()) {
-        cout << indent << "[IRGEN] Warning: Node has no semantic children, semanticType: " << node->semanticType << endl;
+        //cout << indent << "[IRGEN] Warning: Node has no semantic children, semanticType: " << node->semanticType << endl;
     }
 
     DepthGuard guard(depth);  // RAII管理深度计数
 
     if (node->semanticType.empty()) {
         // 跳过没有语义信息的节点
-        cout << indent << "[IRGEN] Node has empty semanticType, processing " << node->semanticChildren.size() << " semantic children" << endl;
+        //cout << indent << "[IRGEN] Node has empty semanticType, processing " << node->semanticChildren.size() << " semantic children" << endl;
         for (auto* child : node->semanticChildren) {
             visitParseTreeNode(child);
         }
@@ -133,9 +133,9 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
     // 关键调试点：检查semanticChildren向量本身
     // cout << indent << "[IRGEN] DEBUG: Checking semanticChildren vector..." << endl;
     if (node->semanticChildren.empty()) {
-        cout << indent << "[IRGEN] semanticChildren is empty" << endl;
+        //cout << indent << "[IRGEN] semanticChildren is empty" << endl;
     } else {
-        cout << indent << "[IRGEN] semanticChildren is not empty, size: " << node->semanticChildren.size() << endl;
+        //cout << indent << "[IRGEN] semanticChildren is not empty, size: " << node->semanticChildren.size() << endl;
     }
 
     // 详细输出每个子节点信息 - 添加逐个子节点的处理
@@ -164,15 +164,15 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
 
             // 检查关键属性
             if (child->semanticType.empty()) {
-                cout << indent << "[IRGEN] WARNING: Child " << i << " has empty semanticType" << endl;
+                //cout << indent << "[IRGEN] WARNING: Child " << i << " has empty semanticType" << endl;
             }
             if (child->varName.empty()) {
-                cout << indent << "[IRGEN] WARNING: Child " << i << " has empty varName" << endl;
+                //cout << indent << "[IRGEN] WARNING: Child " << i << " has empty varName" << endl;
             }
         } else {
-            cout << indent << "[IRGEN] Child " << i << ": NULL" << endl;
+            //cout << indent << "[IRGEN] Child " << i << ": NULL" << endl;
         }
-        cout << indent << "[IRGEN] DEBUG: Finished processing child " << i << endl;
+        //cout << indent << "[IRGEN] DEBUG: Finished processing child " << i << endl;
     }
 
     // cout << indent << "[IRGEN] DEBUG: Finished listing all children" << endl;
@@ -189,18 +189,18 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
     int globalVarCount = 0;
     for (auto* child : node->semanticChildren) {
         if (child) {
-            cout << indent << "[IRGEN] Checking child for VarDecl: " << child->semanticType
-                      << ", isGlobal=" << child->isGlobal << endl;
+            //cout << indent << "[IRGEN] Checking child for VarDecl: " << child->semanticType
+                      //<< ", isGlobal=" << child->isGlobal << endl;
             if (child->semanticType == "VarDecl" && child->isGlobal) {
                 // 检查是否已经处理过这个全局变量
                 if (processed_globals.find(child->varName) == processed_globals.end()) {
-                    cout << indent << "[IRGEN] Processing global VarDecl: " << child->varName << endl;
+                    //cout << indent << "[IRGEN] Processing global VarDecl: " << child->varName << endl;
                     globalVarCount++;
                     visitParseTreeNode(child);
                     processed_globals.insert(child->varName);
-                    cout << indent << "[IRGEN] Completed global VarDecl: " << child->varName << endl;
+                    //cout << indent << "[IRGEN] Completed global VarDecl: " << child->varName << endl;
                 } else {
-                    cout << indent << "[IRGEN] Warning: Skipping duplicate global variable: " << child->varName << endl;
+                    //cout << indent << "[IRGEN] Warning: Skipping duplicate global variable: " << child->varName << endl;
                 }
             }
         }
@@ -242,8 +242,8 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
             auto global_vars = module_->get_global_variable();
             for (auto* gv : global_vars) {
                 if (gv->get_name() == node->varName) {
-                    cout << indent << "[IRGEN] ⚠️ERROR: Global variable '" << node->varName 
-                              << "' already exists in module! This should not happen!" << endl;
+                    //cout << indent << "[IRGEN] ERROR: Global variable '" << node->varName 
+                    //          << "' already exists in module! This should not happen!" << endl;
                     return;  // 直接返回，不重复处理
                 }
             }
@@ -251,8 +251,8 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
             // 检查符号表中是否已存在同名全局变量（双重保险）
             Value* existing_var = symbol_table_->get(node->varName);
             if (existing_var) {
-                cout << indent << "[IRGEN] Warning: Global variable '" << node->varName 
-                          << "' already exists in symbol table, skipping duplicate" << endl;
+                //cout << indent << "[IRGEN] Warning: Global variable '" << node->varName 
+                //          << "' already exists in symbol table, skipping duplicate" << endl;
                 return;  // 直接返回，不重复处理
             }
         }
@@ -261,7 +261,7 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
         Type* var_type = convert_type(node->varType);
 
         if (node->isGlobal) {
-            cout << indent << "[IRGEN]  Creating global variable: " << node->varName << endl;
+            //cout << indent << "[IRGEN]  Creating global variable: " << node->varName << endl;
             // 全局变量
             Constant* init_value = nullptr;
 
@@ -278,7 +278,7 @@ void IRGenerator::visitParseTreeNode(ParseTreeNode* node) {
                 node->varName, module_, var_type, false, init_value
             );
             symbol_table_->put(node->varName, global_var);
-            cout << indent << "[IRGEN]  Created global variable: " << node->varName << endl;
+            //cout << indent << "[IRGEN]  Created global variable: " << node->varName << endl;
         } else {
             // cout << indent << "[IRGEN] Creating local variable" << endl;
             // 局部变量 - 需要在函数上下文中创建
