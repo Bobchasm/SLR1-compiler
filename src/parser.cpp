@@ -2322,7 +2322,8 @@ ParseTreeNode* getParseTree(string inputFilename)
 int main(int argc, char *argv[]) 
 {
 
-    printToConsoleParse("\n[FRONTEND] Frontend executing...\n\n");
+    printToConsoleParse("\n[FRONTEND] Frontend executing...\n");
+    printToConsoleParse("[FRONTEND] This will take a few seconds. Please wait patiently.\n\n");
     
     bool fileInput = (argc == 2);
     string inputFilename = fileInput ? argv[1] : "";

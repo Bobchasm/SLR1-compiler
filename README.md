@@ -55,7 +55,6 @@ compiler/
 
 ## 3 运行启动
 
-
 ### 3.1 环境准备
 
 1.操作系统
@@ -67,15 +66,17 @@ compiler/
 编译：
 
 - C++ 编译器: g++ (支持 C++11 标准)
-
-  推荐使用 MinGW-w64 或 MSYS2
-
-  确保 `g++` 在系统 PATH 中，若不配置环境变量，请将 `Makefile` 第6行的 `wildcard` 路径改为您电脑的 g++ 路径
   
+  推荐使用 MinGW-w64 或 MSYS2
+  
+  确保 `g++` 在系统 PATH 中，若不配置环境变量，请将 `Makefile` 第6行的 `wildcard` 路径改为您电脑的 g++ 路径
+
 - 构建工具: GNU Make
+  
   - Windows 可使用 MinGW Make 或 MSYS2 Make
 
 验证环境
+
 ```powershell
 # 检查 g++ 是否安装
 g++ --version
@@ -83,6 +84,7 @@ g++ --version
 # 检查 make 是否安装
 make --version
 ```
+
 ### 3.2 运行
 
 所有编译产生的结果位于 `/build` 下
@@ -142,8 +144,6 @@ make test-all-compiler
 - 关于 "main" 这个要求文档上词法分析把这个弄成KW，但是后续分析类型解析成标识符比较好，所以token输出的是KW(给老师看的)，实际上都是按照标识符使用的
 
 ## 5 一些其他说明
-
-
 
 ### 5.1 联系方式
 
