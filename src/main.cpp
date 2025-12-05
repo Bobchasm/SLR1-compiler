@@ -83,6 +83,8 @@ void outputSemanticParseTree(string inputFilename)
 
 int main(int argc, char* argv[])
 {
+    printToConsole("\n[COMPILER] Compiler is executing...\n");
+    printToConsole("[COMPILER] This will take a few seconds. Please wait patiently.\n\n");
     // ===================== 一些准备 =============================
     printToConsole("\n[STEP 1/4] Preparing...\n");
 

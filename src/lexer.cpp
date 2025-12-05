@@ -1231,6 +1231,7 @@ int main(int argc, char *argv[])
     string input_filename = "";
 
     cout<< "[LEXER] Lexer running..."<<endl;
+    cout<< "[LEXER] This will take a few seconds. Please wait patiently."<<endl;
 
     if (argc == 2)
     {
