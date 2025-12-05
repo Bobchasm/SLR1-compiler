@@ -1,0 +1,16 @@
+Program
+├── VarDecl: global int global_int = 10
+│   └── Number: 10
+├── VarDecl: global float global_float = 3.14
+│   └── Number: 3.14
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 5
+    │   └── BinaryExpr: +
+    │       ├── Variable: global_int
+    │       └── Number: 5
+    ├── VarDecl: local float b = 2.0
+    │   └── BinaryExpr: *
+    │       ├── Variable: global_float
+    │       └── Number: 2.0
+    └── ReturnStmt: Variable
+        └── Variable: a

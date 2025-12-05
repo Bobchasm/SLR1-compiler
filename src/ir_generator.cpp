@@ -547,8 +547,7 @@ Value* IRGenerator::visitParseTreeExpr(ParseTreeNode* node) {
         }
         return nullptr;
     }
-    if (node->semanticType == "UnaryExpr" && node->operatorType == "-") {
-        Value* operand = visitParseTreeExpr(node->semanticChildren[0]);
+    if (node->semanticType == "UnaryExp" && node->operatorType == "-") {        Value* operand = visitParseTreeExpr(node->semanticChildren[0]);
         if (!operand) return nullptr;
         bool isFloat = operand->get_type()->is_float_type();
         Value* zero = isFloat ? static_cast<Value*>(ConstantFloat::get(0.0f, module_))

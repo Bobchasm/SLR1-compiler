@@ -102,8 +102,7 @@ void SemanticAnalyzer::analyze(ParseTreeNode* node, const string& currentFunctio
             analyze(child, currentFunctionReturnType);
     }
 
-    else if (node->semanticType == "BinaryExpr" || node->semanticType == "UnaryExpr")
-    {
+    else if (node->semanticType == "BinaryExpr" || node->semanticType == "UnaryExp" || node->semanticType == "UnaryExpr")    {
         // 递归检查表达式的子节点（可能包含未定义的变量）
         for (auto* child : node->semanticChildren)
             analyze(child, currentFunctionReturnType);
