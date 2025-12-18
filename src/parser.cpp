@@ -2015,8 +2015,14 @@ public:
                 {
                     s_parseResult << step << "\t"
                             << topSymbol << "#"
-                            << currentSymbol << "\t"
-                            << (action.type == MOVE ? "move" : "reduction")<< endl;
+                            << currentSymbol << "\t";
+
+                    if(action.type == MOVE)
+                        s_parseResult << "move" << endl;
+                    else if (action.type == REDUCTION)
+                        s_parseResult << "reduction" << endl;
+                    else if (action.type == ACC)
+                        s_parseResult << "accept" << endl;
                 }
             }
             

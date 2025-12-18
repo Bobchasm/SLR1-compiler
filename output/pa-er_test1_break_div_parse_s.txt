@@ -12,5 +12,4 @@
 12	bType#Ident	move
 13	Ident#=	move
 14	=#IntConst	move
-15	IntConst#const	reduction
-15	IntConst#const	Error: No action
+15	IntConst#const	15	IntConst#const	Error: No action

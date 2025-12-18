@@ -2432,4 +2432,4 @@
 2432	compUnit_list#EOF	move
 2433	EOF#EOF	reduction
 2434	compUnit#EOF	reduction
-2435	Program#EOF	reduction
+2435	Program#EOF	accept
