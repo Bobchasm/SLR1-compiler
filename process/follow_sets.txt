@@ -3,6 +3,7 @@ Symbol           FOLLOW Set
 Program          { EOF }
 Start            { EOF }
 addExp           { !=, &&, ), +, ,, -, ;, <, <=, ==, >, >=, || }
+assignExp        { ), ,, ; }
 bType            { Ident }
 block            { !, (, +, -, ;, EOF, Ident, IntConst, const, else, float, floatConst, if, int, return, void, {, } }
 blockItem        { !, (, +, -, ;, Ident, IntConst, const, float, floatConst, if, int, return, void, {, } }
@@ -46,5 +47,5 @@ varDef           { ,, ; }
 varDef_list      { ,, ; }
 
 =======================================================================
-Total: 44 symbols
+Total: 45 symbols
 =======================================================================

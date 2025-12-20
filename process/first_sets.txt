@@ -24,6 +24,7 @@ IntConst         { IntConst }
 Program          { const, float, int, void }
 Start            { const, float, int, void }
 addExp           { !, (, +, -, Ident, IntConst, floatConst }
+assignExp        { !, (, +, -, Ident, IntConst, floatConst }
 bType            { float, int, void }
 block            { { }
 blockItem        { !, (, +, -, ;, Ident, IntConst, const, float, floatConst, if, int, return, void, { }
@@ -78,5 +79,5 @@ void             { void }
 }                { } }
 
 =======================================================================
-Total: 76 symbols
+Total: 77 symbols
 =======================================================================

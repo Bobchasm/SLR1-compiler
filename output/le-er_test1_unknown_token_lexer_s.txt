@@ -1,6 +1,0 @@
-void	<KW,2>
-main	<KW,5>
-(	<SE,23>
-)	<SE,24>
-{	<SE,25>
-@	<ERROR,1,28>

@@ -1,8 +1,0 @@
-1	##void	move
-2	void#Ident	reduction
-3	bType#Ident	move
-4	Ident#(	move
-5	(#)	reduction
-6	funcFParams_opt#)	move
-7	)#{	move
-8	{#@	Error: Unknown symbol
