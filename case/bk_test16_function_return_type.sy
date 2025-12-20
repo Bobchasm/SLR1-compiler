@@ -1,0 +1,21 @@
+int add(int a,int b)
+{
+    return a + b;
+}
+
+
+int main()
+{
+    int a = 1;
+    int b = 2;
+
+    int x = add(a,b);
+
+    b=5;
+
+    float y =7.87;
+
+    y = b;
+
+    return y;
+}

@@ -155,77 +155,81 @@ vector<pair<int, pair<string, vector<string> > > > originalProductions = {
     {42, {"else_opt", {"else", "stmt"}}},
     {43, {"else_opt", {EPSILON}}},
     
-    // 17. exp -> lOrExp (修改：支持括号内的逻辑表达式)
-    {44, {"exp", {"lOrExp"}}},
+    // 17. exp -> assignExp
+    {44, {"exp", {"assignExp"}}},
     
-    // 18. cond -> lOrExp
-    {45, {"cond", {"lOrExp"}}},
+    // 18. assignExp -> lVal '=' assignExp | lOrExp
+    {45, {"assignExp", {"lVal", "=", "assignExp"}}},
+    {46, {"assignExp", {"lOrExp"}}},
     
-    // 19. lVal -> Ident
-    {46, {"lVal", {"Ident"}}},
+    // 19. cond -> lOrExp
+    {47, {"cond", {"lOrExp"}}},
     
-    // 20. primaryExp -> '(' exp ')' | lVal | number
-    {47, {"primaryExp", {"(", "exp", ")"}}},
-    {48, {"primaryExp", {"lVal"}}},
-    {49, {"primaryExp", {"number"}}},
+    // 20. lVal -> Ident
+    {48, {"lVal", {"Ident"}}},
     
-    // 21. number -> IntConst | floatConst
-    {50, {"number", {"IntConst"}}},
-    {51, {"number", {"floatConst"}}},
+    // 21. primaryExp -> '(' exp ')' | lVal | number
+    {49, {"primaryExp", {"(", "exp", ")"}}},
+    {50, {"primaryExp", {"lVal"}}},
+    {51, {"primaryExp", {"number"}}},
     
-    // 22. unaryExp -> primaryExp | Ident '(' (funcRParams)? ')' | unaryOp unaryExp
-    {52, {"unaryExp", {"primaryExp"}}},
-    {53, {"unaryExp", {"Ident", "(", "funcRParams_opt", ")"}}},
-    {54, {"unaryExp", {"unaryOp", "unaryExp"}}},
-    {55, {"funcRParams_opt", {"funcRParams"}}},
-    {56, {"funcRParams_opt", {EPSILON}}},
+    // 22. number -> IntConst | floatConst
+    {52, {"number", {"IntConst"}}},
+    {53, {"number", {"floatConst"}}},
     
-    // 23. unaryOp -> '+' | '-' | '!'
-    {57, {"unaryOp", {"+"}}},
-    {58, {"unaryOp", {"-"}}},
-    {59, {"unaryOp", {"!"}}},
+    // 23. unaryExp -> primaryExp | Ident '(' (funcRParams)? ')' | unaryOp unaryExp
+    {54, {"unaryExp", {"primaryExp"}}},
+    {55, {"unaryExp", {"Ident", "(", "funcRParams_opt", ")"}}},
+    {56, {"unaryExp", {"unaryOp", "unaryExp"}}},
+    {57, {"funcRParams_opt", {"funcRParams"}}},
+    {58, {"funcRParams_opt", {EPSILON}}},
     
-    // 24. funcRParams -> funcRParam (',' funcRParam)*
-    {60, {"funcRParams", {"funcRParam", "funcRParam_list"}}},
-    {61, {"funcRParam_list", {"funcRParam_list", ",", "funcRParam"}}},
-    {62, {"funcRParam_list", {EPSILON}}},
+    // 24. unaryOp -> '+' | '-' | '!'
+    {59, {"unaryOp", {"+"}}},
+    {60, {"unaryOp", {"-"}}},
+    {61, {"unaryOp", {"!"}}},
     
-    // 25. funcRParam -> exp
-    {63, {"funcRParam", {"exp"}}},
+    // 25. funcRParams -> funcRParam (',' funcRParam)*
+    {62, {"funcRParams", {"funcRParam", "funcRParam_list"}}},
+    {63, {"funcRParam_list", {"funcRParam_list", ",", "funcRParam"}}},
+    {64, {"funcRParam_list", {EPSILON}}},
     
-    // 26. mulExp -> unaryExp | mulExp ('*' | '/' | '%') unaryExp
-    {64, {"mulExp", {"unaryExp"}}},
-    {65, {"mulExp", {"mulExp", "*", "unaryExp"}}},
-    {66, {"mulExp", {"mulExp", "/", "unaryExp"}}},
-    {67, {"mulExp", {"mulExp", "%", "unaryExp"}}},
+    // 26. funcRParam -> exp
+    {65, {"funcRParam", {"exp"}}},
     
-    // 27. addExp -> mulExp | addExp ('+' | '-') mulExp
-    {68, {"addExp", {"mulExp"}}},
-    {69, {"addExp", {"addExp", "+", "mulExp"}}},
-    {70, {"addExp", {"addExp", "-", "mulExp"}}},
+    // 27. mulExp -> unaryExp | mulExp ('*' | '/' | '%') unaryExp
+    {66, {"mulExp", {"unaryExp"}}},
+    {67, {"mulExp", {"mulExp", "*", "unaryExp"}}},
+    {68, {"mulExp", {"mulExp", "/", "unaryExp"}}},
+    {69, {"mulExp", {"mulExp", "%", "unaryExp"}}},
     
-    // 28. relExp -> addExp | relExp ('<' | '>' | '<=' | '>=') addExp
-    {71, {"relExp", {"addExp"}}},
-    {72, {"relExp", {"relExp", "<", "addExp"}}},
-    {73, {"relExp", {"relExp", ">", "addExp"}}},
-    {74, {"relExp", {"relExp", "<=", "addExp"}}},
-    {75, {"relExp", {"relExp", ">=", "addExp"}}},
+    // 28. addExp -> mulExp | addExp ('+' | '-') mulExp
+    {70, {"addExp", {"mulExp"}}},
+    {71, {"addExp", {"addExp", "+", "mulExp"}}},
+    {72, {"addExp", {"addExp", "-", "mulExp"}}},
     
-    // 29. eqExp -> relExp | eqExp ('==' | '!=') relExp
-    {76, {"eqExp", {"relExp"}}},
-    {77, {"eqExp", {"eqExp", "==", "relExp"}}},
-    {78, {"eqExp", {"eqExp", "!=", "relExp"}}},
+    // 29. relExp -> addExp | relExp ('<' | '>' | '<=' | '>=') addExp
+    {73, {"relExp", {"addExp"}}},
+    {74, {"relExp", {"relExp", "<", "addExp"}}},
+    {75, {"relExp", {"relExp", ">", "addExp"}}},
+    {76, {"relExp", {"relExp", "<=", "addExp"}}},
+    {77, {"relExp", {"relExp", ">=", "addExp"}}},
     
-    // 30. lAndExp -> eqExp | lAndExp '&&' eqExp
-    {79, {"lAndExp", {"eqExp"}}},
-    {80, {"lAndExp", {"lAndExp", "&&", "eqExp"}}},
+    // 30. eqExp -> relExp | eqExp ('==' | '!=') relExp
+    {78, {"eqExp", {"relExp"}}},
+    {79, {"eqExp", {"eqExp", "==", "relExp"}}},
+    {80, {"eqExp", {"eqExp", "!=", "relExp"}}},
     
-    // 31. lOrExp -> lAndExp | lOrExp '||' lAndExp
-    {81, {"lOrExp", {"lAndExp"}}},
-    {82, {"lOrExp", {"lOrExp", "||", "lAndExp"}}},
+    // 31. lAndExp -> eqExp | lAndExp '&&' eqExp
+    {81, {"lAndExp", {"eqExp"}}},
+    {82, {"lAndExp", {"lAndExp", "&&", "eqExp"}}},
     
-    // 32. constExp -> addExp
-    {83, {"constExp", {"addExp"}}}
+    // 32. lOrExp -> lAndExp | lOrExp '||' lAndExp
+    {83, {"lOrExp", {"lAndExp"}}},
+    {84, {"lOrExp", {"lOrExp", "||", "lAndExp"}}},
+    
+    // 33. constExp -> addExp
+    {85, {"constExp", {"addExp"}}}
 };
 
 
@@ -1610,8 +1614,8 @@ private:
             case 43:  // else_opt -> epsilon
                 break;
             
-            // 46.lVal -> Ident
-            case 46:
+            // 48.lVal -> Ident
+            case 48:
             {
                 ParseTreeNode* identNode = findChild(children, "Ident");
                 if (identNode)
@@ -1623,9 +1627,9 @@ private:
                 break;
             }
             
-            // 50-51.number -> IntConst | floatConst
-            case 50:
-            case 51:
+            // 52-53.number -> IntConst | floatConst
+            case 52:
+            case 53:
             {
                 if (!children.empty() && children[0])
                 {
@@ -1637,32 +1641,57 @@ private:
             }
             
             // 表达式传递：不设置semanticType，让语义信息穿透
-            // 44.exp -> lOrExp
+            // 44.exp -> assignExp
             case 44:
-            // 45.cond -> lOrExp
-            case 45:
-            // 48.primaryExp -> lVal
-            case 48:
-            // 49.primaryExp -> number
+            // 46.assignExp -> lOrExp  
+            case 46:
+            // 47.cond -> lOrExp
+            case 47:
+            // 49.primaryExp -> '(' exp ')'
             case 49:
-            // 52.unaryExp -> primaryExp
-            case 52:
-            // 64.mulExp -> unaryExp
-            case 64:
-            // 68.addExp -> mulExp
-            case 68:
-            // 71.relExp -> addExp
-            case 71:
-            // 76.eqExp -> relExp
-            case 76:
-            // 79.lAndExp -> eqExp
-            case 79:
-            // 81.lOrExp -> lAndExp
+            // 50.primaryExp -> lVal
+            case 50:
+            // 51.primaryExp -> number
+            case 51:
+            // 54.unaryExp -> primaryExp
+            case 54:
+            // 66.mulExp -> unaryExp
+            case 66:
+            // 70.addExp -> mulExp
+            case 70:
+            // 73.relExp -> addExp
+            case 73:
+            // 78.eqExp -> relExp
+            case 78:
+            // 81.lAndExp -> eqExp
             case 81:
+            // 83.lOrExp -> lAndExp
+            case 83:
                 break;
             
-            // 53.unaryExp -> Ident '(' funcRParams_opt ')' - 函数调用
-            case 53:
+            // 45.assignExp -> lVal '=' assignExp - 赋值表达式
+            case 45:
+            {
+                node->semanticType = "Assignment";
+                
+                // 获取变量名（children[0]应该是lVal）
+                ParseTreeNode* lValNode = findChild(children, "lVal");
+                if (lValNode && !lValNode->children.empty())
+                {
+                    node->varName = lValNode->children[0]->value;
+                }
+                
+                // 收集右侧表达式（从assignExp中）
+                if (children.size() >= 3 && children[2])
+                {
+                    collectSemanticChildren(children[2], node->semanticChildren);
+                }
+                
+                break;
+            }
+            
+            // 55.unaryExp -> Ident '(' funcRParams_opt ')' - 函数调用
+            case 55:
             {
                 node->semanticType = "FunctionCall";
                 
@@ -1684,8 +1713,8 @@ private:
                 break;
             }
             
-            // 54.unaryExp -> unaryOp unaryExp - 一元运算
-            case 54:
+            // 56.unaryExp -> unaryOp unaryExp - 一元运算
+            case 56:
             {
                 // 获取运算符
                 ParseTreeNode* unaryOpNode = findChild(children, "unaryOp");
@@ -1730,43 +1759,43 @@ private:
             }
             
             // 二元表达式：创建 BinaryExpr 节点
-            // 65-67.mulExp -> mulExp ('*' | '/' | '%') unaryExp
-            case 65:  // *
-            case 66:  // /
-            case 67:  // %
-            // 69-70.addExp -> addExp ('+' | '-') mulExp
-            case 69:  // +
-            case 70:  // -
-            // 72-75.relExp -> relExp ('<' | '>' | '<=' | '>=') addExp
-            case 72:  // <
-            case 73:  // >
-            case 74:  // <=
-            case 75:  // >=
-            // 77-78.eqExp -> eqExp ('==' | '!=') relExp
-            case 77:  // ==
-            case 78:  // !=
-            // 80.lAndExp -> lAndExp '&&' eqExp
-            case 80:  // &&
-            // 82.lOrExp -> lOrExp '||' lAndExp
-            case 82:  // ||
+            // 67-69.mulExp -> mulExp ('*' | '/' | '%') unaryExp
+            case 67:  // *
+            case 68:  // /
+            case 69:  // %
+            // 71-72.addExp -> addExp ('+' | '-') mulExp
+            case 71:  // +
+            case 72:  // -
+            // 74-77.relExp -> relExp ('<' | '>' | '<=' | '>=') addExp
+            case 74:  // <
+            case 75:  // >
+            case 76:  // <=
+            case 77:  // >=
+            // 79-80.eqExp -> eqExp ('==' | '!=') relExp
+            case 79:  // ==
+            case 80:  // !=
+            // 82.lAndExp -> lAndExp '&&' eqExp
+            case 82:  // &&
+            // 84.lOrExp -> lOrExp '||' lAndExp
+            case 84:  // ||
             {
                 node->semanticType = "BinaryExpr";
                 
                 // 确定运算符
                 string op;
-                if (originalIndex == 65) op = "*";
-                else if (originalIndex == 66) op = "/";
-                else if (originalIndex == 67) op = "%";
-                else if (originalIndex == 69) op = "+";
-                else if (originalIndex == 70) op = "-";
-                else if (originalIndex == 72) op = "<";
-                else if (originalIndex == 73) op = ">";
-                else if (originalIndex == 74) op = "<=";
-                else if (originalIndex == 75) op = ">=";
-                else if (originalIndex == 77) op = "==";
-                else if (originalIndex == 78) op = "!=";
-                else if (originalIndex == 80) op = "&&";
-                else if (originalIndex == 82) op = "||";
+                if (originalIndex == 67) op = "*";
+                else if (originalIndex == 68) op = "/";
+                else if (originalIndex == 69) op = "%";
+                else if (originalIndex == 71) op = "+";
+                else if (originalIndex == 72) op = "-";
+                else if (originalIndex == 74) op = "<";
+                else if (originalIndex == 75) op = ">";
+                else if (originalIndex == 76) op = "<=";
+                else if (originalIndex == 77) op = ">=";
+                else if (originalIndex == 79) op = "==";
+                else if (originalIndex == 80) op = "!=";
+                else if (originalIndex == 82) op = "&&";
+                else if (originalIndex == 84) op = "||";
                 
                 node->operatorType = op;
                 

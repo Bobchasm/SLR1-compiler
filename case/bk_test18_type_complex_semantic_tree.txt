@@ -1,0 +1,58 @@
+Program
+├── FunctionDef: int add_int()
+│   ├── FuncParam: int x
+│   ├── FuncParam: int y
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: x
+│           └── Variable: y
+├── FunctionDef: float add_float()
+│   ├── FuncParam: float x
+│   ├── FuncParam: float y
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: x
+│           └── Variable: y
+└── FunctionDef: int main()
+    ├── VarDecl: local float f1 = 10
+    │   └── Number: 10
+    ├── VarDecl: local float f2 = 5
+    │   └── FunctionCall: add_int()
+    │       ├── Number: 5
+    │       └── Number: 3
+    ├── VarDecl: local int i1 = 3.14
+    │   └── Number: 3
+    ├── VarDecl: local int i2 = 2.5
+    │   └── FunctionCall: add_float()
+    │       ├── Number: 2
+    │       └── Number: 1
+    ├── VarDecl: local int result1 = 10
+    │   └── FunctionCall: add_int()
+    │       ├── Number: 10
+    │       └── Number: 20
+    ├── VarDecl: local float result2 = 1.5
+    │   └── FunctionCall: add_float()
+    │       ├── Number: 1.5
+    │       └── Number: 2.5
+    ├── VarDecl: local int result3 = 1.1
+    │   └── FunctionCall: add_int()
+    │       ├── Number: 1
+    │       └── Number: 2
+    ├── VarDecl: local float result4 = 1
+    │   └── FunctionCall: add_float()
+    │       ├── Number: 1
+    │       └── Number: 2
+    ├── VarDecl: local float fa = 1.5
+    │   └── Number: 1.5
+    ├── VarDecl: local int ia = 2
+    │   └── Number: 2
+    ├── VarDecl: local float fb
+    │   └── BinaryExpr: +
+    │       ├── Variable: fa
+    │       └── Variable: ia
+    ├── VarDecl: local int ib
+    │   └── BinaryExpr: +
+    │       ├── Variable: fa
+    │       └── Variable: ia
+    └── ReturnStmt: Number
+        └── Number: 0

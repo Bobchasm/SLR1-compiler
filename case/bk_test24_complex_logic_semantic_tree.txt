@@ -1,0 +1,80 @@
+Program
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 1
+    │   └── Number: 1
+    ├── VarDecl: local int b = 0
+    │   └── Number: 0
+    ├── VarDecl: local int c = 2
+    │   └── Number: 2
+    ├── VarDecl: local int result1
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: ||
+    │   │       ├── BinaryExpr: &&
+    │   │       │   ├── BinaryExpr: >
+    │   │       │   │   ├── Variable: a
+    │   │       │   │   └── Number: 0
+    │   │       │   └── BinaryExpr: >=
+    │   │       │       ├── Variable: b
+    │   │       │       └── Number: 0
+    │   │       └── BinaryExpr: &&
+    │   │           ├── BinaryExpr: <=
+    │   │           │   ├── Variable: c
+    │   │           │   └── Number: 2
+    │   │           └── BinaryExpr: !=
+    │   │               ├── Variable: a
+    │   │               └── Variable: b
+    │   └── ThenBranch: 
+    │       └── Assignment: result1 = Number
+    │           └── Number: 10
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: ||
+    │   │       ├── BinaryExpr: &&
+    │   │       │   ├── Variable: a
+    │   │       │   └── Variable: b
+    │   │       └── BinaryExpr: >
+    │   │           ├── Variable: c
+    │   │           └── Number: 0
+    │   ├── ThenBranch: 
+    │   │   └── ReturnStmt: Number
+    │   │       └── Number: 1
+    │   └── ElseBranch: 
+    │       └── ReturnStmt: Number
+    │           └── Number: 0
+    ├── VarDecl: local int x = 5
+    │   └── Number: 5
+    ├── VarDecl: local int y = 10
+    │   └── Number: 10
+    ├── VarDecl: local int z = 15
+    │   └── Number: 15
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: &&
+    │   │       ├── BinaryExpr: ||
+    │   │       │   ├── BinaryExpr: &&
+    │   │       │   │   ├── BinaryExpr: >
+    │   │       │   │   │   ├── Variable: x
+    │   │       │   │   │   └── Number: 0
+    │   │       │   │   └── BinaryExpr: >
+    │   │       │   │       ├── Variable: y
+    │   │       │   │       └── Number: 0
+    │   │       │   └── BinaryExpr: >
+    │   │       │       ├── Variable: z
+    │   │       │       └── Number: 20
+    │   │       └── BinaryExpr: &&
+    │   │           ├── BinaryExpr: ||
+    │   │           │   ├── BinaryExpr: <
+    │   │           │   │   ├── Variable: x
+    │   │           │   │   └── Number: 10
+    │   │           │   └── BinaryExpr: <
+    │   │           │       ├── Variable: y
+    │   │           │       └── Number: 5
+    │   │           └── BinaryExpr: !=
+    │   │               ├── Variable: z
+    │   │               └── Number: 0
+    │   └── ThenBranch: 
+    │       └── VarDecl: global int temp = 1
+    │           └── Number: 1
+    └── ReturnStmt: Number
+        └── Number: 0

@@ -1,0 +1,37 @@
+Program
+├── FunctionDef: int addInt()
+│   ├── FuncParam: int a
+│   ├── FuncParam: int b
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: a
+│           └── Variable: b
+├── FunctionDef: float addFloat()
+│   ├── FuncParam: float a
+│   ├── FuncParam: float b
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: a
+│           └── Variable: b
+└── FunctionDef: void main()
+    ├── VarDecl: local int x = 10
+    │   └── Number: 10
+    ├── VarDecl: local float y = 3.14
+    │   └── Number: 3.14
+    ├── VarDecl: local int result1 = 5
+    │   └── FunctionCall: addInt()
+    │       ├── Number: 5
+    │       └── Number: 10
+    ├── VarDecl: local int result2 = 10
+    │   └── FunctionCall: addInt()
+    │       ├── Variable: y
+    │       └── Number: 10
+    ├── VarDecl: local float result3 = 3.14
+    │   └── FunctionCall: addFloat()
+    │       ├── Variable: x
+    │       └── Number: 3.14
+    ├── VarDecl: local int result4
+    │   └── FunctionCall: addInt()
+    │       ├── Variable: x
+    │       └── Variable: y
+    └── ReturnStmt: 

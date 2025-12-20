@@ -1,0 +1,82 @@
+Program
+└── FunctionDef: void MaIn()
+    ├── VarDecl: local const int _X1 = 42
+    │   └── Number: 42
+    ├── VarDecl: local float Pi = 3.14
+    │   └── Number: 3.14
+    ├── VarDecl: local int A = 1
+    │   └── Number: 1
+    ├── Assignment: y = BinaryExpr
+    │   └── BinaryExpr: -
+    │       ├── BinaryExpr: +
+    │       │   ├── Variable: y
+    │       │   └── BinaryExpr: *
+    │       │       ├── Variable: _X1
+    │       │       └── Number: 2
+    │       └── BinaryExpr: %
+    │           ├── BinaryExpr: /
+    │           │   ├── Number: 5
+    │           │   └── Number: 3
+    │           └── Number: 2
+    ├── Assignment: A = BinaryExpr
+    │   └── BinaryExpr: +
+    │       ├── Variable: A
+    │       └── Variable: B
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: ||
+    │   │       ├── BinaryExpr: &&
+    │   │       │   ├── BinaryExpr: >=
+    │   │       │   │   ├── Variable: y
+    │   │       │   │   └── Number: 10
+    │   │       │   └── BinaryExpr: !=
+    │   │       │       ├── Variable: y
+    │   │       │       └── Number: 0
+    │   │       └── BinaryExpr: <
+    │   │           ├── Variable: A
+    │   │           └── Variable: B
+    │   ├── ThenBranch: 
+    │   │   └── Assignment: y = BinaryExpr
+    │   │       └── BinaryExpr: +
+    │   │           ├── Variable: y
+    │   │           └── Number: 1
+    │   └── ElseBranch: 
+    │       └── Assignment: y = BinaryExpr
+    │           └── BinaryExpr: -
+    │               ├── Variable: y
+    │               └── Number: 1
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: &&
+    │   │       ├── BinaryExpr: >
+    │   │       │   ├── Variable: Pi
+    │   │       │   └── Number: 1.0
+    │   │       └── BinaryExpr: <=
+    │   │           ├── Variable: rate
+    │   │           └── Number: 1.0
+    │   ├── ThenBranch: 
+    │   │   └── Assignment: A = BinaryExpr
+    │   │       └── BinaryExpr: *
+    │   │           ├── BinaryExpr: +
+    │   │           │   ├── Variable: A
+    │   │           │   └── Variable: B
+    │   │           └── BinaryExpr: -
+    │   │               ├── Variable: _X1
+    │   │               └── Number: 3
+    │   └── ElseBranch: 
+    │       └── IfStmt: 
+    │           ├── Condition: 
+    │           │   └── BinaryExpr: ==
+    │           │       ├── Variable: A
+    │           │       └── Variable: B
+    │           ├── ThenBranch: 
+    │           │   └── Assignment: B = BinaryExpr
+    │           │       └── BinaryExpr: +
+    │           │           ├── Variable: B
+    │           │           └── Number: 1
+    │           └── ElseBranch: 
+    │               └── Assignment: B = BinaryExpr
+    │                   └── BinaryExpr: -
+    │                       ├── Variable: B
+    │                       └── Number: 1
+    └── ReturnStmt: 

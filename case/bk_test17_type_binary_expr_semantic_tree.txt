@@ -1,0 +1,46 @@
+Program
+├── FunctionDef: float test_float_add()
+│   ├── VarDecl: local float a = 1.2
+│   │   └── Number: 1.2
+│   ├── VarDecl: local float b = 2.1
+│   │   └── Number: 2.1
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: a
+│           └── Variable: b
+├── FunctionDef: int test_int_add()
+│   ├── VarDecl: local int a = 10
+│   │   └── Number: 10
+│   ├── VarDecl: local int b = 20
+│   │   └── Number: 20
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: a
+│           └── Variable: b
+├── FunctionDef: int test_mixed_expr()
+│   ├── VarDecl: local float a = 1.5
+│   │   └── Number: 1.5
+│   ├── VarDecl: local int b = 2
+│   │   └── Number: 2
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: a
+│           └── Variable: b
+├── FunctionDef: float test_mixed_to_float()
+│   ├── VarDecl: local float a = 1.5
+│   │   └── Number: 1.5
+│   ├── VarDecl: local int b = 2
+│   │   └── Number: 2
+│   ├── VarDecl: local float c
+│   │   └── BinaryExpr: +
+│   │       ├── Variable: a
+│   │       └── Variable: b
+│   └── ReturnStmt: Variable
+│       └── Variable: c
+└── FunctionDef: int main()
+    ├── FunctionCall: test_float_add()
+    ├── FunctionCall: test_int_add()
+    ├── FunctionCall: test_mixed_expr()
+    ├── FunctionCall: test_mixed_to_float()
+    └── ReturnStmt: Number
+        └── Number: 0

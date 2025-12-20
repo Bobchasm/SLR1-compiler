@@ -1,0 +1,62 @@
+Program
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 1
+    │   └── Number: 1
+    ├── VarDecl: local int b = 2
+    │   └── Number: 2
+    ├── VarDecl: local int c = 3
+    │   └── Number: 3
+    ├── VarDecl: local int d = 4
+    │   └── Number: 4
+    ├── VarDecl: local int e = 5
+    │   └── Number: 5
+    ├── VarDecl: local int result
+    │   └── BinaryExpr: +
+    │       ├── BinaryExpr: +
+    │       │   ├── BinaryExpr: +
+    │       │   │   ├── BinaryExpr: +
+    │       │   │   │   ├── BinaryExpr: +
+    │       │   │   │   │   ├── Variable: a
+    │       │   │   │   │   └── BinaryExpr: *
+    │       │   │   │   │       ├── Variable: b
+    │       │   │   │   │       └── Variable: c
+    │       │   │   │   └── BinaryExpr: *
+    │       │   │   │       ├── Variable: d
+    │       │   │   │       └── Variable: e
+    │       │   │   └── BinaryExpr: *
+    │       │   │       ├── Variable: a
+    │       │   │       └── Variable: b
+    │       │   └── BinaryExpr: *
+    │       │       ├── Variable: c
+    │       │       └── Variable: d
+    │       └── BinaryExpr: *
+    │           ├── Variable: e
+    │           └── Variable: a
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: <
+    │   │       ├── Variable: a
+    │   │       └── Variable: b
+    │   └── ThenBranch: 
+    │       └── IfStmt: 
+    │           ├── Condition: 
+    │           │   └── BinaryExpr: <
+    │           │       ├── Variable: b
+    │           │       └── Variable: c
+    │           └── ThenBranch: 
+    │               └── IfStmt: 
+    │                   ├── Condition: 
+    │                   │   └── BinaryExpr: <
+    │                   │       ├── Variable: c
+    │                   │       └── Variable: d
+    │                   └── ThenBranch: 
+    │                       └── IfStmt: 
+    │                           ├── Condition: 
+    │                           │   └── BinaryExpr: <
+    │                           │       ├── Variable: d
+    │                           │       └── Variable: e
+    │                           └── ThenBranch: 
+    │                               └── Assignment: result = Number
+    │                                   └── Number: 100
+    └── ReturnStmt: Variable
+        └── Variable: result

@@ -1,0 +1,25 @@
+Program
+├── FunctionDef: int add()
+│   ├── FuncParam: int a
+│   ├── FuncParam: int b
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: a
+│           └── Variable: b
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 1
+    │   └── Number: 1
+    ├── VarDecl: local int b = 2
+    │   └── Number: 2
+    ├── VarDecl: local int x
+    │   └── FunctionCall: add()
+    │       ├── Variable: a
+    │       └── Variable: b
+    ├── Assignment: b = Number
+    │   └── Number: 5
+    ├── VarDecl: local float y = 7.87
+    │   └── Number: 7.87
+    ├── Assignment: y = Variable
+    │   └── Variable: b
+    └── ReturnStmt: Variable
+        └── Variable: y

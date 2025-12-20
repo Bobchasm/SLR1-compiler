@@ -1,0 +1,30 @@
+Program
+├── FunctionDef: int main()
+│   ├── VarDecl: local int a = 2.4
+│   │   └── Number: 2
+│   ├── VarDecl: local int b
+│   ├── Assignment: b = Number
+│   │   └── Number: 3
+│   ├── VarDecl: local float x = 10.5
+│   │   └── Number: 10.5
+│   ├── VarDecl: local int c
+│   │   └── Variable: x
+│   └── ReturnStmt: Number
+│       └── Number: 0
+├── FunctionDef: int test_return()
+│   ├── VarDecl: local float x = 5.7
+│   │   └── Number: 5.7
+│   └── ReturnStmt: Variable
+│       └── Variable: x
+├── FunctionDef: void test_param()
+│   ├── FuncParam: int y
+│   └── ReturnStmt: 
+└── FunctionDef: int test_call()
+    ├── VarDecl: local float x = 3.3
+    │   └── Number: 3.3
+    ├── FunctionCall: test_param()
+    │   └── Variable: x
+    ├── FunctionCall: test_param()
+    │   └── Number: 42
+    └── ReturnStmt: Number
+        └── Number: 0

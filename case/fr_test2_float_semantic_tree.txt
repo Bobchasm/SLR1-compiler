@@ -1,0 +1,27 @@
+Program
+└── FunctionDef: int main()
+    ├── VarDecl: local float x = 3.14
+    │   └── Number: 3.14
+    ├── VarDecl: local float y = 2.5
+    │   └── Number: 2.5
+    ├── VarDecl: local float z
+    ├── Assignment: z = BinaryExpr
+    │   └── BinaryExpr: +
+    │       ├── Variable: x
+    │       └── Variable: y
+    ├── Assignment: z = BinaryExpr
+    │   └── BinaryExpr: -
+    │       ├── Variable: x
+    │       └── Variable: y
+    ├── Assignment: z = BinaryExpr
+    │   └── BinaryExpr: *
+    │       ├── Variable: x
+    │       └── Variable: y
+    ├── Assignment: z = BinaryExpr
+    │   └── BinaryExpr: /
+    │       ├── Variable: x
+    │       └── Variable: y
+    ├── VarDecl: local const float PI = 3.14159
+    │   └── Number: 3.14159
+    └── ReturnStmt: Number
+        └── Number: 0

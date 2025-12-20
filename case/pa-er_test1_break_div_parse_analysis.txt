@@ -5,14 +5,14 @@ Step    State       Symbol Stack        Input               Action
 3       2           bType               Ident               s14            
 4       14          Ident               (                   s19            
 5       19          (                   )                   r25            
-6       27          funcFParams_opt     )                   s54            
-7       54          )                   {                   s80            
-8       80          {                   const               r32            
-9       101         blockItem_list      const               s6             
+6       27          funcFParams_opt     )                   s55            
+7       55          )                   {                   s84            
+8       84          {                   const               r32            
+9       106         blockItem_list      const               s6             
 10      6           const               float               s9             
 11      9           float               Ident               r13            
 12      18          bType               Ident               s22            
-13      22          Ident               =                   s50            
-14      50          =                   IntConst            s33            
+13      22          Ident               =                   s51            
+14      51          =                   IntConst            s33            
 15      33          IntConst            const               error          
 15      33          IntConst            const               Error: No action

@@ -1,0 +1,22 @@
+Program
+├── VarDecl: global const int GLOBAL_CONST = 100
+│   └── Number: 100
+└── FunctionDef: int main()
+    ├── VarDecl: local const int LOCAL_CONST = 50
+    │   └── Number: 50
+    ├── VarDecl: local int a
+    │   └── Variable: GLOBAL_CONST
+    ├── VarDecl: local int b
+    │   └── Variable: LOCAL_CONST
+    ├── VarDecl: local const float PI = 3.14
+    │   └── Number: 3.14
+    ├── VarDecl: local float r = 10.0
+    │   └── Number: 10.0
+    ├── VarDecl: local float area
+    │   └── BinaryExpr: *
+    │       ├── BinaryExpr: *
+    │       │   ├── Variable: PI
+    │       │   └── Variable: r
+    │       └── Variable: r
+    └── ReturnStmt: Number
+        └── Number: 0

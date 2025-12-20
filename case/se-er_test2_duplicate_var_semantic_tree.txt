@@ -1,0 +1,8 @@
+Program
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 10
+    │   └── Number: 10
+    ├── VarDecl: local int a = 20
+    │   └── Number: 20
+    └── ReturnStmt: Number
+        └── Number: 0

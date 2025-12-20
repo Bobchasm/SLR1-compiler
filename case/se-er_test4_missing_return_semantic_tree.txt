@@ -1,0 +1,9 @@
+Program
+├── FunctionDef: int getValue()
+│   └── VarDecl: local int a = 10
+│       └── Number: 10
+└── FunctionDef: int main()
+    ├── VarDecl: local int x
+    │   └── FunctionCall: getValue()
+    └── ReturnStmt: Number
+        └── Number: 0

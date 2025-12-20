@@ -1,0 +1,55 @@
+Program
+├── FunctionDef: int add()
+│   ├── FuncParam: int num1
+│   ├── FuncParam: int num2
+│   ├── FuncParam: int mod
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: %
+│           ├── BinaryExpr: +
+│           │   ├── Variable: num1
+│           │   └── Variable: num2
+│           └── Variable: mod
+├── FunctionDef: void test()
+└── FunctionDef: void main()
+    ├── VarDecl: local int a
+    ├── VarDecl: local int b = 2
+    │   └── Number: 2
+    ├── VarDecl: local int c = 32
+    │   └── Number: -32
+    ├── VarDecl: local float f1 = 1.32
+    │   └── Number: 1.32
+    ├── VarDecl: local float f2 = 3123.3
+    │   └── Number: -3123.3
+    ├── Assignment: a = Number
+    │   └── Number: 32
+    ├── Assignment: b = BinaryExpr
+    │   └── BinaryExpr: +
+    │       ├── Variable: a
+    │       └── Number: 1
+    ├── VarDecl: local const int g
+    │   └── BinaryExpr: +
+    │       ├── UnaryExp
+    │       │   └── Variable: b
+    │       └── BinaryExpr: *
+    │           ├── BinaryExpr: +
+    │           │   ├── Variable: a
+    │           │   └── Variable: c
+    │           └── UnaryExp
+    │               └── Variable: a
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: &&
+    │   │       ├── UnaryExp
+    │   │       │   └── Number: 0
+    │   │       └── Number: 1
+    │   └── ThenBranch: 
+    │       ├── Assignment: a = Number
+    │       │   └── Number: 2
+    │       └── Assignment: g = Number
+    │           └── Number: 1
+    ├── VarDecl: local int ret
+    │   └── FunctionCall: add()
+    │       ├── Variable: b
+    │       └── Variable: c
+    ├── FunctionCall: test()
+    └── ReturnStmt: 

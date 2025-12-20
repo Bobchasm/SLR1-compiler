@@ -1,0 +1,20 @@
+1	##int	move
+2	int#Ident	reduction
+3	bType#Ident	move
+4	Ident#(	move
+5	(#)	reduction
+6	funcFParams_opt#)	move
+7	)#{	move
+8	{#int	reduction
+9	blockItem_list#int	move
+10	int#Ident	reduction
+11	bType#Ident	move
+12	Ident#;	reduction
+13	varDef#;	reduction
+14	varDef_list#;	move
+15	;#int	reduction
+16	varDecl#int	reduction
+17	decl#int	reduction
+18	blockItem#int	reduction
+19	blockItem_list#int	move
+20	int#123_hello	Error: Unknown symbol

@@ -1,0 +1,12 @@
+Program
+└── FunctionDef: int main()
+    ├── VarDecl: local int a = 10
+    │   └── Number: 10
+    ├── VarDecl: local int b = 1
+    │   └── BinaryExpr: +
+    │       ├── Variable: c
+    │       └── Number: 1
+    ├── Assignment: b = Variable
+    │   └── Variable: c
+    └── ReturnStmt: Variable
+        └── Variable: c

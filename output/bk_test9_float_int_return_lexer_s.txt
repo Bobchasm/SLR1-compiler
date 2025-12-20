@@ -1,0 +1,14 @@
+float	<KW,6>
+main	<KW,5>
+(	<SE,23>
+)	<SE,24>
+{	<SE,25>
+float	<KW,6>
+b	<IDN,b>
+=	<OP,14>
+3	<INT,3>
+;	<SE,27>
+return	<KW,3>
+b	<IDN,b>
+;	<SE,27>
+}	<SE,26>

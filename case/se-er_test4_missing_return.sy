@@ -1,0 +1,10 @@
+// 错误测试4: 缺少return语句
+int getValue() {
+    int a = 10;
+    // 缺少return语句
+}
+
+int main() {
+    int x = getValue();
+    return 0;
+}

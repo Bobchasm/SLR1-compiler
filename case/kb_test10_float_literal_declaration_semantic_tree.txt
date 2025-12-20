@@ -1,0 +1,8 @@
+Program
+└── FunctionDef: void main()
+    ├── VarDecl: local float a = 0.1
+    │   └── Number: 0.1
+    ├── VarDecl: local float b = 1.23
+    │   └── Number: 1.23
+    └── VarDecl: local float c = 1.0
+        └── Number: 1.0

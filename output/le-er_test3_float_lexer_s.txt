@@ -1,0 +1,14 @@
+int	<KW,1>
+main	<KW,5>
+(	<SE,23>
+)	<SE,24>
+{	<SE,25>
+float	<KW,6>
+simpleFloat	<IDN,simpleFloat>
+=	<OP,14>
+3.14	<FLOAT,3.14>
+;	<SE,27>
+float	<KW,6>
+scientific1	<IDN,scientific1>
+=	<OP,14>
+1.5e10	<ERROR,3,25>

@@ -1,0 +1,11 @@
+void	<KW,2>
+test	<IDN,test>
+(	<SE,23>
+)	<SE,24>
+{	<SE,25>
+}	<SE,26>
+int	<KW,1>
+main	<KW,5>
+(	<SE,23>
+)	<SE,24>
+)	<SE,24>

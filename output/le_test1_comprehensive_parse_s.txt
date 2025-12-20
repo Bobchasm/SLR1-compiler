@@ -1,0 +1,10 @@
+1	##int	move
+2	int#Ident	reduction
+3	bType#Ident	move
+4	Ident#(	move
+5	(#)	reduction
+6	funcFParams_opt#)	move
+7	)#{	move
+8	{#void	reduction
+9	blockItem_list#void	move
+10	void#return	10	void#return	Error: No action

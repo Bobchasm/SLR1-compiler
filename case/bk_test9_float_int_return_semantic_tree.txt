@@ -1,0 +1,6 @@
+Program
+└── FunctionDef: float main()
+    ├── VarDecl: local float b = 3
+    │   └── Number: 3
+    └── ReturnStmt: Variable
+        └── Variable: b

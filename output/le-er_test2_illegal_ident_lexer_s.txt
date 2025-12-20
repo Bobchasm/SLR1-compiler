@@ -1,0 +1,10 @@
+int	<KW,1>
+main	<KW,5>
+(	<SE,23>
+)	<SE,24>
+{	<SE,25>
+int	<KW,1>
+_hello	<IDN,_hello>
+;	<SE,27>
+int	<KW,1>
+123_hello	<ERROR,3,9>

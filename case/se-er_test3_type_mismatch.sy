@@ -1,0 +1,9 @@
+// 错误测试3: 类型不匹配
+int add(int x, int y) {
+    return x + y;
+}
+
+int main() {
+    int result = add(1, 2, 3);  // 参数数量不匹配
+    return 0;
+}

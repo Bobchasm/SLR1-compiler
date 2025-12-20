@@ -1,0 +1,14 @@
+void _(int _1, int _2, int _3)
+{
+    int _a = 0;
+    int _b = 0;
+    int _c = 0;
+
+    if (((_a = _1 + 1) > 0 && ((_b = _2 + 2) > 0)) || ((_c = _3 + 3) > 0))
+    {
+        if ((_a + _b + _c) % 2 == 0) { _a + _b + _c; return;}
+        else { _a - _b + _c; return;}
+    }
+    if ((((_a == 1)))) { _b + _c; return;}
+    else { return ; }
+}

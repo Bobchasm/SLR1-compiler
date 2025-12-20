@@ -1,0 +1,28 @@
+// 测试函数参数类型检查
+
+int addInt(int a, int b) {
+    return a + b;
+}
+
+float addFloat(float a, float b) {
+    return a + b;
+}
+
+void main() {
+    int x = 10;
+    float y = 3.14;
+    
+    // 正确调用
+    int result1 = addInt(5, 10);
+    
+    // 警告：传递float给int参数
+    int result2 = addInt(y, 10);
+    
+    // 警告：传递int给float参数
+    float result3 = addFloat(x, 3.14);
+    
+    // 警告：混合类型
+    int result4 = addInt(x, y);
+    
+    return;
+}

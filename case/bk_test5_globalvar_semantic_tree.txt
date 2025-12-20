@@ -1,0 +1,25 @@
+Program
+├── VarDecl: global int global_a = 100
+│   └── Number: 100
+├── VarDecl: global int global_b = 200
+│   └── Number: 200
+├── FunctionDef: int get_sum()
+│   └── ReturnStmt: BinaryExpr
+│       └── BinaryExpr: +
+│           ├── Variable: global_a
+│           └── Variable: global_b
+└── FunctionDef: int main()
+    ├── VarDecl: local int local
+    │   └── FunctionCall: get_sum()
+    ├── Assignment: global_a = Number
+    │   └── Number: 50
+    ├── IfStmt: 
+    │   ├── Condition: 
+    │   │   └── BinaryExpr: >
+    │   │       ├── Variable: local
+    │   │       └── Number: 250
+    │   └── ThenBranch: 
+    │       └── ReturnStmt: Number
+    │           └── Number: -1
+    └── ReturnStmt: Number
+        └── Number: 0
