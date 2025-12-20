@@ -1,7 +1,0 @@
-void foo(float f) { 
-    int a = 1;
-}
-
-void main(){
-    foo(1); 
-}

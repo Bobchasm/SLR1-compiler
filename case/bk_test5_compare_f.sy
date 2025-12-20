@@ -1,8 +1,0 @@
-int main() {
-    float a = 3.14;
-    float b = 2.71;
-    if( a > b ){
-        a = 1.2;
-    }      
-    return 0;
-}

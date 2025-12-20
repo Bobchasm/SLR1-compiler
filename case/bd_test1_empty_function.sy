@@ -1,8 +1,0 @@
-// 边界测试1: 空函数
-void emptyFunc() {
-}
-
-int main() {
-    emptyFunc();
-    return 0;
-}

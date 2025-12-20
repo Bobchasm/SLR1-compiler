@@ -1,8 +1,0 @@
-int main(){
-    int _hello;
-    int 123_hello = 1;
-
-
-
-    return 1;
-}
