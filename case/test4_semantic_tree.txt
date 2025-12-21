@@ -1,0 +1,56 @@
+Program
+└── FunctionDef: int _()
+    ├── FuncParam: int _float
+    ├── FuncParam: int _int
+    ├── FuncParam: int _main
+    ├── VarDecl: local const float _a = 0.5
+    │   └── BinaryExpr: *
+    │       ├── Number: 0.5
+    │       └── Number: 0.3
+    ├── VarDecl: local const float _b = 1.25
+    │   └── BinaryExpr: -
+    │       ├── Variable: _int
+    │       └── Number: 1.25
+    ├── VarDecl: local float _c
+    │   └── BinaryExpr: +
+    │       ├── BinaryExpr: *
+    │       │   ├── Variable: _a
+    │       │   └── Variable: _b
+    │       └── Variable: _main
+    └── IfStmt: 
+        ├── Condition: 
+        │   └── BinaryExpr: >
+        │       ├── Variable: _c
+        │       └── Number: 10.0
+        ├── ThenBranch: 
+        │   ├── Assignment: _c = BinaryExpr
+        │   │   └── BinaryExpr: -
+        │   │       ├── Variable: _c
+        │   │       └── Number: 3.0
+        │   └── IfStmt: 
+        │       ├── Condition: 
+        │       │   └── BinaryExpr: >
+        │       │       ├── Variable: _c
+        │       │       └── Number: 20.0
+        │       ├── ThenBranch: 
+        │       │   └── ReturnStmt: Number
+        │       │       └── Number: 2
+        │       └── ElseBranch: 
+        │           └── ReturnStmt: Number
+        │               └── Number: 1
+        └── ElseBranch: 
+            ├── Assignment: _c = BinaryExpr
+            │   └── BinaryExpr: +
+            │       ├── Variable: _c
+            │       └── Number: 4.0
+            └── IfStmt: 
+                ├── Condition: 
+                │   └── BinaryExpr: <
+                │       ├── Variable: _c
+                │       └── Number: 0.0
+                ├── ThenBranch: 
+                │   └── ReturnStmt: Number
+                │       └── Number: -1
+                └── ElseBranch: 
+                    └── ReturnStmt: Number
+                        └── Number: 0

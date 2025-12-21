@@ -1,0 +1,9 @@
+int _(int _float, int _int, int _main)
+{
+    const float _a = 0.5 * 0.3;
+    const float _b = _int - 1.25;
+    float _c = _a * _b + _main;
+    ;
+    if (_c > 10.0) { _c = _c - 3.0; if (_c > 20.0) { ;return 2; } else { return 1; } }
+    else { _c = _c + 4.0; if (_c < 0.0) { return -1; } else { return 0; } }
+}

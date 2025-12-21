@@ -1,0 +1,66 @@
+; ModuleID = 'sysy2022_compiler'
+source_filename = ".\case\test4.sy"
+declare i32 @getint()
+
+declare i32 @getch()
+
+declare i32 @getarray(i32*)
+
+declare void @putint(i32)
+
+declare void @putch(i32)
+
+declare void @putarray(i32, i32*)
+
+declare void @starttime()
+
+declare void @stoptime()
+
+define i32 @_(i32 %_float, i32 %_int, i32 %_main) {
+label___ENTRY:
+  %__float = alloca i32
+  store i32 %_float, i32* %__float
+  %__int = alloca i32
+  store i32 %_int, i32* %__int
+  %__main = alloca i32
+  store i32 %_main, i32* %__main
+  %_a = alloca float
+  %op0 = fmul float 0x3F000000, 0x3E99999A
+  store float %op0, float* %_a
+  %_b = alloca float
+  %op1 = load i32, i32* %__int
+  %op2 = fsub float %op1, 0x3FA00000
+  store float %op2, float* %_b
+  %_c = alloca float
+  %op3 = load float, float* %_a
+  %op4 = load float, float* %_b
+  %op5 = fmul float %op3, %op4
+  %op6 = load i32, i32* %__main
+  %op7 = fadd float %op5, %op6
+  store float %op7, float* %_c
+  %op8 = load float, float* %_c
+  %op9 = fcmp ogt float %op8, 0x41200000
+  br i1 %op9, label %label_if_then_1, label %label_if_else_1
+label_if_then_1:                                                ; preds = %label___ENTRY
+  %op10 = load float, float* %_c
+  %op11 = fsub float %op10, 0x40400000
+  store float %op11, float* %_c
+  %op12 = load float, float* %_c
+  %op13 = fcmp ogt float %op12, 0x41A00000
+  br i1 %op13, label %label_if_then_2, label %label_if_else_2
+label_if_else_1:                                                ; preds = %label___ENTRY
+  %op14 = load float, float* %_c
+  %op15 = fadd float %op14, 0x40800000
+  store float %op15, float* %_c
+  %op16 = load float, float* %_c
+  %op17 = fcmp olt float %op16, 0x00000000
+  br i1 %op17, label %label_if_then_3, label %label_if_else_3
+label_if_then_2:                                                ; preds = %label_if_then_1
+  ret i32 2
+label_if_else_2:                                                ; preds = %label_if_then_1
+  ret i32 1
+label_if_then_3:                                                ; preds = %label_if_else_1
+  ret i32 -1
+label_if_else_3:                                                ; preds = %label_if_else_1
+  ret i32 0
+}
