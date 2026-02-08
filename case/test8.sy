@@ -1,9 +1,0 @@
-int _(int _1, int _2, int _3)
-{
-    int _r = 0;
-    if (_2 == 0) { return _1 + _3; }
-    if (_2 == 1) { return _1 - _3; }
-    if (_2 == 2) { return _1 * _3; }
-    if (_2 == 3) { if (_3 == 0) { return -999; } else { return _1 / _3; } }
-    return +1;
-}
