@@ -55,6 +55,8 @@ compiler/
 └── README.md
 ```
 
+`/ir_lib` 库来源 https://gitee.com/happy-traveller/compiler_ir
+
 ## 3 运行启动
 
 ### 3.1 环境准备
